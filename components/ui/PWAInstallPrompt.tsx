@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { XMarkIcon, DownloadIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, ArrowDownTrayIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline'
 import { usePWA } from '@/hooks/usePWA'
 import { Button } from './Button'
 
@@ -85,7 +85,7 @@ export default function PWAInstallPrompt() {
               disabled={isInstalling}
               className="flex-1"
             >
-              <DownloadIcon className="w-4 h-4 mr-2" />
+              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
               {isInstalling ? '설치 중...' : '설치하기'}
             </Button>
             <Button

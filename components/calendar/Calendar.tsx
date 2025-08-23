@@ -7,6 +7,8 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
+
+// FullCalendar v6는 CSS import가 필요하지 않음
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

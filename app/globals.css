@@ -3,10 +3,7 @@
 @import 'tailwindcss/utilities';
 
 /* FullCalendar 기본 스타일 */
-@import '@fullcalendar/core/main.css';
-@import '@fullcalendar/daygrid/main.css';
-@import '@fullcalendar/timegrid/main.css';
-@import '@fullcalendar/list/main.css';
+/* FullCalendar CSS는 컴포넌트에서 직접 import */
 
 /* CSS 변수 정의 */
 :root {
@@ -396,15 +393,15 @@ body {
 }
 
 .fc-toolbar-title {
-  @apply text-lg font-semibold text-secondary-900;
+  @apply text-lg font-semibold text-gray-900;
 }
 
 .fc-button {
-  @apply bg-secondary-100 text-secondary-700 border border-secondary-200 px-3 py-2 rounded-md text-sm font-medium transition-colors;
+  @apply bg-gray-100 text-gray-700 border border-gray-200 px-3 py-2 rounded-md text-sm font-medium transition-colors;
 }
 
 .fc-button:hover {
-  @apply bg-secondary-200 text-secondary-800;
+  @apply bg-gray-200 text-gray-800;
 }
 
 .fc-button-primary {
@@ -424,7 +421,7 @@ body {
 }
 
 .fc-daygrid-day-number {
-  @apply text-sm font-medium text-secondary-900;
+  @apply text-sm font-medium text-gray-900;
 }
 
 .fc-day-today {
@@ -456,7 +453,7 @@ body {
 }
 
 .fc-list-event:hover {
-  @apply bg-secondary-50;
+  @apply bg-gray-50;
 }
 
 /* 반응형 디자인 */

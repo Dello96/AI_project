@@ -2,8 +2,8 @@
 
 import { useAuth } from './useAuth'
 import { UserRole } from '@/types'
-import { permissionManager, permissionAuditManager } from '@/lib/permissions'
-import { ResourceType, ActionType } from '@/lib/permissions'
+import { permissionManager, ResourceType, ActionType } from '@/lib/permissions'
+import { permissionAuditManager } from '@/lib/permission-audit'
 
 export function usePermissions() {
   const { user } = useAuth()
