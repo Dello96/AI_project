@@ -1,0 +1,328 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Code Guideline
+
+## 1. Project Overview
+
+This document outlines the coding standards for the Church Youth Group Community MVP project, a web-based PWA built with Next.js 14, TypeScript, Vercel, Supabase, TailwindCSS, and Shadcn UI. The project aims to consolidate communication channels for students and young adults, providing a secure, church-authenticated community platform. Key architectural decisions include using Next.js for SSR and SSG, Supabase for backend services (database, auth, storage, realtime), and TailwindCSS with Shadcn UI for rapid UI development.
+
+## 2. Core Principles
+
+- **Maintainability**: Code should be easy to understand, modify, and debug by any team member.
+- **Readability**: Code should be clear, concise, and well-documented to facilitate understanding.
+- **Testability**: Code should be designed to be easily tested at the unit and integration levels.
+- **Performance**: Code should be optimized for speed and efficiency, minimizing resource consumption.
+- **Security**: Code should be written with security in mind, preventing common vulnerabilities.
+
+## 3. Language-Specific Guidelines
+
+### 3.1. TypeScript
+
+#### File Organization and Directory Structure
+
+- Group related files into directories based on feature or domain (e.g., `components/Board`, `utils/date`).
+- Use descriptive file names (e.g., `Button.tsx`, `api.ts`).
+- Follow the project's overall directory structure as defined in the TRD.
+
+#### Import/Dependency Management
+
+- Use absolute imports for internal modules to improve readability and prevent issues with relative paths.
+- Use named imports whenever possible to explicitly declare what is being imported.
+- Keep dependencies up-to-date and regularly audit for security vulnerabilities.
+
+#### Error Handling Patterns
+
+- Use `try...catch` blocks for handling potential errors, especially in asynchronous operations.
+- Create custom error classes for specific error scenarios to provide more context.
+- Log errors with sufficient detail for debugging purposes.
+- Handle errors gracefully and provide informative messages to the user.
+
+```typescript
+// MUST: Example of error handling with try...catch and custom error
+class ApiError extends Error {
+  constructor(message: string, public statusCode: number) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+async function fetchData(url: string): Promise<any> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new ApiError(`Failed to fetch data: ${response.statusText}`, response.status);
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error fetching data:", error);
+    throw error; // Re-throw to allow the caller to handle it
+  }
+}
+```
+
+### 3.2. Next.js
+
+#### File Organization and Directory Structure
+
+- Utilize the `app` directory structure for routing and components.
+- Organize components based on features or domains.
+- Place API routes in the `app/api` directory.
+- Use the `public` directory for static assets.
+
+#### Import/Dependency Management
+
+- Use Next.js's built-in module resolution for internal modules.
+- Use dynamic imports (`next/dynamic`) for code splitting and lazy loading.
+- Manage environment variables using `.env.local` and `next.config.js`.
+
+#### Error Handling Patterns
+
+- Implement error boundaries using React's `ErrorBoundary` component to catch errors in components.
+- Use Next.js's custom error page (`app/error.js`) to handle unhandled errors.
+- Handle API route errors by sending appropriate HTTP status codes and error messages.
+
+```typescript
+// MUST: Example of using an ErrorBoundary component
+"use client";
+
+import React, { useState, useEffect } from 'react';
+
+interface Props {
+  children: React.ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    // Update state so the next render will show the fallback UI.
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    // You can also log the error to an error reporting service
+    console.error("Captured an error", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return <h1>Something went wrong.</h1>;
+    }
+
+    return this.props.children;
+  }
+}
+
+export default ErrorBoundary;
+```
+
+### 3.3. TailwindCSS
+
+#### File Organization and Directory Structure
+
+- Use a `styles` directory for global CSS files and custom styles.
+- Utilize Tailwind's configuration file (`tailwind.config.js`) for customization.
+- Keep component-specific styles within the component files.
+
+#### Class Naming Conventions
+
+- Use descriptive class names that follow a consistent pattern.
+- Avoid overly long or complex class names.
+- Utilize Tailwind's utility classes for styling.
+- Group related classes together for readability.
+
+#### Usage Patterns
+
+- Use Tailwind's `@apply` directive sparingly to avoid creating overly specific styles.
+- Utilize Tailwind's theme configuration for consistent colors, fonts, and spacing.
+- Use responsive modifiers (e.g., `md:`, `lg:`) for responsive design.
+
+### 3.4. Supabase
+
+#### Data Modeling
+
+- Define clear and consistent data models in Supabase.
+- Use appropriate data types for each field.
+- Establish relationships between tables using foreign keys.
+
+#### Querying
+
+- Use Supabase's client library for querying the database.
+- Optimize queries to retrieve only the necessary data.
+- Use indexes to improve query performance.
+
+#### Security
+
+- Implement row-level security (RLS) policies to control access to data.
+- Use Supabase Auth for authentication and authorization.
+- Sanitize user input to prevent SQL injection attacks.
+
+```typescript
+// MUST: Example of using Supabase RLS policies
+// Assuming you have a table named 'posts'
+// Allow authenticated users to read all posts
+// Allow users to create posts with their own user_id
+// Allow users to update/delete their own posts
+
+// Create policy for SELECT
+create policy "Enable read access for all users"
+on posts
+for select
+using (true);
+
+// Create policy for INSERT
+create policy "Enable insert for authenticated users based on user_id"
+on posts
+for insert
+with check (auth.uid() = user_id);
+
+// Create policy for UPDATE
+create policy "Enable update for users based on user_id"
+on posts
+for update
+with check (auth.uid() = user_id);
+
+// Create policy for DELETE
+create policy "Enable delete for users based on user_id"
+on posts
+for delete
+with check (auth.uid() = user_id);
+```
+
+## 4. Code Style Rules
+
+### MUST Follow:
+
+- **Consistent Formatting**: Use Prettier to automatically format code according to a consistent style.
+  - Rationale: Ensures code readability and reduces stylistic disagreements.
+- **Descriptive Naming**: Use clear and descriptive names for variables, functions, and classes.
+  - Rationale: Improves code understanding and maintainability.
+- **Concise Functions**: Keep functions short and focused, ideally performing a single, well-defined task.
+  - Rationale: Enhances code readability and testability.
+- **Meaningful Comments**: Add comments to explain complex logic or non-obvious code sections.
+  - Rationale: Helps other developers understand the code's purpose and functionality.
+- **Type Annotations**: Use TypeScript's type annotations extensively to define the types of variables, function parameters, and return values.
+  - Rationale: Improves code safety and prevents runtime errors.
+- **Error handling**: Implement robust error handling using `try...catch` blocks and custom error classes.
+  - Rationale: Prevents application crashes and provides informative error messages.
+- **Avoid Magic Numbers**: Use named constants instead of hardcoding numerical values.
+  - Rationale: Improves code readability and maintainability.
+- **Use environment variables**: Sensitive information like API keys and database credentials should be stored as environment variables, not hardcoded in the application.
+  - Rationale: Increases the security of the application.
+
+### MUST NOT Do:
+
+- **Global Variables**: Avoid using global variables as they can lead to naming conflicts and unpredictable behavior.
+  - Rationale: Promotes modularity and prevents unintended side effects.
+- **Nested Callbacks**: Avoid deeply nested callbacks, which can make code difficult to read and maintain (callback hell). Use Promises or async/await instead.
+  - Rationale: Improves code readability and maintainability.
+- **Ignoring Errors**: Never ignore errors or exceptions without handling them properly.
+  - Rationale: Prevents application crashes and ensures data integrity.
+- **Over-commenting**: Avoid adding excessive comments that state the obvious.
+  - Rationale: Reduces clutter and improves code readability.
+- **Duplicated Code**: Avoid duplicating code. Extract common logic into reusable functions or components.
+  - Rationale: Improves code maintainability and reduces the risk of errors.
+- **Complex conditional statements**: Avoid writing overly complex and nested conditional statements. Simplify them by using helper functions or breaking them down into smaller, more manageable parts.
+  - Rationale: Improves code readability and maintainability.
+- **Committing secrets to repository**: Never commit sensitive information such as API keys, passwords, or database credentials to the repository.
+  - Rationale: Prevents unauthorized access to sensitive information.
+- **Large, Single-Responsibility Files**: Avoid creating massive files with multiple responsibilities. Break down code into smaller, more focused modules.
+  - Rationale: Increases maintainability and reduces complexity.
+
+## 5. Architecture Patterns
+
+### Component/Module Structure Guidelines
+
+- **Atomic Design**: Structure UI components using the Atomic Design methodology (Atoms, Molecules, Organisms, Templates, Pages).
+  - Atoms: Basic UI elements (e.g., buttons, inputs, labels).
+  - Molecules: Combinations of Atoms (e.g., search bar, form field).
+  - Organisms: Combinations of Molecules and Atoms (e.g., header, footer).
+  - Templates: Page layouts with placeholder content.
+  - Pages: Specific instances of Templates with actual content.
+- **Domain-Driven Design**: Organize modules based on business domains (e.g., `board`, `calendar`, `auth`).
+- **Single Responsibility Principle**: Each component/module should have a single, well-defined purpose.
+
+```typescript
+// MUST: Example of Atomic Design component structure (Atom)
+// components/atoms/Button.tsx
+
+import React from 'react';
+
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick: () => void;
+  className?: string;
+}
+
+const Button: React.FC<ButtonProps> = ({ children, onClick, className }) => {
+  return (
+    <button className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${className}`} onClick={onClick}>
+      {children}
+    </button>
+  );
+};
+
+export default Button;
+```
+
+### Data Flow Patterns
+
+- **Unidirectional Data Flow**: Data should flow in one direction, typically from parent components to child components via props.
+- **State Management**: Use React's built-in state management (`useState`, `useContext`) for simple state. For more complex state management, consider using a library like Zustand.
+- **API Communication**: Use a dedicated API client (e.g., `utils/api.ts`) to handle communication with the Supabase backend.
+
+### State Management Conventions
+
+- **Local State**: Use `useState` for component-specific state that doesn't need to be shared.
+- **Context API**: Use `useContext` for sharing state between components within a specific subtree.
+- **Global State**: Use Zustand for managing application-wide state.
+
+### API Design Standards
+
+- **RESTful APIs**: Design APIs following RESTful principles.
+- **Consistent Endpoints**: Use consistent naming conventions for API endpoints.
+- **JSON Format**: Use JSON for request and response bodies.
+- **Error Handling**: Return appropriate HTTP status codes for errors.
+- **Authentication**: Use Supabase Auth for authenticating API requests.
+- **Authorization**: Implement authorization checks to ensure that users have the necessary permissions to access resources.
+
+```typescript
+// MUST: Example of a RESTful API endpoint (Next.js API route)
+// app/api/posts/[id]/route.ts
+
+import { NextResponse } from 'next/server';
+import { supabase } from '@/utils/supabaseClient';
+
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const { id } = params;
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching post:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!data) {
+    return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+  }
+
+  return NextResponse.json(data);
+}
+```
+

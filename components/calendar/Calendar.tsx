@@ -1,0 +1,339 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import listPlugin from '@fullcalendar/list'
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PlusIcon,
+  CalendarIcon,
+  ViewColumnsIcon,
+  CalendarDaysIcon,
+  ListBulletIcon
+} from '@heroicons/react/24/outline'
+import { Event, CalendarView, eventCategories } from '@/types'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { useAuth } from '@/hooks/useAuth'
+import { useRealtimeEvents } from '@/hooks/useRealtimeEvents'
+import { eventService } from '@/lib/database'
+
+interface CalendarProps {
+  onAddEvent: () => void
+  onSelectEvent: (event: Event) => void
+  onSelectDate: (date: Date) => void
+}
+
+type CalendarViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'
+
+export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: CalendarProps) {
+  const { user } = useAuth()
+  const [view, setView] = useState<CalendarViewType>('dayGridMonth')
+  const { events, setEvents } = useRealtimeEvents()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [currentDate, setCurrentDate] = useState(new Date())
+
+  // 실시간 이벤트 사용으로 인해 별도 조회 불필요
+
+  // FullCalendar 이벤트 데이터 변환
+  const calendarEvents = events.map(event => ({
+    id: event.id,
+    title: event.title,
+    start: event.startDate,
+    end: event.endDate,
+    allDay: event.isAllDay,
+    backgroundColor: eventCategories.find(cat => cat.value === event.category)?.color || '#6b7280',
+    borderColor: eventCategories.find(cat => cat.value === event.category)?.color || '#6b7280',
+    textColor: 'white',
+    extendedProps: {
+      description: event.description,
+      location: event.location,
+      category: event.category,
+      authorId: event.authorId
+    }
+  }))
+
+  // 이벤트 클릭 핸들러
+  const handleEventClick = (clickInfo: any) => {
+    const event = events.find(e => e.id === clickInfo.event.id)
+    if (event) {
+      onSelectEvent(event)
+    }
+  }
+
+  // 날짜 클릭 핸들러
+  const handleDateClick = (dateClickInfo: any) => {
+    onSelectDate(dateClickInfo.date)
+  }
+
+  // 이벤트 드래그 앤 드롭 핸들러
+  const handleEventDrop = async (dropInfo: any) => {
+    try {
+      const event = events.find(e => e.id === dropInfo.event.id)
+      if (event) {
+        const updatedEvent = {
+          ...event,
+          startDate: dropInfo.event.start,
+          endDate: dropInfo.event.end || dropInfo.event.start
+        }
+        
+        const result = await eventService.updateEvent(event.id, {
+          title: updatedEvent.title,
+          description: updatedEvent.description || '',
+          startDate: updatedEvent.startDate,
+          endDate: updatedEvent.endDate,
+          location: updatedEvent.location || '',
+          category: updatedEvent.category,
+          isAllDay: updatedEvent.isAllDay
+        })
+        
+        if (result) {
+          // 실시간 업데이트로 자동 반영됨
+        }
+      }
+    } catch (error) {
+      console.error('이벤트 업데이트 오류:', error)
+      // 드롭 취소
+      dropInfo.revert()
+    }
+  }
+
+  // 이벤트 리사이즈 핸들러
+  const handleEventResize = async (resizeInfo: any) => {
+    try {
+      const event = events.find(e => e.id === resizeInfo.event.id)
+      if (event) {
+        const updatedEvent = {
+          ...event,
+          startDate: resizeInfo.event.start,
+          endDate: resizeInfo.event.end || resizeInfo.event.start
+        }
+        
+        const result = await eventService.updateEvent(event.id, {
+          title: updatedEvent.title,
+          description: updatedEvent.description || '',
+          startDate: updatedEvent.startDate,
+          endDate: updatedEvent.endDate,
+          location: updatedEvent.location || '',
+          category: updatedEvent.category,
+          isAllDay: updatedEvent.isAllDay
+        })
+        
+        if (result) {
+          // 실시간 업데이트로 자동 반영됨
+        }
+      }
+    } catch (error) {
+      console.error('이벤트 업데이트 오류:', error)
+      // 리사이즈 취소
+      resizeInfo.revert()
+    }
+  }
+
+  // 뷰 변경 핸들러
+  const handleViewChange = (viewInfo: any) => {
+    setView(viewInfo.view.type)
+    setCurrentDate(viewInfo.view.currentStart)
+  }
+
+  // 네비게이션 핸들러
+  const handleNavigation = (navInfo: any) => {
+    setCurrentDate(navInfo.view.currentStart)
+  }
+
+  // 오늘로 이동
+  const goToToday = () => {
+    const calendarApi = (document.querySelector('.fc') as any)?.getApi()
+    if (calendarApi) {
+      calendarApi.today()
+    }
+  }
+
+  // 이전/다음으로 이동
+  const navigateCalendar = (direction: 'prev' | 'next') => {
+    const calendarApi = (document.querySelector('.fc') as any)?.getApi()
+    if (calendarApi) {
+      if (direction === 'prev') {
+        calendarApi.prev()
+      } else {
+        calendarApi.next()
+      }
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* 헤더 */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-secondary-900">일정 관리</h2>
+          <p className="text-secondary-600">청년부 일정을 한눈에 확인하고 관리하세요</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={goToToday} variant="outline" size="sm">
+            오늘
+          </Button>
+          {user && (
+            <Button onClick={onAddEvent} variant="default" size="sm">
+              <PlusIcon className="w-4 h-4 mr-2" />
+              일정 추가
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* 캘린더 네비게이션 */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={() => navigateCalendar('prev')}
+                variant="ghost"
+                size="sm"
+              >
+                <ChevronLeftIcon className="w-5 h-5" />
+              </Button>
+              
+              <Button
+                onClick={() => navigateCalendar('next')}
+                variant="ghost"
+                size="sm"
+              >
+                <ChevronRightIcon className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setView('dayGridMonth')}
+                variant={view === 'dayGridMonth' ? 'default' : 'outline'}
+                size="sm"
+              >
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                월
+              </Button>
+              <Button
+                onClick={() => setView('timeGridWeek')}
+                variant={view === 'timeGridWeek' ? 'default' : 'outline'}
+                size="sm"
+              >
+                <ViewColumnsIcon className="w-4 h-4 mr-2" />
+                주
+              </Button>
+              <Button
+                onClick={() => setView('timeGridDay')}
+                variant={view === 'timeGridDay' ? 'default' : 'outline'}
+                size="sm"
+              >
+                <CalendarDaysIcon className="w-4 h-4 mr-2" />
+                일
+              </Button>
+              <Button
+                onClick={() => setView('listWeek')}
+                variant={view === 'listWeek' ? 'default' : 'outline'}
+                size="sm"
+              >
+                <ListBulletIcon className="w-4 h-4 mr-2" />
+                목록
+              </Button>
+            </div>
+            
+            <div className="flex gap-2">
+              {Object.entries(eventCategories).map(([key, category]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: category.color }}
+                  />
+                  <span className="text-sm text-secondary-600">{category.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* FullCalendar */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="calendar-container">
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+              headerToolbar={false}
+              initialView={view}
+              views={{
+                dayGridMonth: {
+                  titleFormat: { year: 'numeric', month: 'long' }
+                },
+                timeGridWeek: {
+                  titleFormat: { year: 'numeric', month: 'long', day: 'numeric' }
+                },
+                timeGridDay: {
+                  titleFormat: { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }
+                },
+                listWeek: {
+                  titleFormat: { year: 'numeric', month: 'long', day: 'numeric' }
+                }
+              }}
+              events={calendarEvents}
+              eventClick={handleEventClick}
+              dateClick={handleDateClick}
+              eventDrop={handleEventDrop}
+              eventResize={handleEventResize}
+              datesSet={handleNavigation}
+              editable={user !== null}
+              droppable={user !== null}
+              selectable={true}
+              selectMirror={true}
+              dayMaxEvents={true}
+              height="auto"
+              locale="ko"
+              firstDay={1}
+              slotMinTime="06:00:00"
+              slotMaxTime="24:00:00"
+              allDaySlot={true}
+              slotDuration="00:30:00"
+              slotLabelInterval="01:00:00"
+              nowIndicator={true}
+              businessHours={{
+                daysOfWeek: [1, 2, 3, 4, 5, 6, 0],
+                startTime: '09:00',
+                endTime: '18:00',
+              }}
+              eventTimeFormat={{
+                hour: '2-digit',
+                minute: '2-digit',
+                meridiem: false,
+                hour12: false
+              }}
+              dayHeaderFormat={{
+                weekday: 'short'
+              }}
+              buttonText={{
+                today: '오늘',
+                month: '월',
+                week: '주',
+                day: '일',
+                list: '목록'
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

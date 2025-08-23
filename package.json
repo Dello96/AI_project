@@ -1,0 +1,68 @@
+{
+  "name": "youth-community",
+  "version": "1.0.0",
+  "description": "교회 청년부 올인원 커뮤니티 플랫폼 - 공지, 일정, 소통을 하나로",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next out dist",
+    "analyze": "ANALYZE=true npm run build"
+  },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/list": "^6.1.19",
+    "@fullcalendar/react": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
+    "@heroicons/react": "^2.1.5",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/supabase-js": "^2.55.0",
+    "autoprefixer": "^10.4.20",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.10.16",
+    "next": "^14.2.31",
+    "next-pwa": "^5.6.0",
+    "postcss": "^8.4.47",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.4.4",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.31",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  },
+  "keywords": [
+    "church",
+    "youth",
+    "community",
+    "nextjs",
+    "typescript",
+    "supabase",
+    "pwa"
+  ],
+  "author": "청년부 커뮤니티 개발팀",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youth-community/youth-community-web.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
