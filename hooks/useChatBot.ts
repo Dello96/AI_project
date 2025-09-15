@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { ChatMessage, ChatBotConfig } from '@/types'
-import { getOpenAIService } from '@/lib/openai'
+import { getGeminiService } from '@/lib/gemini'
 
 export function useChatBot() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -15,7 +15,7 @@ export function useChatBot() {
   })
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const openaiService = getOpenAIService()
+  const geminiService = getGeminiService()
 
   // 메시지 목록 스크롤을 맨 아래로
   const scrollToBottom = useCallback(() => {
@@ -54,8 +54,12 @@ export function useChatBot() {
         timestamp: new Date()
       }]
 
-      // OpenAI API 호출
-      const response = await openaiService.sendMessage(currentMessages)
+      console.log('챗봇 메시지 전송 중...', { messageCount: currentMessages.length })
+
+      // Gemini API 호출
+      const response = await geminiService.sendMessage(currentMessages)
+      
+      console.log('챗봇 응답 받음:', response)
       
       // AI 응답 추가
       addMessage({
@@ -98,7 +102,7 @@ export function useChatBot() {
   // 챗봇 열릴 때 인사말 추가
   useEffect(() => {
     if (config.isOpen && messages.length === 0) {
-      openaiService.generateGreeting().then(greeting => {
+      geminiService.generateGreeting().then(greeting => {
         addMessage({
           role: 'assistant',
           content: greeting

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getOpenAIService } from '@/lib/openai'
+import { getGeminiService } from '@/lib/gemini'
 import { ChatMessage } from '@/types'
 
 export async function POST(request: NextRequest) {
@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const openaiService = getOpenAIService()
-    const response = await openaiService.sendMessage(messages)
+    const geminiService = getGeminiService()
+    const response = await geminiService.sendMessage(messages)
 
     return NextResponse.json({ 
       message: response,

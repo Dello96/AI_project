@@ -18,6 +18,10 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // 환경 변수 설정
+  env: {
+    GOOGLE_GEMINI_API_KEY: process.env.GOOGLE_GEMINI_API_KEY,
+  },
   // TypeScript 설정에서 Supabase Functions 제외
   typescript: {
     ignoreBuildErrors: false,
