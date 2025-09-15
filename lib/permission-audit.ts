@@ -83,7 +83,7 @@ export class PermissionAuditManager {
       userRole,
       action: `${resource}:${action}`,
       resource,
-      resourceId,
+      ...(resourceId && { resourceId }),
       details: { context },
       severity: 'low'
     }

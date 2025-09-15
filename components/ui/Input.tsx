@@ -11,6 +11,9 @@ export interface InputProps
   iconPosition?: 'left' | 'right'
   error?: string
   success?: string
+  label?: string
+  helperText?: string
+  required?: boolean
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -23,8 +26,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     iconPosition = 'left',
     error,
     success,
+    label,
+    helperText,
+    required,
+    id,
     ...props 
   }, ref) => {
+    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`
     const baseClasses = "flex w-full rounded-xl border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300"
     
     const variantClasses = {
@@ -35,9 +43,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }
     
     const sizeClasses = {
-      sm: "h-9 px-3 py-2 text-sm",
-      default: "h-12 px-4 py-3",
-      lg: "h-14 px-6 py-4 text-base"
+      sm: "h-9 px-3 py-2 text-sm min-h-[36px]", // 터치 목표 크기 고려
+      default: "h-12 px-4 py-3 min-h-[44px]", // 터치 목표 크기 44px 이상
+      lg: "h-14 px-6 py-4 text-base min-h-[56px]"
     }
     
     const stateClasses = error 
@@ -47,36 +55,61 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       : ""
 
     return (
-      <div className="relative">
-        {icon && iconPosition === 'left' && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
-            {icon}
-          </div>
+      <div className="space-y-2">
+        {label && (
+          <label 
+            htmlFor={inputId}
+            className="block text-sm font-medium text-gray-700"
+          >
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </label>
         )}
         
-        <input
-          type={type}
-          className={cn(
-            baseClasses,
-            variantClasses[variant],
-            sizeClasses[inputSize],
-            stateClasses,
-            icon && iconPosition === 'left' && "pl-10",
-            icon && iconPosition === 'right' && "pr-10",
-            className
+        <div className="relative">
+          {icon && iconPosition === 'left' && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
+              {icon}
+            </div>
           )}
-          ref={ref}
-          {...props}
-        />
+          
+          <input
+            id={inputId}
+            type={type}
+            className={cn(
+              baseClasses,
+              variantClasses[variant],
+              sizeClasses[inputSize],
+              stateClasses,
+              icon && iconPosition === 'left' && "pl-10",
+              icon && iconPosition === 'right' && "pr-10",
+              className
+            )}
+            ref={ref}
+            aria-invalid={!!error}
+            aria-describedby={
+              error ? `${inputId}-error` : 
+              helperText ? `${inputId}-helper` : 
+              undefined
+            }
+            {...props}
+          />
+          
+          {icon && iconPosition === 'right' && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400">
+              {icon}
+            </div>
+          )}
+        </div>
         
-        {icon && iconPosition === 'right' && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400">
-            {icon}
-          </div>
+        {helperText && !error && (
+          <p id={`${inputId}-helper`} className="text-sm text-gray-500">
+            {helperText}
+          </p>
         )}
         
         {error && (
-          <p className="mt-2 text-sm text-error-600 animate-fade-in-up">
+          <p id={`${inputId}-error`} className="mt-2 text-sm text-error-600 animate-fade-in-up" role="alert">
             {error}
           </p>
         )}

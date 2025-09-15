@@ -24,11 +24,11 @@ const buttonVariants = cva(
         youth: "bg-gradient-to-r from-church-coral to-church-gold text-white shadow-medium hover:shadow-large hover:scale-105",
       },
       size: {
-        default: "h-12 px-6 py-3",
-        sm: "h-9 rounded-lg px-3",
-        lg: "h-14 rounded-2xl px-8 py-4 text-base",
-        xl: "h-16 rounded-2xl px-10 py-5 text-lg",
-        icon: "h-10 w-10",
+        default: "h-12 px-6 py-3 min-h-[44px] min-w-[44px]", // 터치 목표 크기 44px 이상
+        sm: "h-9 rounded-lg px-3 min-h-[36px] min-w-[36px]",
+        lg: "h-14 rounded-2xl px-8 py-4 text-base min-h-[56px] min-w-[56px]",
+        xl: "h-16 rounded-2xl px-10 py-5 text-lg min-h-[64px] min-w-[64px]",
+        icon: "h-10 w-10 min-h-[40px] min-w-[40px]",
       },
       animation: {
         none: "",
@@ -95,7 +95,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           "flex items-center justify-center",
           loading && "opacity-70"
         )}>
-          {children}
+          {children as React.ReactNode}
         </span>
         
         {!loading && icon && iconPosition === 'right' && (

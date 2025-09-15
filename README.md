@@ -44,7 +44,18 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 **중요**: Supabase 프로젝트를 먼저 생성해야 합니다. 자세한 설정 방법은 `SUPABASE_SETUP.md`를 참조하세요.
 
-### 4. 개발 서버 실행
+### 4. 교회 도메인 데이터 추가 (중요!)
+회원가입에서 교회를 선택할 수 있도록 교회 도메인 데이터를 추가해야 합니다:
+
+```bash
+# 방법 1: 스크립트 실행 (권장)
+npm run seed:churches
+
+# 방법 2: Supabase SQL Editor에서 직접 실행
+# database/seed_church_domains.sql 파일의 내용을 복사하여 실행
+```
+
+### 5. 개발 서버 실행
 ```bash
 npm run dev
 ```
@@ -123,11 +134,15 @@ ai_project/
    - `.env.local` 파일이 프로젝트 루트에 있는지 확인
    - Supabase 프로젝트가 생성되었는지 확인
 
-2. **빌드 오류**
+2. **회원가입 시 교회 선택이 안 되는 문제**
+   - Supabase SQL Editor에서 `database/seed_church_domains.sql` 실행
+   - 또는 관리자 페이지(`/admin/church-domains`)에서 교회 추가
+
+3. **빌드 오류**
    - `npm install` 재실행
    - `.next` 캐시 삭제 후 재시작
 
-3. **타입 오류**
+4. **타입 오류**
    - `types/` 폴더의 타입 정의 확인
    - TypeScript 컴파일러 재시작
 

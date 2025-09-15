@@ -3,7 +3,7 @@ import { Post, Event, User, SearchFilters, SearchResult } from '@/types'
 
 export class SearchService {
   // 통합 검색
-  async searchAll(query: string, filters?: SearchFilters): Promise<SearchResult> {
+  async searchAll(query: string, filters?: SearchFilters): Promise<SearchResult[]> {
     try {
       const [posts, events, users] = await Promise.all([
         this.searchPosts(query, filters),
@@ -11,12 +11,48 @@ export class SearchService {
         this.searchUsers(query, filters)
       ])
 
-      return {
-        posts,
-        events,
-        users,
-        total: posts.length + events.length + users.length
-      }
+      const results: SearchResult[] = []
+
+      // 게시글 결과 추가
+      posts.forEach(post => {
+        results.push({
+          id: post.id,
+          type: 'post',
+          title: post.title,
+          content: post.content,
+          author: post.author?.name || '익명',
+          createdAt: new Date(post.createdAt),
+          url: `/board/${post.id}`
+        })
+      })
+
+      // 일정 결과 추가
+      events.forEach(event => {
+        results.push({
+          id: event.id,
+          type: 'event',
+          title: event.title,
+          ...(event.description && { content: event.description }),
+          author: event.author?.name || '익명',
+          createdAt: new Date(event.createdAt),
+          url: `/calendar/${event.id}`
+        })
+      })
+
+      // 사용자 결과 추가
+      users.forEach(user => {
+        results.push({
+          id: user.id,
+          type: 'user',
+          title: user.name,
+          content: user.email,
+          author: user.name,
+          createdAt: new Date(user.createdAt),
+          url: `/profile/${user.id}`
+        })
+      })
+
+      return results
     } catch (error) {
       console.error('통합 검색 오류:', error)
       throw error

@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { SignupForm, LoginForm } from '@/types'
-import { churchDomainService } from '@/lib/database'
+
 
 interface AuthModalProps {
   isOpen: boolean
@@ -31,39 +31,13 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
     password: ''
   })
   
-  const [churchDomains, setChurchDomains] = useState<{ id: string; domain: string; name: string }[]>([])
-  const [showDomainDropdown, setShowDomainDropdown] = useState(false)
+
   
   const { signIn, signUp, isLoading, error } = useAuth()
 
-  // 교회 도메인 데이터 로딩
-  useEffect(() => {
-    const loadChurchDomains = async () => {
-      try {
-        const domains = await churchDomainService.getDomains()
-        setChurchDomains(domains)
-      } catch (error) {
-        console.error('교회 도메인 로딩 오류:', error)
-      }
-    }
-    
-    if (mode === 'signup') {
-      loadChurchDomains()
-    }
-  }, [mode])
 
-  // 드롭다운 외부 클릭 시 닫기
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element
-      if (!target.closest('.domain-dropdown')) {
-        setShowDomainDropdown(false)
-      }
-    }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -144,37 +118,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
                   value={signUpData.phone || ''}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                 />
-                <div className="relative domain-dropdown">
-                  <button
-                    type="button"
-                    onClick={() => setShowDomainDropdown(!showDomainDropdown)}
-                    className="flex w-full items-center justify-between rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300 border-neutral-200 focus:border-primary-500 focus:ring-primary-100 h-12"
-                  >
-                    <span className={signUpData.churchDomain ? 'text-foreground' : 'text-muted-foreground'}>
-                      {signUpData.churchDomain || '교회 도메인을 선택하세요'}
-                    </span>
-                    <ChevronDownIcon className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  
-                  {showDomainDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-input rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                      {churchDomains.map((domain) => (
-                        <button
-                          key={domain.id}
-                          type="button"
-                          onClick={() => {
-                            handleInputChange('churchDomain', domain.domain)
-                            setShowDomainDropdown(false)
-                          }}
-                          className="w-full px-4 py-2 text-left hover:bg-muted transition-colors"
-                        >
-                          <div className="font-medium">{domain.name}</div>
-                          <div className="text-sm text-muted-foreground">{domain.domain}</div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+
               </>
             )}
 

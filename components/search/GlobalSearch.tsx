@@ -32,13 +32,11 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   onSelectUser
 }) => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResult | null>(null)
+  const [results, setResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState<SearchFilters>({
     searchTerm: '',
-    category: undefined,
-    author: undefined,
-    dateRange: undefined
+    type: 'all'
   })
   const [popularSearches, setPopularSearches] = useState<string[]>([])
 
@@ -61,7 +59,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   // 검색 실행
   const handleSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
-      setResults(null)
+      setResults([])
       return
     }
 
@@ -74,7 +72,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
       // await searchService.saveSearchHistory(searchQuery, userId)
     } catch (error) {
       console.error('검색 오류:', error)
-      setResults(null)
+      setResults([])
     } finally {
       setIsLoading(false)
     }
@@ -86,7 +84,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
       if (query.trim()) {
         handleSearch(query)
       } else {
-        setResults(null)
+        setResults([])
       }
     }, 300)
 
@@ -100,13 +98,51 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   }
 
   // 결과 항목 클릭
-  const handleResultClick = (type: 'post' | 'event' | 'user', item: Post | Event | User) => {
+  const handleResultClick = (type: 'post' | 'event' | 'user', item: SearchResult) => {
     if (type === 'post' && onSelectPost) {
-      onSelectPost(item as Post)
+      // SearchResult를 Post로 변환
+      const post: Post = {
+        id: item.id,
+        title: item.title,
+        content: item.content || '',
+        category: 'free', // 기본값
+        authorId: 'anonymous',
+        isAnonymous: true,
+        viewCount: 0,
+        likeCount: 0,
+        commentCount: 0,
+        createdAt: item.createdAt,
+        updatedAt: item.createdAt
+      }
+      onSelectPost(post)
     } else if (type === 'event' && onSelectEvent) {
-      onSelectEvent(item as Event)
+      // SearchResult를 Event로 변환
+      const event: Event = {
+        id: item.id,
+        title: item.title,
+        ...(item.content && { description: item.content }),
+        startDate: item.createdAt,
+        endDate: item.createdAt,
+        category: 'event', // 기본값
+        isAllDay: false,
+        authorId: 'anonymous',
+        createdAt: item.createdAt,
+        updatedAt: item.createdAt
+      }
+      onSelectEvent(event)
     } else if (type === 'user' && onSelectUser) {
-      onSelectUser(item as User)
+      // SearchResult를 User로 변환
+      const user: User = {
+        id: item.id,
+        email: item.content || '',
+        name: item.title,
+        churchDomain: '',
+        role: 'member',
+        isApproved: true,
+        createdAt: item.createdAt,
+        updatedAt: item.createdAt
+      }
+      onSelectUser(user)
     }
     onClose()
   }
@@ -172,18 +208,18 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
               <p className="text-neutral-600">검색 중...</p>
             </div>
-          ) : results ? (
+          ) : results.length > 0 ? (
             /* 검색 결과 */
             <div className="p-6 space-y-6">
               {/* 게시글 결과 */}
-              {results.posts.length > 0 && (
+              {results.filter(r => r.type === 'post').length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-neutral-900 mb-3 flex items-center gap-2">
                     <DocumentTextIcon className="w-5 h-5 text-blue-500" />
-                    게시글 ({results.posts.length})
+                    게시글 ({results.filter(r => r.type === 'post').length})
                   </h3>
                   <div className="space-y-2">
-                    {results.posts.map((post) => (
+                    {results.filter(r => r.type === 'post').map((post) => (
                       <Card
                         key={post.id}
                         hover
@@ -201,7 +237,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                               </p>
                             </div>
                             <div className="text-xs text-neutral-500 text-right">
-                              <div>{post.author?.name || '익명'}</div>
+                              <div>{post.author || '익명'}</div>
                               <div>{new Date(post.createdAt).toLocaleDateString()}</div>
                             </div>
                           </div>
@@ -213,14 +249,14 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
               )}
 
               {/* 일정 결과 */}
-              {results.events.length > 0 && (
+              {results.filter(r => r.type === 'event').length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-neutral-900 mb-3 flex items-center gap-2">
                     <CalendarIcon className="w-5 h-5 text-green-500" />
-                    일정 ({results.events.length})
+                    일정 ({results.filter(r => r.type === 'event').length})
                   </h3>
                   <div className="space-y-2">
-                    {results.events.map((event) => (
+                    {results.filter(r => r.type === 'event').map((event) => (
                       <Card
                         key={event.id}
                         hover
@@ -234,12 +270,12 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                                 {event.title}
                               </h4>
                               <p className="text-sm text-neutral-600 line-clamp-1">
-                                {event.description || '설명 없음'}
+                                {event.content || '설명 없음'}
                               </p>
                             </div>
                             <div className="text-xs text-neutral-500 text-right">
-                              <div>{event.author?.name || '알 수 없음'}</div>
-                              <div>{new Date(event.startDate).toLocaleDateString()}</div>
+                              <div>{event.author || '알 수 없음'}</div>
+                              <div>{new Date(event.createdAt).toLocaleDateString()}</div>
                             </div>
                           </div>
                         </CardContent>
@@ -250,14 +286,14 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
               )}
 
               {/* 사용자 결과 */}
-              {results.users.length > 0 && (
+              {results.filter(r => r.type === 'user').length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-neutral-900 mb-3 flex items-center gap-2">
                     <UserIcon className="w-5 h-5 text-purple-500" />
-                    사용자 ({results.users.length})
+                    사용자 ({results.filter(r => r.type === 'user').length})
                   </h3>
                   <div className="space-y-2">
-                    {results.users.map((user) => (
+                    {results.filter(r => r.type === 'user').map((user) => (
                       <Card
                         key={user.id}
                         hover
@@ -268,14 +304,14 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                           <div className="flex items-center gap-3">
                             <div className="flex-1">
                               <h4 className="font-medium text-neutral-900">
-                                {user.name}
+                                {user.title}
                               </h4>
                               <p className="text-sm text-neutral-600">
-                                {user.email}
+                                {user.content}
                               </p>
                             </div>
                             <div className="text-xs text-neutral-500">
-                              {user.role}
+                              {user.author}
                             </div>
                           </div>
                         </CardContent>
@@ -286,7 +322,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
               )}
 
               {/* 결과가 없는 경우 */}
-              {results.total === 0 && (
+              {results.length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-neutral-600 mb-2">검색 결과가 없습니다.</p>
                   <p className="text-sm text-neutral-500">

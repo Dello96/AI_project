@@ -12,7 +12,29 @@ CREATE TABLE church_domains (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. 사용자 프로필 테이블 (Supabase Auth와 연동)
+-- 2. 임시 회원가입 요청 테이블
+CREATE TABLE pending_members (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(20),
+  church_domain_id UUID REFERENCES church_domains(id),
+  hashed_password VARCHAR(255) NOT NULL,
+  status pending_status DEFAULT 'pending',
+  rejection_reason TEXT,
+  rejection_notes TEXT,
+  approved_by UUID,
+  rejected_by UUID,
+  approved_at TIMESTAMP WITH TIME ZONE,
+  rejected_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. 임시 회원가입 상태 ENUM
+CREATE TYPE pending_status AS ENUM ('pending', 'approved', 'rejected');
+
+-- 4. 사용자 프로필 테이블 (Supabase Auth와 연동)
 CREATE TABLE user_profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -41,8 +63,10 @@ CREATE TABLE posts (
   is_anonymous BOOLEAN DEFAULT false,
   view_count INTEGER DEFAULT 0,
   like_count INTEGER DEFAULT 0,
+  comment_count INTEGER DEFAULT 0,
   is_pinned BOOLEAN DEFAULT false,
   attachments TEXT[], -- 파일 첨부 URL 배열
+  deleted_at TIMESTAMP WITH TIME ZONE, -- 소프트 삭제
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -97,7 +121,38 @@ CREATE TABLE likes (
   )
 );
 
--- 10. 알림 테이블
+-- 10. 리프레시 토큰 테이블
+CREATE TABLE refresh_tokens (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 11. 인증 감사 로그 테이블
+CREATE TABLE auth_audit_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  action auth_action_type NOT NULL,
+  ip_address INET,
+  user_agent TEXT,
+  details JSONB,
+  timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 12. 인증 액션 타입 ENUM
+CREATE TYPE auth_action_type AS ENUM (
+  'login_success',
+  'login_failure', 
+  'logout',
+  'token_refresh',
+  'password_change',
+  'account_locked'
+);
+
+-- 13. 알림 테이블
 CREATE TABLE notifications (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE NOT NULL,
@@ -126,9 +181,15 @@ CREATE TABLE file_uploads (
 );
 
 -- 인덱스 생성
+CREATE INDEX idx_pending_members_email ON pending_members(email);
+CREATE INDEX idx_pending_members_status ON pending_members(status);
+CREATE INDEX idx_pending_members_created_at ON pending_members(created_at DESC);
 CREATE INDEX idx_posts_category ON posts(category);
 CREATE INDEX idx_posts_author ON posts(author_id);
 CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
+CREATE INDEX idx_posts_deleted_at ON posts(deleted_at);
+CREATE INDEX idx_posts_category_created_at ON posts(category, created_at DESC);
+CREATE INDEX idx_posts_author_created_at ON posts(author_id, created_at DESC);
 CREATE INDEX idx_comments_post ON comments(post_id);
 CREATE INDEX idx_events_start_date ON events(start_date);
 CREATE INDEX idx_events_category ON events(category);
@@ -136,6 +197,7 @@ CREATE INDEX idx_notifications_user ON notifications(user_id);
 CREATE INDEX idx_notifications_read ON notifications(is_read);
 
 -- RLS (Row Level Security) 정책 설정
+ALTER TABLE pending_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
@@ -143,6 +205,26 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE file_uploads ENABLE ROW LEVEL SECURITY;
+
+-- 임시 회원가입 요청 RLS 정책
+CREATE POLICY "Anyone can create pending member requests" ON pending_members
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Only admins can view pending members" ON pending_members
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Only admins can update pending members" ON pending_members
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- 사용자 프로필 RLS 정책
 CREATE POLICY "Users can view all profiles" ON user_profiles
@@ -155,17 +237,25 @@ CREATE POLICY "Users can insert own profile" ON user_profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- 게시글 RLS 정책
-CREATE POLICY "Anyone can view posts" ON posts
-  FOR SELECT USING (true);
+CREATE POLICY "Anyone can view non-deleted posts" ON posts
+  FOR SELECT USING (deleted_at IS NULL);
 
 CREATE POLICY "Authenticated users can create posts" ON posts
   FOR INSERT WITH CHECK (auth.uid() = author_id);
 
 CREATE POLICY "Users can update own posts" ON posts
-  FOR UPDATE USING (auth.uid() = author_id);
+  FOR UPDATE USING (auth.uid() = author_id AND deleted_at IS NULL);
 
 CREATE POLICY "Users can delete own posts" ON posts
   FOR DELETE USING (auth.uid() = author_id);
+
+CREATE POLICY "Admins can manage all posts" ON posts
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- 댓글 RLS 정책
 CREATE POLICY "Anyone can view comments" ON comments
@@ -288,6 +378,116 @@ BEGIN
   RETURN NEW;
 END;
 $$ language 'plpgsql';
+
+-- 관리자 관련 테이블 및 ENUM 추가
+
+-- 관리자 액션 타입 ENUM
+CREATE TYPE admin_action_type AS ENUM (
+  'user_approve',
+  'user_reject',
+  'user_suspend',
+  'user_activate',
+  'report_review',
+  'report_resolve',
+  'content_moderate',
+  'role_change'
+);
+
+-- 대상 엔티티 타입 ENUM
+CREATE TYPE target_entity_type AS ENUM (
+  'user',
+  'post',
+  'comment',
+  'event',
+  'report'
+);
+
+-- 신고 사유 ENUM
+CREATE TYPE report_reason AS ENUM (
+  'spam',
+  'inappropriate_content',
+  'harassment',
+  'fake_news',
+  'copyright_violation',
+  'other'
+);
+
+-- 신고 상태 ENUM
+CREATE TYPE report_status AS ENUM (
+  'pending',
+  'under_review',
+  'resolved',
+  'dismissed'
+);
+
+-- 관리자 감사 로그 테이블
+CREATE TABLE admin_audit_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  admin_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE NOT NULL,
+  action admin_action_type NOT NULL,
+  target_type target_entity_type NOT NULL,
+  target_id UUID NOT NULL,
+  details JSONB,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 신고 테이블
+CREATE TABLE reports (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  reporter_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE NOT NULL,
+  target_type target_entity_type NOT NULL,
+  target_id UUID NOT NULL,
+  reason report_reason NOT NULL,
+  description TEXT,
+  status report_status DEFAULT 'pending',
+  assigned_admin_id UUID REFERENCES user_profiles(id),
+  admin_notes TEXT,
+  resolved_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 관리자 감사 로그 RLS 정책
+CREATE POLICY "Admins can view all audit logs" ON admin_audit_logs
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can create audit logs" ON admin_audit_logs
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM user_profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- 신고 RLS 정책
+CREATE POLICY "Users can view own reports" ON reports
+  FOR SELECT USING (auth.uid() = reporter_id);
+
+CREATE POLICY "Users can create reports" ON reports
+  FOR INSERT WITH CHECK (auth.uid() = reporter_id);
+
+CREATE POLICY "Admins can view all reports" ON reports
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can update reports" ON reports
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- 초기 데이터 삽입
 INSERT INTO church_domains (domain, name, description) VALUES

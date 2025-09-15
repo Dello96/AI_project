@@ -59,10 +59,15 @@ export function useRealtimeEvents() {
           
           if (payload.eventType === 'INSERT') {
             // 새 이벤트 추가
-            const newEvent = {
-              ...payload.new,
+            const newEvent: Event = {
+              id: payload.new.id,
+              title: payload.new.title,
+              description: payload.new.description,
               startDate: new Date(payload.new.start_date),
               endDate: new Date(payload.new.end_date),
+              location: payload.new.location,
+              category: payload.new.category,
+              isAllDay: payload.new.all_day,
               authorId: payload.new.created_by,
               createdAt: new Date(payload.new.created_at),
               updatedAt: new Date(payload.new.updated_at)
@@ -70,10 +75,15 @@ export function useRealtimeEvents() {
             setEvents(prev => [...prev, newEvent])
           } else if (payload.eventType === 'UPDATE') {
             // 이벤트 수정
-            const updatedEvent = {
-              ...payload.new,
+            const updatedEvent: Event = {
+              id: payload.new.id,
+              title: payload.new.title,
+              description: payload.new.description,
               startDate: new Date(payload.new.start_date),
               endDate: new Date(payload.new.end_date),
+              location: payload.new.location,
+              category: payload.new.category,
+              isAllDay: payload.new.all_day,
               authorId: payload.new.created_by,
               createdAt: new Date(payload.new.created_at),
               updatedAt: new Date(payload.new.updated_at)
@@ -101,3 +111,4 @@ export function useRealtimeEvents() {
 
   return { events, setEvents }
 }
+

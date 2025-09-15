@@ -57,9 +57,8 @@ class NotificationService {
         body: notification.body,
         icon: notification.icon || '/favicon.ico',
         badge: notification.badge || '/favicon.ico',
-        tag: notification.tag,
+        ...(notification.tag && { tag: notification.tag }),
         data: notification.data,
-        actions: notification.actions,
         requireInteraction: true,
         silent: false
       })
@@ -283,11 +282,23 @@ class NotificationService {
       // 리마인더 시간이 되면 알림 발송
       const { data: users } = await supabase
         .from('user_profiles')
-        .select('id, name')
-        .eq('church_domain', event.churchDomain || 'default')
+        .select('id, email, name, phone, avatar_url, role, is_approved, created_at, updated_at, church_domain_id')
+        .eq('church_domain_id', event.churchDomain || 'default')
 
       if (users) {
-        await this.notifyEventReminder(event, users)
+        const transformedUsers: User[] = users.map(user => ({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          phone: user.phone,
+          avatarUrl: user.avatar_url,
+          role: user.role,
+          isApproved: user.is_approved,
+          churchDomain: user.church_domain_id,
+          createdAt: new Date(user.created_at),
+          updatedAt: new Date(user.updated_at)
+        }))
+        await this.notifyEventReminder(event, transformedUsers)
       }
     }, delay)
   }

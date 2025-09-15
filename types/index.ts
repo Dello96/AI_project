@@ -22,7 +22,10 @@ export interface Post {
   author?: User;
   isAnonymous: boolean;
   viewCount: number;
+  likeCount: number;
+  commentCount: number;
   attachments?: string[];
+  deletedAt?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +39,7 @@ export interface Comment {
   content: string;
   isAnonymous: boolean;
   parentId?: string | null; // 대댓글 지원
+  likeCount?: number; // 좋아요 수
   createdAt: Date;
   updatedAt: Date;
 }
@@ -141,13 +145,52 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+// 인증 관련 타입
+export interface AuthState {
+  user: User | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
 // 폼 관련 타입
 export interface LoginForm {
   email: string;
   password: string;
 }
 
+export interface SignInData {
+  email: string;
+  password: string;
+}
+
 export interface SignupForm {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  name: string;
+  phone?: string;
+  churchDomain: string;
+}
+
+// 임시 회원가입 요청 관련 타입
+export interface PendingMember {
+  id: string;
+  email: string;
+  name: string;
+  phone?: string;
+  churchDomainId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+  rejectionNotes?: string;
+  approvedBy?: string;
+  rejectedBy?: string;
+  approvedAt?: Date;
+  rejectedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SignupRequestForm {
   email: string;
   password: string;
   confirmPassword: string;
@@ -199,6 +242,50 @@ export interface UiState {
 
 export interface ModalState {
   isOpen: boolean;
-  type: 'login' | 'signup' | 'post' | 'event' | 'profile' | null;
+  type: 'login' | 'signup' | 'post' | 'event' | 'profile' | 'payment' | null;
   data?: any;
+}
+
+export interface SearchResult {
+  id: string;
+  type: 'post' | 'event' | 'user';
+  title: string;
+  content?: string;
+  author?: string;
+  createdAt: Date;
+  url: string;
+}
+
+export interface SearchFilters {
+  searchTerm: string;
+  type: 'all' | 'post' | 'event' | 'user';
+  category?: string | undefined;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  } | undefined;
+}
+
+// AI 챗봇 관련 타입
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  isTyping?: boolean;
+}
+
+export interface ChatSession {
+  id: string;
+  userId: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ChatBotConfig {
+  isOpen: boolean;
+  isMinimized: boolean;
+  theme: 'light' | 'dark';
+  position: 'bottom-right' | 'bottom-left';
 }

@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Select } from '@/components/ui/Select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { useAuth } from '@/hooks/useAuth'
 import { usePermissions } from '@/hooks/usePermissions'
 import { permissionAuditManager } from '@/lib/permission-audit'
@@ -48,13 +48,25 @@ export default function AuditDashboard({ className = '' }: AuditDashboardProps) 
   const loadAuditData = async () => {
     try {
       // 실제 구현에서는 API 호출
-      const logs = permissionAuditManager.getAuditLogs({
-        type: filters.logType === 'all' ? undefined : filters.logType as any,
-        severity: filters.severity === 'all' ? undefined : filters.severity as any,
-        resource: filters.resource === 'all' ? undefined : filters.resource as any,
-        startDate: filters.startDate ? new Date(filters.startDate) : undefined,
-        endDate: filters.endDate ? new Date(filters.endDate) : undefined
-      }, 100)
+      const auditParams: any = {}
+      
+      if (filters.logType !== 'all') {
+        auditParams.type = filters.logType
+      }
+      if (filters.severity !== 'all') {
+        auditParams.severity = filters.severity
+      }
+      if (filters.resource !== 'all') {
+        auditParams.resource = filters.resource
+      }
+      if (filters.startDate) {
+        auditParams.startDate = new Date(filters.startDate)
+      }
+      if (filters.endDate) {
+        auditParams.endDate = new Date(filters.endDate)
+      }
+      
+      const logs = permissionAuditManager.getAuditLogs(auditParams, 100)
 
       const events = permissionAuditManager.getSecurityEvents({
         severity: filters.severity === 'all' ? undefined : filters.severity as any
@@ -212,38 +224,50 @@ export default function AuditDashboard({ className = '' }: AuditDashboardProps) 
             <Select
               value={filters.logType}
               onValueChange={(value) => setFilters(prev => ({ ...prev, logType: value }))}
-              options={[
-                { value: 'all', label: '모든 타입' },
-                { value: 'permission_check', label: '권한 확인' },
-                { value: 'permission_granted', label: '권한 부여' },
-                { value: 'permission_revoked', label: '권한 해제' },
-                { value: 'role_changed', label: '역할 변경' }
-              ]}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="로그 타입 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">모든 타입</SelectItem>
+                <SelectItem value="permission_check">권한 확인</SelectItem>
+                <SelectItem value="permission_granted">권한 부여</SelectItem>
+                <SelectItem value="permission_revoked">권한 해제</SelectItem>
+                <SelectItem value="role_changed">역할 변경</SelectItem>
+              </SelectContent>
+            </Select>
             
             <Select
               value={filters.severity}
               onValueChange={(value) => setFilters(prev => ({ ...prev, severity: value }))}
-              options={[
-                { value: 'all', label: '모든 심각도' },
-                { value: 'low', label: '낮음' },
-                { value: 'medium', label: '보통' },
-                { value: 'high', label: '높음' },
-                { value: 'critical', label: '심각' }
-              ]}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="심각도 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">모든 심각도</SelectItem>
+                <SelectItem value="low">낮음</SelectItem>
+                <SelectItem value="medium">보통</SelectItem>
+                <SelectItem value="high">높음</SelectItem>
+                <SelectItem value="critical">심각</SelectItem>
+              </SelectContent>
+            </Select>
             
             <Select
               value={filters.resource}
               onValueChange={(value) => setFilters(prev => ({ ...prev, resource: value }))}
-              options={[
-                { value: 'all', label: '모든 리소스' },
-                { value: 'post', label: '게시판' },
-                { value: 'event', label: '일정' },
-                { value: 'user', label: '사용자' },
-                { value: 'system', label: '시스템' }
-              ]}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="리소스 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">모든 리소스</SelectItem>
+                <SelectItem value="post">게시판</SelectItem>
+                <SelectItem value="event">일정</SelectItem>
+                <SelectItem value="user">사용자</SelectItem>
+                <SelectItem value="system">시스템</SelectItem>
+              </SelectContent>
+            </Select>
             
             <input
               type="date"

@@ -12,11 +12,20 @@ export const churchDomainService = {
         .eq('is_active', true)
         .order('name', { ascending: true })
 
-      if (error) throw error
-      return domains || []
+      if (error) {
+        console.error('교회 도메인 조회 오류:', error)
+        throw new Error('교회 도메인을 불러오는데 실패했습니다.')
+      }
+      
+      if (!domains || domains.length === 0) {
+        console.warn('교회 도메인 데이터가 없습니다. 관리자에게 문의하세요.')
+        throw new Error('교회 도메인 데이터가 없습니다. 관리자에게 문의하세요.')
+      }
+      
+      return domains
     } catch (error) {
       console.error('교회 도메인 조회 오류:', error)
-      return []
+      throw error
     }
   },
 
@@ -377,6 +386,7 @@ export const commentService = {
           )
         `)
         .eq('post_id', postId)
+        .is('deleted_at', null) // 삭제되지 않은 댓글만 조회
         .order('created_at', { ascending: true })
 
       if (error) throw error
@@ -426,12 +436,12 @@ export const commentService = {
     }
   },
 
-  // 댓글 삭제
+  // 댓글 삭제 (소프트 삭제)
   async deleteComment(commentId: string): Promise<boolean> {
     try {
       const { error } = await supabase
         .from('comments')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', commentId)
 
       if (error) throw error

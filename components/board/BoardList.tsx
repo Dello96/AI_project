@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import { 
   PlusIcon, 
   MagnifyingGlassIcon,
@@ -13,8 +14,8 @@ import { Post, postCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useAuth } from '@/hooks/useAuth'
-import { usePermissions } from '@/hooks/usePermissions'
+import LikeButton from '@/components/ui/LikeButton'
+import { ListSkeleton } from '@/components/ui/Skeleton'
 import { postService } from '@/lib/database'
 
 interface BoardListProps {
@@ -41,8 +42,6 @@ const categoryColors = {
 }
 
 export default function BoardList({ onWritePost, onSelectPost }: BoardListProps) {
-  const { user } = useAuth()
-  const permissions = usePermissions()
   const [posts, setPosts] = useState<Post[]>([])
   const [filters, setFilters] = useState({
     category: 'free' as 'notice' | 'free' | 'qna',
@@ -103,28 +102,37 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        {/* 필터 스켈레톤 */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex gap-2">
+                <div className="h-9 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-9 w-20 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-9 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-9 w-12 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="flex-1">
+                <div className="h-12 w-full max-w-md bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="flex gap-2">
+                <div className="h-9 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-9 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-9 w-16 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 게시글 목록 스켈레톤 */}
+        <ListSkeleton items={5} />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-secondary-900">게시판</h2>
-          <p className="text-secondary-600">청년부 소식과 이야기를 나누어보세요</p>
-        </div>
-        {user && permissions.canCreatePost() && (
-          <Button onClick={onWritePost} variant="default">
-            <PlusIcon className="w-4 h-4 mr-2" />
-            글쓰기
-          </Button>
-        )}
-      </div>
-
       {/* 필터 */}
       <Card>
         <CardContent className="p-4">
@@ -194,7 +202,7 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
         {posts.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-secondary-500">게시글이 없습니다.</p>
+              <p className="text-gray-500">게시글이 없습니다.</p>
             </CardContent>
           </Card>
         ) : (
@@ -237,6 +245,14 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
                       <div className="flex items-center justify-between text-xs text-secondary-500">
                         <span>{post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}</span>
                         <div className="flex items-center gap-4">
+                          <LikeButton
+                            targetType="post"
+                            targetId={post.id}
+                            initialLiked={false}
+                            initialCount={post.likeCount || 0}
+                            size="sm"
+                            variant="ghost"
+                          />
                           <span>조회 {post.viewCount}</span>
                           <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                         </div>

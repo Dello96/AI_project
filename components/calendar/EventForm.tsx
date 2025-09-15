@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/Input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { eventService } from '@/lib/database'
 import { notificationService } from '@/lib/notifications'
-import { useAuth } from '@/hooks/useAuth'
 
 interface EventFormProps {
   isOpen: boolean
@@ -21,7 +20,6 @@ interface EventFormProps {
 }
 
 export default function EventForm({ isOpen, onClose, onSuccess, initialData, selectedDate }: EventFormProps) {
-  const { user } = useAuth()
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
@@ -70,7 +68,9 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    
+    // 익명 작성자 ID 생성 (임시)
+    const anonymousAuthorId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     try {
       setIsLoading(true)
@@ -110,7 +110,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           location: formData.location?.trim() || '',
           category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup',
           isAllDay: formData.isAllDay,
-          authorId: user.id
+          authorId: anonymousAuthorId
         })
 
         if (result && sendNotification) {
@@ -159,7 +159,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
   const handleTimeChange = (field: 'startDate' | 'endDate', value: string) => {
     const [hours, minutes] = value.split(':').map(Number)
     const newDate = new Date(formData[field])
-    newDate.setHours(hours, minutes, 0, 0)
+    newDate.setHours(hours || 0, minutes || 0, 0, 0)
     
     setFormData(prev => ({
       ...prev,

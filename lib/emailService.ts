@@ -73,7 +73,7 @@ class EmailService {
       data: {
         title,
         content,
-        actionUrl
+        ...(actionUrl && { actionUrl })
       }
     }
 
@@ -111,7 +111,7 @@ ${typeLabels[eventType]}
       data: {
         title: typeLabels[eventType],
         content,
-        actionUrl
+        ...(actionUrl && { actionUrl })
       }
     }
 
@@ -132,7 +132,7 @@ ${typeLabels[eventType]}
       data: {
         title,
         content,
-        actionUrl
+        ...(actionUrl && { actionUrl })
       }
     }
 
@@ -267,6 +267,62 @@ ${data.actionUrl ? `자세히 보기: ${data.actionUrl}` : ''}
       console.error('교회 도메인별 이메일 조회 중 오류:', error)
       return []
     }
+  }
+
+  // 가입 승인 알림 이메일 발송
+  async sendApprovalEmail(
+    email: string,
+    name: string,
+    churchName: string
+  ): Promise<boolean> {
+    const content = `
+안녕하세요 ${name}님,
+
+청년부 커뮤니티 가입 요청이 승인되었습니다!
+
+교회: ${churchName}
+승인일: ${new Date().toLocaleDateString('ko-KR')}
+
+이제 로그인하여 커뮤니티를 이용하실 수 있습니다.
+다양한 기능들을 통해 청년부 활동에 참여해보세요.
+
+감사합니다.
+청년부 커뮤니티 관리자
+    `.trim()
+
+    return this.sendSystemEmail(
+      [email],
+      '가입 승인 완료',
+      content,
+      `${process.env.NEXT_PUBLIC_APP_URL}/login`
+    )
+  }
+
+  // 가입 거절 알림 이메일 발송
+  async sendRejectionEmail(
+    email: string,
+    name: string,
+    reason: string
+  ): Promise<boolean> {
+    const content = `
+안녕하세요 ${name}님,
+
+청년부 커뮤니티 가입 요청에 대해 안타깝게도 승인되지 않았습니다.
+
+거절 사유: ${reason}
+
+추가 문의사항이 있으시면 관리자에게 직접 연락해주세요.
+다시 한번 가입 요청을 원하시면 언제든지 가능합니다.
+
+감사합니다.
+청년부 커뮤니티 관리자
+    `.trim()
+
+    return this.sendSystemEmail(
+      [email],
+      '가입 요청 결과 안내',
+      content
+    )
   }
 }
 

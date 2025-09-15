@@ -77,7 +77,8 @@ export async function POST(request: NextRequest) {
       category,
       authorId: user.id,
       isAnonymous: isAnonymous || false,
-      attachments: attachments || []
+      attachments: attachments || [],
+      commentCount: 0
     })
 
     if (!result) {

@@ -1,144 +1,80 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyJWT } from '@/lib/auth-tokens'
 
-// 보호된 경로 설정
-const protectedPaths = [
-  '/api/boards',
-  '/api/events',
-  '/api/notifications',
-  '/board/write',
-  '/calendar/add',
-  '/admin'
-]
-
-// 관리자 전용 경로
-const adminOnlyPaths = [
+// 보호된 라우트 패턴
+const protectedRoutes = [
   '/admin',
-  '/api/admin'
+  '/profile'
 ]
 
-// 리더 이상 권한 필요 경로
-const leaderPaths = [
-  '/calendar/add',
-  '/api/events'
+// 인증이 필요하지 않은 공개 라우트
+const publicRoutes = [
+  '/',
+  '/login',
+  '/signup',
+  '/api/auth/login',
+  '/api/auth/signup',
+  '/api/auth/refresh'
 ]
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
   
-  const {
-    data: { session },
-    error
-  } = await supabase.auth.getSession()
-
-  const url = req.nextUrl.clone()
-  const pathname = url.pathname
-
-  // 보호된 경로인지 확인
-  const isProtectedPath = protectedPaths.some(path => 
-    pathname.startsWith(path)
-  )
-
-  // 보호된 경로에 대한 인증 확인
-  if (isProtectedPath) {
-    if (error || !session) {
-      // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
-      if (pathname.startsWith('/api/')) {
-        return NextResponse.json(
-          { error: '인증이 필요합니다.' },
-          { status: 401 }
-        )
-      } else {
-        url.pathname = '/'
-        url.searchParams.set('auth', 'required')
-        return NextResponse.redirect(url)
-      }
-    }
-
-    // 사용자 역할 정보 조회
-    const { data: userProfile } = await supabase
-      .from('user_profiles')
-      .select('role, is_approved')
-      .eq('id', session.user.id)
-      .single()
-
-    // 사용자가 승인되지 않은 경우
-    if (!userProfile?.is_approved) {
-      if (pathname.startsWith('/api/')) {
-        return NextResponse.json(
-          { error: '계정 승인이 필요합니다.' },
-          { status: 403 }
-        )
-      } else {
-        url.pathname = '/'
-        url.searchParams.set('error', 'approval_required')
-        return NextResponse.redirect(url)
-      }
-    }
-
-    const userRole = userProfile?.role || 'member'
-
-    // 관리자 전용 경로 확인
-    const isAdminOnlyPath = adminOnlyPaths.some(path => 
-      pathname.startsWith(path)
-    )
+  // 공개 라우트는 인증 검사 제외
+  if (publicRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.next()
+  }
+  
+  // 보호된 라우트인지 확인
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
+  
+  if (isProtectedRoute) {
+    // 쿠키에서 액세스 토큰 확인
+    const accessToken = request.cookies.get('access_token')?.value
     
-    if (isAdminOnlyPath && userRole !== 'admin') {
-      if (pathname.startsWith('/api/')) {
-        return NextResponse.json(
-          { error: '관리자 권한이 필요합니다.' },
-          { status: 403 }
-        )
-      } else {
-        url.pathname = '/'
-        url.searchParams.set('error', 'admin_required')
-        return NextResponse.redirect(url)
-      }
+    if (!accessToken) {
+      // 토큰이 없으면 로그인 페이지로 리다이렉트
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
     }
-
-    // 리더 이상 권한 경로 확인
-    const isLeaderPath = leaderPaths.some(path => 
-      pathname.startsWith(path)
-    )
     
-    if (isLeaderPath && !['leader', 'admin'].includes(userRole)) {
-      if (pathname.startsWith('/api/')) {
-        return NextResponse.json(
-          { error: '리더 권한이 필요합니다.' },
-          { status: 403 }
-        )
-      } else {
-        url.pathname = '/'
-        url.searchParams.set('error', 'leader_required')
-        return NextResponse.redirect(url)
-      }
+    // JWT 토큰 검증
+    const payload = verifyJWT(accessToken)
+    
+    if (!payload) {
+      // 토큰이 유효하지 않으면 쿠키 삭제하고 로그인 페이지로 리다이렉트
+      const response = NextResponse.redirect(new URL('/login', request.url))
+      response.cookies.delete('access_token')
+      response.cookies.delete('refresh_token')
+      return response
     }
-
-    // 사용자 역할을 헤더에 추가 (API에서 사용할 수 있도록)
-    const requestHeaders = new Headers(req.headers)
-    requestHeaders.set('x-user-role', userRole)
-    requestHeaders.set('x-user-id', session.user.id)
-
+    
+    // 토큰이 유효하면 요청 헤더에 사용자 정보 추가
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-user-id', payload.sub)
+    requestHeaders.set('x-user-email', payload.email)
+    requestHeaders.set('x-user-role', payload.role)
+    
     return NextResponse.next({
       request: {
-        headers: requestHeaders,
-      },
+        headers: requestHeaders
+      }
     })
   }
-
-  return res
+  
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }

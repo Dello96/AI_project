@@ -134,19 +134,19 @@ export function useToast() {
   }
 
   const showSuccess = (title: string, message?: string) => {
-    addToast({ type: 'success', title, message })
+    addToast({ type: 'success', title, ...(message && { message }) })
   }
 
   const showError = (title: string, message?: string) => {
-    addToast({ type: 'error', title, message })
+    addToast({ type: 'error', title, ...(message && { message }) })
   }
 
   const showWarning = (title: string, message?: string) => {
-    addToast({ type: 'warning', title, message })
+    addToast({ type: 'warning', title, ...(message && { message }) })
   }
 
   const showInfo = (title: string, message?: string) => {
-    addToast({ type: 'info', title, message })
+    addToast({ type: 'info', title, ...(message && { message }) })
   }
 
   return {

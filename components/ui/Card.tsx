@@ -49,7 +49,7 @@ const Card = React.forwardRef<
       className={cn(baseClasses, variantClasses[variant])}
       whileHover={hover ? { y: -4, transition: { duration: 0.2 } } : {}}
       {...animationProps[animation]}
-      {...props}
+      {...(props as any)}
     />
   )
 })

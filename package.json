@@ -10,7 +10,8 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next out dist",
-    "analyze": "ANALYZE=true npm run build"
+    "analyze": "ANALYZE=true npm run build",
+    "seed:churches": "node scripts/seed-church-domains.js"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
@@ -20,12 +21,17 @@
     "@fullcalendar/react": "^6.1.19",
     "@fullcalendar/timegrid": "^6.1.19",
     "@heroicons/react": "^2.1.5",
+    "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-select": "^2.2.6",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.55.0",
+    "@tosspayments/payment-sdk": "^1.9.1",
+    "@types/bcryptjs": "^3.0.0",
     "autoprefixer": "^10.4.20",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.2",
     "framer-motion": "^11.10.16",
     "lucide-react": "^0.541.0",
     "next": "^14.2.31",
@@ -33,9 +39,12 @@
     "postcss": "^8.4.47",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.62.0",
+    "sanitize-html": "^2.17.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.4",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

@@ -21,7 +21,6 @@ import {
 import { Event, CalendarView, eventCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { useAuth } from '@/hooks/useAuth'
 import { useRealtimeEvents } from '@/hooks/useRealtimeEvents'
 import { eventService } from '@/lib/database'
 
@@ -34,7 +33,6 @@ interface CalendarProps {
 type CalendarViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'
 
 export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: CalendarProps) {
-  const { user } = useAuth()
   const [view, setView] = useState<CalendarViewType>('dayGridMonth')
   const { events, setEvents } = useRealtimeEvents()
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -188,12 +186,10 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
           <Button onClick={goToToday} variant="outline" size="sm">
             오늘
           </Button>
-          {user && (
-            <Button onClick={onAddEvent} variant="default" size="sm">
-              <PlusIcon className="w-4 h-4 mr-2" />
-              일정 추가
-            </Button>
-          )}
+          <Button onClick={onAddEvent} variant="default" size="sm">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            일정 추가
+          </Button>
         </div>
       </div>
 
@@ -297,8 +293,8 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
               eventDrop={handleEventDrop}
               eventResize={handleEventResize}
               datesSet={handleNavigation}
-              editable={user !== null}
-              droppable={user !== null}
+              editable={true}
+              droppable={true}
               selectable={true}
               selectMirror={true}
               dayMaxEvents={true}

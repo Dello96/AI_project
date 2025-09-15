@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쿠키 삭제</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .success {
+            color: #059669;
+            background: #d1fae5;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .error {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 쿠키 및 스토리지 삭제</h1>
+        <p>이 페이지는 개발 중 발생한 인증 문제를 해결하기 위해 모든 쿠키와 로컬 스토리지를 삭제합니다.</p>
+        
+        <div id="status"></div>
+        
+        <button onclick="clearAllData()">모든 데이터 삭제</button>
+        <button onclick="clearCookiesOnly()">쿠키만 삭제</button>
+        <button onclick="clearStorageOnly()">스토리지만 삭제</button>
+        <button onclick="goToApp()">앱으로 이동</button>
+        
+        <h3>삭제될 데이터:</h3>
+        <ul>
+            <li>모든 쿠키 (sb-access-token, sb-refresh-token 등)</li>
+            <li>로컬 스토리지</li>
+            <li>세션 스토리지</li>
+            <li>IndexedDB 데이터</li>
+        </ul>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function clearAllData() {
+            try {
+                // 모든 쿠키 삭제
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                // 로컬 스토리지 삭제
+                localStorage.clear();
+                
+                // 세션 스토리지 삭제
+                sessionStorage.clear();
+                
+                // IndexedDB 삭제
+                if ('indexedDB' in window) {
+                    indexedDB.databases().then(databases => {
+                        databases.forEach(db => {
+                            indexedDB.deleteDatabase(db.name);
+                        });
+                    });
+                }
+                
+                showStatus('✅ 모든 데이터가 성공적으로 삭제되었습니다!', 'success');
+                
+                // 2초 후 앱으로 이동
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+                
+            } catch (error) {
+                showStatus('❌ 데이터 삭제 중 오류가 발생했습니다: ' + error.message, 'error');
+            }
+        }
+
+        function clearCookiesOnly() {
+            try {
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                showStatus('✅ 쿠키가 성공적으로 삭제되었습니다!', 'success');
+            } catch (error) {
+                showStatus('❌ 쿠키 삭제 중 오류가 발생했습니다: ' + error.message, 'error');
+            }
+        }
+
+        function clearStorageOnly() {
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                showStatus('✅ 스토리지가 성공적으로 삭제되었습니다!', 'success');
+            } catch (error) {
+                showStatus('❌ 스토리지 삭제 중 오류가 발생했습니다: ' + error.message, 'error');
+            }
+        }
+
+        function goToApp() {
+            window.location.href = '/';
+        }
+
+        // 페이지 로드 시 현재 쿠키 상태 표시
+        window.onload = function() {
+            const cookies = document.cookie;
+            if (cookies) {
+                showStatus(`현재 쿠키: ${cookies}`, 'info');
+            } else {
+                showStatus('현재 저장된 쿠키가 없습니다.', 'info');
+            }
+        };
+    </script>
+</body>
+</html>

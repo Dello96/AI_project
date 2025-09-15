@@ -1,53 +1,54 @@
 'use client'
 
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { PostForm as PostFormType, postCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { FileUpload, FileWithPreview } from '@/components/ui/FileUpload'
-import { useAuth } from '@/hooks/useAuth'
 import { postService } from '@/lib/database'
 import { fileUploadService } from '@/lib/fileUpload'
+import { 
+  postFormSchema, 
+  defaultPostFormData, 
+  postCategoryOptions,
+  type PostFormData 
+} from '@/lib/post-schemas'
 
 interface PostFormProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  initialData?: Partial<PostFormType> | undefined
+  initialData?: Partial<PostFormData> | undefined
 }
 
 export default function PostForm({ isOpen, onClose, onSuccess, initialData }: PostFormProps) {
-  const { user } = useAuth()
-  const [formData, setFormData] = useState<PostFormType>({
-    title: initialData?.title || '',
-    content: initialData?.content || '',
-    category: (initialData?.category as 'notice' | 'free' | 'qna') || 'free',
-    isAnonymous: initialData?.isAnonymous || false
-  })
   const [attachedFiles, setAttachedFiles] = useState<FileWithPreview[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  
+  // React Hook Form 설정
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm({
+    resolver: zodResolver(postFormSchema),
+    defaultValues: {
+      ...defaultPostFormData,
+      ...initialData
+    },
+    mode: 'onChange'
+  })
+  
+  const watchedValues = watch()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!user) {
-      setError('로그인이 필요합니다.')
-      return
-    }
-
-    if (!formData.title.trim() || !formData.content.trim()) {
-      setError('제목과 내용을 입력해주세요.')
-      return
-    }
-
+  const onSubmit = async (data: PostFormData) => {
     try {
-      setIsLoading(true)
-      setError(null)
-
       // 파일 업로드 처리
       let fileUrls: string[] = []
       if (attachedFiles.length > 0) {
@@ -55,39 +56,46 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
         if (uploadResult.success && uploadResult.files) {
           fileUrls = uploadResult.files.map(f => f.url)
         } else {
-          setError('파일 업로드에 실패했습니다.')
           return
         }
       }
 
-      const result = await postService.createPost({
-        title: formData.title.trim(),
-        content: formData.content.trim(),
-        category: formData.category as 'notice' | 'free' | 'qna',
-        authorId: user.id,
-        isAnonymous: formData.isAnonymous,
-        attachments: fileUrls
+      // 익명 작성자 ID 생성 (임시)
+      const anonymousAuthorId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      // API 라우트 호출
+      const response = await fetch('/api/board/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: data.title,
+          content: data.content,
+          category: data.category,
+          authorId: anonymousAuthorId,
+          isAnonymous: true
+        })
       })
 
-      if (result) {
+      const result = await response.json()
+
+      if (response.ok && result.success) {
         onSuccess()
         onClose()
-        setFormData({ title: '', content: '', category: 'free', isAnonymous: false })
+        reset()
         setAttachedFiles([])
       } else {
-        setError('게시글 작성에 실패했습니다.')
+        console.error('게시글 작성 실패:', result.error)
+        alert(result.error || '게시글 작성에 실패했습니다.')
       }
     } catch (error) {
       console.error('게시글 작성 오류:', error)
-      setError('게시글 작성 중 오류가 발생했습니다.')
-    } finally {
-      setIsLoading(false)
+      alert('게시글 작성 중 오류가 발생했습니다.')
     }
   }
 
-  const handleInputChange = (field: keyof PostFormType, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+
 
   if (!isOpen) return null
 
@@ -110,69 +118,74 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
           <CardContent className="p-6">
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-secondary-900">게시글 작성</h2>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-secondary-100 rounded-lg transition-colors"
-              >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
+              <h2 className="text-2xl font-bold text-gray-900">게시글 작성</h2>
+                              <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
             </div>
 
             {/* 폼 */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* 카테고리 선택 */}
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   카테고리
                 </label>
                 <div className="flex gap-2 flex-wrap">
-                  {postCategories.map((category) => (
+                  {postCategoryOptions.map((category) => (
                     <Button
                       key={category.value}
                       type="button"
-                      variant={formData.category === category.value ? 'default' : 'outline'}
+                      variant={watchedValues.category === category.value ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => handleInputChange('category', category.value)}
+                      onClick={() => setValue('category', category.value)}
                     >
                       {category.label}
                     </Button>
                   ))}
                 </div>
+                {errors.category && (
+                  <p className="mt-2 text-sm text-red-600">{errors.category.message}</p>
+                )}
               </div>
 
               {/* 제목 */}
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   제목
                 </label>
                 <Input
                   type="text"
                   placeholder="제목을 입력하세요"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  required
+                  {...register('title')}
                 />
+                {errors.title && (
+                  <p className="mt-2 text-sm text-red-600">{errors.title.message}</p>
+                )}
               </div>
 
               {/* 내용 */}
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   내용
                 </label>
                 <textarea
                   placeholder="내용을 입력하세요"
-                  value={formData.content}
-                  onChange={(e) => handleInputChange('content', e.target.value)}
-                  required
+                  {...register('content')}
                   rows={8}
                   className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300 border-neutral-200 focus:border-primary-500 focus:ring-primary-100"
                 />
+                {errors.content && (
+                  <p className="mt-2 text-sm text-red-600">{errors.content.message}</p>
+                )}
               </div>
 
               {/* 파일 업로드 */}
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   첨부 파일
                 </label>
                 <FileUpload
@@ -183,24 +196,19 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
                 />
               </div>
 
-              {/* 익명 설정 */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isAnonymous"
-                  checked={formData.isAnonymous}
-                  onChange={(e) => handleInputChange('isAnonymous', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="isAnonymous" className="text-sm text-secondary-700">
-                  익명으로 작성
-                </label>
+              {/* 익명 안내 */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  💡 모든 게시글은 익명으로 작성됩니다.
+                </p>
               </div>
 
               {/* 에러 메시지 */}
-              {error && (
+              {(errors.title || errors.content || errors.category) && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p className="text-sm text-red-600">
+                    입력한 정보를 다시 확인해주세요.
+                  </p>
                 </div>
               )}
 
@@ -210,17 +218,16 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
                   type="button"
                   variant="outline"
                   onClick={onClose}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
                   취소
                 </Button>
                 <Button
                   type="submit"
                   variant="default"
-                  loading={isLoading}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
-                  작성하기
+                  {isSubmitting ? '작성 중...' : '작성하기'}
                 </Button>
               </div>
             </form>

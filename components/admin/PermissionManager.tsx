@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { useAuth } from '@/hooks/useAuth'
 import { usePermissions } from '@/hooks/usePermissions'
 import { 
@@ -37,7 +37,7 @@ export default function PermissionManager({ className = '' }: PermissionManagerP
   const permissions = usePermissions()
   const toast = useToast()
   
-  const [activeTab, setActiveTab] = 'users'
+  const [activeTab, setActiveTab] = useState('users')
   const [users, setUsers] = useState<any[]>([])
   const [permissionGroups, setPermissionGroups] = useState<PermissionGroup[]>([])
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -158,7 +158,10 @@ export default function PermissionManager({ className = '' }: PermissionManagerP
         return
       }
 
-      const group = permissionManager.createGroup(newGroup)
+      const group = permissionManager.createGroup({
+        ...newGroup,
+        isSystem: false
+      })
       setPermissionGroups(prev => [...prev, group])
       
       // 감사 로그 기록
@@ -408,13 +411,33 @@ export default function PermissionManager({ className = '' }: PermissionManagerP
                       <Select
                         value={permission.resource}
                         onValueChange={(value) => updatePermission(index, 'resource', value)}
-                        options={resourceOptions}
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="리소스 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {resourceOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Select
                         value={permission.action}
                         onValueChange={(value) => updatePermission(index, 'action', value)}
-                        options={actionOptions}
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="액션 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {actionOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -547,12 +570,16 @@ export default function PermissionManager({ className = '' }: PermissionManagerP
                         setSelectedUser(null)
                       }
                     }}
-                    options={[
-                      { value: 'member', label: '일반회원' },
-                      { value: 'leader', label: '리더' },
-                      { value: 'admin', label: '관리자' }
-                    ]}
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="역할 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="member">일반회원</SelectItem>
+                      <SelectItem value="leader">리더</SelectItem>
+                      <SelectItem value="admin">관리자</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex space-x-3">

@@ -26,7 +26,7 @@ export default function NotificationBell({ className = '' }: NotificationBellPro
     try {
       setIsLoading(true)
       const notifications = await notificationService.getNotifications(user.id)
-      const unread = notifications.filter(n => !n.isRead).length
+      const unread = notifications.filter(n => !(n as any).is_read).length
       setUnreadCount(unread)
     } catch (error) {
       console.error('읽지 않은 알림 개수 조회 오류:', error)

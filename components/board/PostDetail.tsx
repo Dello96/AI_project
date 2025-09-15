@@ -10,10 +10,12 @@ import {
   HeartIcon,
   ChatBubbleLeftIcon
 } from '@heroicons/react/24/outline'
+import ReportButton from '@/components/reports/ReportButton'
 import { Post, Comment, postCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import LikeButton from '@/components/ui/LikeButton'
 import { useAuth } from '@/hooks/useAuth'
 import { usePermissions } from '@/hooks/usePermissions'
 import { postService, commentService } from '@/lib/database'
@@ -34,6 +36,8 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editingComment, setEditingComment] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
 
   // 실시간 댓글 구독
   useRealtimeComments({
@@ -52,8 +56,14 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
   // 댓글 목록 조회
   const fetchComments = async () => {
     try {
-      const result = await commentService.getComments(post.id)
-      setComments(result)
+      const response = await fetch(`/api/board/posts/${post.id}/comments`)
+      const result = await response.json()
+      
+      if (response.ok && result.success) {
+        setComments(result.data)
+      } else {
+        console.error('댓글 조회 오류:', result.error)
+      }
     } catch (error) {
       console.error('댓글 조회 오류:', error)
     }
@@ -77,23 +87,77 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
       setIsLoading(true)
       setError(null)
 
-      const result = await commentService.createComment({
-        postId: post.id,
-        content: newComment.trim(),
-        authorId: user.id,
-        isAnonymous
+      const response = await fetch(`/api/board/posts/${post.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: newComment.trim(),
+          isAnonymous
+        })
       })
 
-      if (result) {
+      const result = await response.json()
+
+      if (response.ok && result.success) {
         setNewComment('')
         setIsAnonymous(false)
         await fetchComments()
       } else {
-        setError('댓글 작성에 실패했습니다.')
+        setError(result.error || '댓글 작성에 실패했습니다.')
       }
     } catch (error) {
       console.error('댓글 작성 오류:', error)
       setError('댓글 작성 중 오류가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 댓글 수정 시작
+  const handleCommentEdit = (comment: Comment) => {
+    setEditingComment(comment.id)
+    setEditContent(comment.content)
+  }
+
+  // 댓글 수정 취소
+  const handleCommentEditCancel = () => {
+    setEditingComment(null)
+    setEditContent('')
+  }
+
+  // 댓글 수정 저장
+  const handleCommentEditSave = async (commentId: string) => {
+    if (!editContent.trim()) {
+      setError('댓글 내용을 입력해주세요.')
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const response = await fetch(`/api/board/posts/${post.id}/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: editContent.trim() })
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setEditingComment(null)
+        setEditContent('')
+        await fetchComments()
+      } else {
+        setError(result.error || '댓글 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('댓글 수정 오류:', error)
+      setError('댓글 수정 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
     }
@@ -104,12 +168,20 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
     if (!confirm('댓글을 삭제하시겠습니까?')) return
 
     try {
-      const result = await commentService.deleteComment(commentId)
-      if (result) {
+      const response = await fetch(`/api/board/posts/${post.id}/comments/${commentId}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
         await fetchComments()
+      } else {
+        setError(result.error || '댓글 삭제에 실패했습니다.')
       }
     } catch (error) {
       console.error('댓글 삭제 오류:', error)
+      setError('댓글 삭제 중 오류가 발생했습니다.')
     }
   }
 
@@ -138,28 +210,40 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
           목록으로
         </Button>
         
-        {user && (user.id === post.authorId || user.role === 'admin') && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(post)}
-              className="flex items-center gap-2"
-            >
-              <PencilIcon className="w-4 h-4" />
-              수정
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePostDelete}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700"
-            >
-              <TrashIcon className="w-4 h-4" />
-              삭제
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          {/* 신고 버튼 */}
+          <ReportButton
+            targetType="post"
+            targetId={post.id}
+            targetTitle={post.title}
+            variant="outline"
+            size="sm"
+          />
+          
+          {/* 수정/삭제 버튼 (작성자 또는 관리자만) */}
+          {user && (user.id === post.authorId || user.role === 'admin') && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(post)}
+                className="flex items-center gap-2"
+              >
+                <PencilIcon className="w-4 h-4" />
+                수정
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePostDelete}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700"
+              >
+                <TrashIcon className="w-4 h-4" />
+                삭제
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* 게시글 내용 */}
@@ -188,6 +272,14 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
               {post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}
             </span>
             <div className="flex items-center gap-4">
+              <LikeButton
+                targetType="post"
+                targetId={post.id}
+                initialLiked={false}
+                initialCount={post.likeCount || 0}
+                size="sm"
+                variant="ghost"
+              />
               <span className="flex items-center gap-1">
                 <EyeIcon className="w-4 h-4" />
                 {post.viewCount}
@@ -292,21 +384,82 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
                         </span>
                       </div>
                       
-                      <p className="text-secondary-700 whitespace-pre-wrap">
-                        {comment.content}
-                      </p>
+                      {editingComment === comment.id ? (
+                        <div className="space-y-3">
+                          <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            rows={3}
+                            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300 border-neutral-200 focus:border-primary-500 focus:ring-primary-100"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleCommentEditSave(comment.id)}
+                              loading={isLoading}
+                              disabled={!editContent.trim()}
+                            >
+                              저장
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleCommentEditCancel}
+                              disabled={isLoading}
+                            >
+                              취소
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-secondary-700 whitespace-pre-wrap">
+                          {comment.content}
+                        </p>
+                      )}
                     </div>
                     
-                    {user && (user.id === comment.authorId || user.role === 'admin') && (
-                      <Button
+                    <div className="flex gap-2">
+                      {/* 좋아요 버튼 */}
+                      <LikeButton
+                        targetType="comment"
+                        targetId={comment.id}
+                        initialLiked={false}
+                        initialCount={comment.likeCount || 0}
+                        size="sm"
+                        variant="ghost"
+                      />
+                      
+                      {/* 신고 버튼 */}
+                      <ReportButton
+                        targetType="comment"
+                        targetId={comment.id}
+                        targetTitle={comment.content.substring(0, 50) + (comment.content.length > 50 ? '...' : '')}
                         variant="outline"
                         size="sm"
-                        onClick={() => handleCommentDelete(comment.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        삭제
-                      </Button>
-                    )}
+                      />
+                      
+                      {/* 수정/삭제 버튼 (작성자 또는 관리자만) */}
+                      {user && (user.id === comment.authorId || user.role === 'admin') && editingComment !== comment.id && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCommentEdit(comment)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            수정
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCommentDelete(comment.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            삭제
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

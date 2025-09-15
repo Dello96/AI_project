@@ -13,15 +13,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useAuth } from '@/hooks/useAuth'
-import { usePermissions } from '@/hooks/usePermissions'
+import { useRouter } from 'next/navigation'
 import NotificationBell from '@/components/notifications/NotificationBell'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
 import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
+import PaymentTest from '@/components/payments/PaymentTest'
 
 export default function Home() {
-  const { user, signIn, signOut } = useAuth()
-  const permissions = usePermissions()
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
@@ -67,9 +66,7 @@ export default function Home() {
     }
   ]
 
-  const features = permissions.canAccessAdminPanel() 
-    ? [...baseFeatures, ...adminFeatures] 
-    : baseFeatures
+  const features = baseFeatures
 
   const quickActions = [
     { title: '공지사항 작성', icon: DocumentTextIcon, variant: 'default' as const },
@@ -91,44 +88,29 @@ export default function Home() {
             className="text-center"
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-4 text-balance">
-              청년부 커뮤니티
+              PrayGround
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-8 text-balance">
               공지사항부터 일정관리까지, 청년부를 위한 올인원 플랫폼
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              {!user ? (
-                <>
-                  <Button 
-                    size="lg" 
-                    variant="secondary"
-                    onClick={() => signIn({ email: 'test@example.com', password: 'test123' })}
-                    className="shadow-glow-secondary"
-                  >
-                    테스트 로그인
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="border-white text-white hover:bg-white hover:text-primary-600"
-                  >
-                    회원가입
-                  </Button>
-                </>
-              ) : (
-                <div className="flex items-center gap-4">
-                  <NotificationBell className="text-white hover:bg-white/20" />
-                  <span className="text-lg">안녕하세요, {user.email}님!</span>
-                  <Button 
-                    variant="outline"
-                    className="border-white text-white hover:bg-white hover:text-primary-600"
-                    onClick={() => signOut()}
-                  >
-                    로그아웃
-                  </Button>
-                </div>
-              )}
+              <Button 
+                size="lg" 
+                variant="secondary"
+                onClick={() => router.push('/board')}
+                className="shadow-glow-secondary"
+              >
+                게시판 바로가기
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-primary-600"
+                onClick={() => router.push('/calendar')}
+              >
+                캘린더 바로가기
+              </Button>
             </div>
           </motion.div>
         </div>
@@ -277,6 +259,27 @@ export default function Home() {
               </Card>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      {/* 결제 테스트 */}
+      <section className="container-narrow section">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.0 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-h2 text-gradient-accent mb-4">
+            결제 시스템 테스트
+          </h2>
+          <p className="text-body-large text-neutral-600 max-w-2xl mx-auto">
+            토스페이먼츠를 통한 안전한 결제 시스템을 테스트해보세요
+          </p>
+        </motion.div>
+
+        <div className="flex justify-center">
+          <PaymentTest />
         </div>
       </section>
 

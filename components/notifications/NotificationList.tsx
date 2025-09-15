@@ -34,8 +34,8 @@ export default function NotificationList({ isOpen, onClose }: NotificationListPr
     try {
       setIsLoading(true)
       const result = await notificationService.getNotifications(user.id)
-      setNotifications(result)
-      setUnreadCount(result.filter(n => !n.isRead).length)
+      setNotifications(result as any)
+      setUnreadCount(result.filter((n: any) => !n.is_read).length)
     } catch (error) {
       console.error('알림 조회 오류:', error)
     } finally {

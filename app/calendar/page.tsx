@@ -1,13 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Calendar from '@/components/calendar/Calendar'
 import EventForm from '@/components/calendar/EventForm'
 import EventDetail from '@/components/calendar/EventDetail'
 import { Event } from '@/types'
 import { eventService } from '@/lib/database'
-
 export default function CalendarPage() {
   const [view, setView] = useState<'calendar' | 'add' | 'edit' | 'detail'>('calendar')
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
@@ -59,6 +58,7 @@ export default function CalendarPage() {
     setEditingEvent(null)
     setSelectedDate(null)
   }
+
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
