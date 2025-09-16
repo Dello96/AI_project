@@ -126,7 +126,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
         console.log('보내는 데이터:', JSON.stringify(requestData, null, 2))
         console.log('각 필드 타입:')
         Object.keys(requestData).forEach(key => {
-          console.log(`${key}: ${typeof requestData[key]} = ${JSON.stringify(requestData[key])}`)
+          console.log(`${key}: ${typeof (requestData as any)[key]} = ${JSON.stringify((requestData as any)[key])}`)
         })
         
         const response = await fetch('/api/events', {
@@ -147,7 +147,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
         }
         
         if (data.success) {
-          result = data.event
+          result = data.event as Event
           console.log('이벤트 생성 성공:', result)
           
           // 이벤트 목록 새로고침을 위한 이벤트 발생
