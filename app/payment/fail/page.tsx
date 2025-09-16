@@ -1,11 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { XCircleIcon, HomeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 
-export default function PaymentFailPage() {
+function PaymentFailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const error = searchParams.get('error') || '알 수 없는 오류가 발생했습니다.'
@@ -44,5 +45,20 @@ export default function PaymentFailPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function PaymentFailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">페이지를 로딩하는 중...</p>
+        </div>
+      </div>
+    }>
+      <PaymentFailContent />
+    </Suspense>
   )
 }
