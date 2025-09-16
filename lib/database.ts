@@ -1,49 +1,7 @@
 import { supabase } from './supabase'
 import { Post, Comment, Event, User, SignupForm } from '@/types'
 
-// 교회 도메인 관련 서비스
-export const churchDomainService = {
-  // 교회 도메인 목록 조회
-  async getDomains(): Promise<{ id: string; domain: string; name: string }[]> {
-    try {
-      const { data: domains, error } = await supabase
-        .from('church_domains')
-        .select('id, domain, name')
-        .eq('is_active', true)
-        .order('name', { ascending: true })
-
-      if (error) {
-        console.error('교회 도메인 조회 오류:', error)
-        throw new Error('교회 도메인을 불러오는데 실패했습니다.')
-      }
-      
-      if (!domains || domains.length === 0) {
-        console.warn('교회 도메인 데이터가 없습니다. 관리자에게 문의하세요.')
-        throw new Error('교회 도메인 데이터가 없습니다. 관리자에게 문의하세요.')
-      }
-      
-      return domains
-    } catch (error) {
-      console.error('교회 도메인 조회 오류:', error)
-      throw error
-    }
-  },
-
-  // 교회 도메인 생성 (관리자용)
-  async createDomain(data: { domain: string; name: string; description?: string }): Promise<boolean> {
-    try {
-      const { error } = await supabase
-        .from('church_domains')
-        .insert(data)
-
-      if (error) throw error
-      return true
-    } catch (error) {
-      console.error('교회 도메인 생성 오류:', error)
-      return false
-    }
-  }
-}
+// 교회 도메인 서비스 제거됨 (단순화)
 
 // 사용자 관련 서비스
 export const userService = {
@@ -57,7 +15,7 @@ export const userService = {
           email: data.email,
           name: data.name,
           phone: data.phone,
-          church_domain_id: data.churchDomain
+          church_domain_id: '00000000-0000-0000-0000-000000000000' // 기본값
         })
         .select()
         .single()

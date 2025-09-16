@@ -12,7 +12,7 @@ export class GeminiService {
     console.log('GeminiService 초기화:', {
       hasApiKey: !!this.apiKey,
       apiKeyLength: this.apiKey.length,
-      apiKeyPrefix: this.apiKey.substring(0, 10) + '...'
+      apiKeyPrefix: `${this.apiKey.substring(0, 10)}...`
     })
     
     if (!this.apiKey) {
@@ -34,7 +34,7 @@ export class GeminiService {
         parts: [{ text: msg.content }]
       }))
 
-      console.log('Gemini API 호출 중...', { apiKey: this.apiKey.substring(0, 10) + '...' })
+      console.log('Gemini API 호출 중...', { apiKey: `${this.apiKey.substring(0, 10)}...` })
 
       const response = await fetch(`${this.baseUrl}/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`, {
         method: 'POST',

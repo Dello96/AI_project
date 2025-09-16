@@ -56,16 +56,24 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
   const fetchPosts = async () => {
     try {
       setIsLoading(true)
-      const result = await postService.getPosts({
-        category: filters.category || undefined,
-        search: filters.search || undefined,
-        sortBy: filters.sortBy || undefined,
-        page: currentPage,
-        limit: 10
-      })
       
-      setPosts(result.posts)
-      setTotalPosts(result.total)
+      // API 호출을 위한 쿼리 파라미터 구성
+      const params = new URLSearchParams()
+      if (filters.category) params.append('category', filters.category)
+      if (filters.search) params.append('search', filters.search)
+      if (filters.sortBy) params.append('sortBy', filters.sortBy)
+      params.append('page', currentPage.toString())
+      params.append('limit', '10')
+      
+      const response = await fetch(`/api/board/posts?${params.toString()}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setPosts(data.data.posts)
+        setTotalPosts(data.data.pagination.totalCount)
+      } else {
+        console.error('게시글 조회 실패:', data.error)
+      }
     } catch (error) {
       console.error('게시글 조회 오류:', error)
     } finally {
@@ -85,7 +93,7 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
   }, [currentPage])
 
   const handleCategoryFilter = (category: 'notice' | 'free' | 'qna' | undefined) => {
-    setFilters(prev => ({ ...prev, category: category || 'free' }))
+    setFilters(prev => ({ ...prev, category }))
   }
 
   const handleSearch = (search: string) => {

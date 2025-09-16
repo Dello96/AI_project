@@ -4,7 +4,6 @@ export interface User {
   email: string;
   name: string;
   phone?: string;
-  churchDomain: string;
   role: 'member' | 'leader' | 'admin';
   avatarUrl?: string;
   isApproved: boolean;
@@ -56,7 +55,7 @@ export interface Event {
   isAllDay: boolean;
   authorId: string;
   author?: User;
-  churchDomain?: string;
+  // churchDomain 제거됨 (단순화)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -169,7 +168,7 @@ export interface SignupForm {
   confirmPassword: string;
   name: string;
   phone?: string;
-  churchDomain: string;
+  // churchDomain 제거됨 (단순화)
 }
 
 // 임시 회원가입 요청 관련 타입
@@ -178,7 +177,7 @@ export interface PendingMember {
   email: string;
   name: string;
   phone?: string;
-  churchDomainId: string;
+  // churchDomainId 제거됨 (단순화)
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
   rejectionNotes?: string;
@@ -196,7 +195,7 @@ export interface SignupRequestForm {
   confirmPassword: string;
   name: string;
   phone?: string;
-  churchDomain: string;
+  // churchDomain 제거됨 (단순화)
 }
 
 export interface PostForm {

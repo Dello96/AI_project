@@ -31,7 +31,7 @@ export function useAuth() {
           email: session.user.email || '',
           name: session.user.user_metadata?.name || '사용자',
           phone: session.user.user_metadata?.phone || null,
-          churchDomain: session.user.user_metadata?.churchDomain || '',
+          // churchDomain 제거됨 (단순화)
           role: 'member',
           isApproved: true,
           createdAt: new Date(session.user.created_at || new Date()),
@@ -122,7 +122,7 @@ export function useAuth() {
           email: authData.user.email || '',
           name: authData.user.user_metadata?.name || '사용자',
           phone: authData.user.user_metadata?.phone || null,
-          churchDomain: authData.user.user_metadata?.churchDomain || '',
+          // churchDomain 제거됨 (단순화)
           role: 'member',
           isApproved: true,
           createdAt: new Date(authData.user.created_at || new Date()),
@@ -226,7 +226,7 @@ export function useAuth() {
             email: session.user.email || '',
             name: session.user.user_metadata?.name || '사용자',
             phone: session.user.user_metadata?.phone || null,
-            churchDomain: session.user.user_metadata?.churchDomain || '',
+            // churchDomain 제거됨 (단순화)
             role: 'member',
             isApproved: true,
             createdAt: new Date(session.user.created_at || new Date()),
@@ -283,7 +283,7 @@ export function useAuth() {
             email: session.user.email || '',
             name: session.user.user_metadata?.name || '사용자',
             phone: session.user.user_metadata?.phone || null,
-            churchDomain: session.user.user_metadata?.churchDomain || '',
+            // churchDomain 제거됨 (단순화)
             role: 'member',
             isApproved: true,
             createdAt: new Date(session.user.created_at || new Date()),

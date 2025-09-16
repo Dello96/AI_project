@@ -132,16 +132,15 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
       onSelectEvent(event)
     } else if (type === 'user' && onSelectUser) {
       // SearchResult를 User로 변환
-      const user: User = {
-        id: item.id,
-        email: item.content || '',
-        name: item.title,
-        churchDomain: '',
-        role: 'member',
-        isApproved: true,
-        createdAt: item.createdAt,
-        updatedAt: item.createdAt
-      }
+            const user: User = {
+              id: item.id,
+              email: item.content || '',
+              name: item.title,
+              role: 'member',
+              isApproved: true,
+              createdAt: item.createdAt,
+              updatedAt: item.createdAt
+            }
       onSelectUser(user)
     }
     onClose()

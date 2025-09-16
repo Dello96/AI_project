@@ -23,8 +23,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
     password: '',
     confirmPassword: '',
     name: '',
-    phone: '',
-    churchDomain: ''
+    phone: ''
   })
   const [signInData, setSignInData] = useState<LoginForm>({
     email: '',
@@ -51,7 +50,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
       const result = await signUp(signUpData)
       if (result.success) {
         setMode('signin')
-        setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '', churchDomain: '' })
+        setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '' })
       }
     }
   }
@@ -66,7 +65,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
 
   const toggleMode = () => {
     setMode(mode === 'signin' ? 'signup' : 'signin')
-    setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '', churchDomain: '' })
+    setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '' })
     setSignInData({ email: '', password: '' })
   }
 

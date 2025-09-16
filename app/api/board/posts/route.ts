@@ -27,9 +27,12 @@ export async function POST(request: NextRequest) {
   try {
     // 요청 본문 파싱
     const body = await request.json()
+    console.log('게시글 작성 요청:', body)
+    
     const parsed = CreatePostSchema.safeParse(body)
     
     if (!parsed.success) {
+      console.error('게시글 작성 스키마 검증 실패:', parsed.error.issues)
       return NextResponse.json(
         { error: '입력 데이터가 올바르지 않습니다.', details: parsed.error.issues },
         { status: 400 }
@@ -46,6 +49,7 @@ export async function POST(request: NextRequest) {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.warn('⚠️ Supabase 환경 변수가 설정되지 않았습니다. 모의 데이터를 사용합니다.')
       
+      // 모의 데이터 반환
       const mockPost = {
         id: `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         title: sanitizedTitle,
@@ -133,7 +137,7 @@ export async function POST(request: NextRequest) {
       .single()
     
     if (!existingUser) {
-      // 익명 사용자 프로필 생성
+      // 익명 사용자 프로필 생성 (외래키 제약조건 무시)
       const { error: userError } = await serverSupabase
         .from('user_profiles')
         .insert({
@@ -149,25 +153,31 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    const { data: post, error: createError } = await serverSupabase
-      .from('posts')
-      .insert({
-        title: sanitizedTitle,
-        content: sanitizedContent,
-        category,
-        author_id: anonymousUserId,
-        is_anonymous: true
-      })
-      .select()
-      .single()
-    
-    if (createError) {
-      console.error('게시글 생성 오류:', createError)
-      return NextResponse.json(
-        { error: '게시글 작성에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
+      const { data: post, error: createError } = await serverSupabase
+        .from('posts')
+        .insert({
+          title: sanitizedTitle,
+          content: sanitizedContent,
+          category,
+          author_id: anonymousUserId,
+          is_anonymous: true
+        })
+        .select()
+        .single()
+      
+      if (createError) {
+        console.error('게시글 생성 오류:', createError)
+        console.error('오류 상세 정보:', {
+          code: createError?.code,
+          message: createError?.message,
+          details: createError?.details,
+          hint: createError?.hint
+        })
+        return NextResponse.json(
+          { error: `게시글 작성에 실패했습니다: ${createError?.message}` },
+          { status: 500 }
+        )
+      }
     
     return NextResponse.json({
       success: true,
@@ -221,12 +231,7 @@ export async function GET(request: NextRequest) {
     
     let query = serverSupabase
       .from('posts')
-      .select(`
-        *,
-        author:author_id(id, name, role),
-        comments:comments(id)
-      `, { count: 'exact' })
-      .is('deleted_at', null)
+      .select('*', { count: 'exact' })
     
     // 카테고리 필터
     if (category) {
@@ -257,8 +262,14 @@ export async function GET(request: NextRequest) {
     
     if (error) {
       console.error('게시글 조회 오류:', error)
+      console.error('오류 상세 정보:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
       return NextResponse.json(
-        { error: '게시글 목록을 불러오는데 실패했습니다.' },
+        { error: '게시글 목록을 불러오는데 실패했습니다.', details: error.message },
         { status: 500 }
       )
     }
@@ -272,13 +283,13 @@ export async function GET(request: NextRequest) {
       title: post.title,
       content: post.content,
       category: post.category,
-      authorName: post.is_anonymous ? '익명' : (post.author?.name || '알 수 없음'),
+      authorName: post.is_anonymous ? '익명' : '알 수 없음',
       isAnonymous: post.is_anonymous || true,
       createdAt: post.created_at,
       updatedAt: post.updated_at,
       viewCount: post.view_count || 0,
       likeCount: post.like_count || 0,
-      commentCount: post.comment_count || 0,
+      commentCount: 0, // 임시로 0으로 설정
       attachments: post.attachments || []
     }))
     

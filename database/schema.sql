@@ -1,16 +1,7 @@
 -- 청년부 커뮤니티 데이터베이스 스키마
 -- Supabase SQL Editor에서 실행하세요
 
--- 1. 교회 도메인 테이블
-CREATE TABLE church_domains (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  domain VARCHAR(255) NOT NULL UNIQUE,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- 교회 도메인 테이블 제거됨 (단순화)
 
 -- 2. 임시 회원가입 요청 테이블
 CREATE TABLE pending_members (
@@ -18,7 +9,7 @@ CREATE TABLE pending_members (
   email VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL,
   phone VARCHAR(20),
-  church_domain_id UUID REFERENCES church_domains(id),
+  church_domain_id UUID, -- 교회 도메인 참조 제거
   hashed_password VARCHAR(255) NOT NULL,
   status pending_status DEFAULT 'pending',
   rejection_reason TEXT,
@@ -45,7 +36,7 @@ CREATE TABLE user_profiles (
   is_approved BOOLEAN DEFAULT false,
   approved_at TIMESTAMP WITH TIME ZONE,
   approved_by UUID REFERENCES user_profiles(id),
-  church_domain_id UUID REFERENCES church_domains(id),
+  church_domain_id UUID, -- 교회 도메인 참조 제거
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -72,7 +63,18 @@ CREATE TABLE posts (
 );
 
 -- 5. 게시글 카테고리 ENUM
-CREATE TYPE post_category AS ENUM ('notice', 'free', 'qa');
+CREATE TYPE post_category AS ENUM ('notice', 'free', 'qna');
+
+-- 5-1. 익명 사용자 프로필 생성 (게시글 작성용)
+INSERT INTO user_profiles (id, email, name, role, is_approved, church_domain_id)
+VALUES (
+  '00000000-0000-0000-0000-000000000000',
+  'anonymous@system.local',
+  '익명 사용자',
+  'member',
+  true,
+  '00000000-0000-0000-0000-000000000000'
+) ON CONFLICT (id) DO NOTHING;
 
 -- 6. 댓글 테이블
 CREATE TABLE comments (

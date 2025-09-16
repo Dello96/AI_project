@@ -283,7 +283,7 @@ class NotificationService {
       const { data: users } = await supabase
         .from('user_profiles')
         .select('id, email, name, phone, avatar_url, role, is_approved, created_at, updated_at, church_domain_id')
-        .eq('church_domain_id', event.churchDomain || 'default')
+        .eq('church_domain_id', '00000000-0000-0000-0000-000000000000') // 기본값
 
       if (users) {
         const transformedUsers: User[] = users.map(user => ({
@@ -294,7 +294,7 @@ class NotificationService {
           avatarUrl: user.avatar_url,
           role: user.role,
           isApproved: user.is_approved,
-          churchDomain: user.church_domain_id,
+          // churchDomain 제거됨 (단순화)
           createdAt: new Date(user.created_at),
           updatedAt: new Date(user.updated_at)
         }))
