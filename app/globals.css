@@ -15,36 +15,36 @@
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
   
-  /* 주요 색상 */
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222.2 84% 4.9%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222.2 84% 4.9%;
+  /* 가을 테마 주요 색상 */
+  --primary: 12 100% 80%; /* 따뜻한 코랄 */
+  --primary-foreground: 0 0% 20%;
+  --secondary: 45 100% 85%; /* 부드러운 골드 */
+  --secondary-foreground: 0 0% 20%;
+  --accent: 30 100% 90%; /* 따뜻한 피치 */
+  --accent-foreground: 0 0% 20%;
   
-  /* 상태 색상 */
-  --success: 142.1 76.2% 36.3%;
-  --success-foreground: 355.7 100% 97.3%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 48 96% 89%;
-  --error: 0 84.2% 60.2%;
-  --error-foreground: 210 40% 98%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
+  /* 가을 테마 상태 색상 */
+  --success: 30 100% 60%; /* 따뜻한 오렌지 */
+  --success-foreground: 0 0% 20%;
+  --warning: 45 100% 70%; /* 따뜻한 골드 */
+  --warning-foreground: 0 0% 20%;
+  --error: 0 100% 70%; /* 부드러운 레드 */
+  --error-foreground: 0 0% 20%;
+  --destructive: 0 100% 70%;
+  --destructive-foreground: 0 0% 20%;
   
-  /* 보조 색상 */
-  --muted: 210 40% 96%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  /* 가을 테마 보조 색상 */
+  --muted: 30 100% 95%; /* 매우 연한 피치 */
+  --muted-foreground: 0 0% 40%;
+  --border: 30 100% 90%; /* 연한 피치 */
+  --input: 30 100% 95%;
+  --ring: 12 100% 80%; /* 코랄 */
   
-  /* 교회/청년부 특화 색상 */
-  --church-gold: 45 93% 47%;
-  --church-purple: 262 83% 58%;
-  --church-teal: 173 58% 39%;
-  --church-coral: 16 100% 66%;
+  /* 가을 테마 특화 색상 */
+  --church-gold: 45 100% 70%; /* 따뜻한 골드 */
+  --church-purple: 12 100% 80%; /* 따뜻한 코랄 */
+  --church-teal: 30 100% 70%; /* 따뜻한 오렌지 */
+  --church-coral: 0 100% 80%; /* 부드러운 코랄 */
   
   /* 시스템 */
   --radius: 0.5rem;

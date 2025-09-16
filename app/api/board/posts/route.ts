@@ -233,9 +233,10 @@ export async function GET(request: NextRequest) {
       .from('posts')
       .select('*', { count: 'exact' })
     
-    // 카테고리 필터
+    // 카테고리 필터 (qna -> qa 매핑)
     if (category) {
-      query = query.eq('category', category)
+      const mappedCategory = category === 'qna' ? 'qa' : category
+      query = query.eq('category', mappedCategory)
     }
     
     // 검색 필터

@@ -21,7 +21,6 @@ const navigation = [
   { name: '홈', href: '/', icon: HomeIcon },
   { name: '게시판', href: '/board', icon: DocumentTextIcon },
   { name: '캘린더', href: '/calendar', icon: CalendarIcon },
-  { name: '채팅', href: '/chat', icon: ChatBubbleLeftRightIcon },
 ]
 
 export default function Header() {
@@ -53,10 +52,10 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* 로고 */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-church-purple to-church-teal rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-autumn rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg lg:text-xl">PG</span>
             </div>
-            <span className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-church-purple to-church-teal bg-clip-text text-transparent">
+            <span className="text-xl lg:text-2xl font-bold bg-gradient-autumn bg-clip-text text-transparent">
               PrayGround
             </span>
           </Link>
@@ -71,8 +70,8 @@ export default function Header() {
                   href={item.href}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
                     isActive
-                      ? 'bg-church-purple/10 text-church-purple'
-                      : 'text-gray-600 hover:text-church-purple hover:bg-gray-50'
+                      ? 'bg-autumn-coral/20 text-autumn-coral'
+                      : 'text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30'
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -84,6 +83,17 @@ export default function Header() {
 
           {/* 우측 액션 버튼들 */}
           <div className="flex items-center space-x-4">
+            {/* 내정보 버튼 */}
+            <Link href="/profile">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden sm:flex"
+                title="내정보"
+              >
+                <UserCircleIcon className="w-6 h-6" />
+              </Button>
+            </Link>
 
             {/* 모바일 메뉴 버튼 */}
             <Button
@@ -121,8 +131,8 @@ export default function Header() {
                       href={item.href}
                       className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                         isActive
-                          ? 'bg-church-purple/10 text-church-purple'
-                          : 'text-gray-600 hover:text-church-purple hover:bg-gray-50'
+                          ? 'bg-autumn-coral/20 text-autumn-coral'
+                          : 'text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30'
                       }`}
                       onClick={closeMobileMenu}
                     >
@@ -131,6 +141,20 @@ export default function Header() {
                     </Link>
                   )
                 })}
+                
+                {/* 모바일 내정보 버튼 */}
+                <Link
+                  href="/profile"
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    pathname === '/profile'
+                      ? 'bg-autumn-coral/20 text-autumn-coral'
+                      : 'text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30'
+                  }`}
+                  onClick={closeMobileMenu}
+                >
+                  <UserCircleIcon className="w-5 h-5" />
+                  <span className="font-medium">내정보</span>
+                </Link>
               </nav>
 
             </div>

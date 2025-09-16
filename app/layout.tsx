@@ -39,9 +39,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={inter.className}>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex flex-col">
           <Header />
-          <main className="pt-16 lg:pt-20">
+          <main className="pt-16 lg:pt-20 flex-1">
             {children}
           </main>
           <Footer />

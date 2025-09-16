@@ -76,11 +76,11 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+    <div className="min-h-screen bg-gradient-to-br from-autumn-peach via-autumn-cream to-autumn-beige">
       {/* 히어로 섹션 */}
       <section className="relative overflow-hidden bg-gradient-primary text-white shadow-large">
         <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative container-narrow py-16 md:py-24">
+        <div className="relative container-narrow pt-16 md:pt-24 pb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -62,12 +62,24 @@ module.exports = {
           DEFAULT: "hsl(var(--error))",
           foreground: "hsl(var(--error-foreground))",
         },
-        // 청년부 커뮤니티 전용 색상
-        church: {
-          gold: "hsl(var(--church-gold))",
-          purple: "hsl(var(--church-purple))",
-          teal: "hsl(var(--church-teal))",
-          coral: "hsl(var(--church-coral))",
+        // 가을 테마 색상
+        autumn: {
+          // 따뜻한 오렌지/코랄
+          coral: "#FFB4A2", // 부드러운 코랄
+          orange: "#FFA07A", // 연한 오렌지
+          peach: "#FFDAB9", // 피치
+          // 따뜻한 브라운/베이지
+          brown: "#D2B48C", // 탄 베이지
+          beige: "#F5DEB3", // 밀 베이지
+          tan: "#DEB887", // 버프
+          // 따뜻한 레드/로즈
+          rose: "#FFB6C1", // 라이트 핑크
+          rust: "#CD853F", // 페루
+          burgundy: "#DEB887", // 버건디
+          // 따뜻한 옐로우/골드
+          gold: "#F0E68C", // 카키
+          mustard: "#DAA520", // 골든로드
+          cream: "#FFF8DC", // 코른실크
         },
       },
       borderRadius: {
@@ -126,10 +138,11 @@ module.exports = {
         'xl': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, #0ea5e9 0%, #d946ef 100%)',
-        'gradient-secondary': 'linear-gradient(135deg, #d946ef 0%, #facc15 100%)',
-        'gradient-accent': 'linear-gradient(135deg, #facc15 0%, #22c55e 100%)',
-        'gradient-church': 'linear-gradient(135deg, #facc15 0%, #d946ef 100%)',
+        'gradient-primary': 'linear-gradient(135deg, #FFB4A2 0%, #FFA07A 100%)', // 코랄-오렌지
+        'gradient-secondary': 'linear-gradient(135deg, #FFA07A 0%, #F0E68C 100%)', // 오렌지-골드
+        'gradient-accent': 'linear-gradient(135deg, #F0E68C 0%, #D2B48C 100%)', // 골드-브라운
+        'gradient-autumn': 'linear-gradient(135deg, #FFB4A2 0%, #D2B48C 100%)', // 가을 메인
+        'gradient-warm': 'linear-gradient(135deg, #FFDAB9 0%, #F5DEB3 100%)', // 따뜻한 톤
       },
     },
   },

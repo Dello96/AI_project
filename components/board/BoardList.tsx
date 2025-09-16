@@ -210,7 +210,17 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
         {posts.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-gray-500">게시글이 없습니다.</p>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                  <DocumentTextIcon className="w-8 h-8 text-gray-400" />
+                </div>
+                <div>
+                  <p className="text-lg font-medium text-gray-900 mb-2">게시물이 아직 없습니다!</p>
+                  <p className="text-gray-500 text-sm">
+                    {filters.category ? `${categoryLabels[filters.category]}에` : '이 게시판에'} 첫 번째 글을 작성해보세요.
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         ) : (

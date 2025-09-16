@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { 
   HeartIcon,
-  ChatBubbleLeftRightIcon,
   CalendarIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  UserCircleIcon
 } from '@heroicons/react/24/outline'
 
 const footerNavigation = {
@@ -14,7 +14,7 @@ const footerNavigation = {
     { name: '홈', href: '/' },
     { name: '게시판', href: '/board' },
     { name: '캘린더', href: '/calendar' },
-    { name: '채팅', href: '/chat' },
+    { name: '내정보', href: '/profile' },
   ],
   support: [
     { name: '도움말', href: '/help' },
@@ -99,7 +99,7 @@ export default function Footer() {
                       {item.name === '홈' && <span className="w-4 h-4">🏠</span>}
                       {item.name === '게시판' && <DocumentTextIcon className="w-4 h-4" />}
                       {item.name === '캘린더' && <CalendarIcon className="w-4 h-4" />}
-                      {item.name === '채팅' && <ChatBubbleLeftRightIcon className="w-4 h-4" />}
+                      {item.name === '내정보' && <UserCircleIcon className="w-4 h-4" />}
                       <span>{item.name}</span>
                     </Link>
                   </li>

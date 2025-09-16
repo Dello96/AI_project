@@ -12,10 +12,10 @@ const buttonVariants = cva(
       variant: {
         default: "bg-gradient-primary text-primary-foreground shadow-medium hover:shadow-large hover:scale-105",
         destructive: "bg-gradient-to-r from-error-500 to-error-600 text-error-foreground shadow-medium hover:shadow-large hover:scale-105",
-        outline: "border-2 border-primary-500 bg-background text-primary-600 hover:bg-primary-500 hover:text-primary-foreground",
+        outline: "border-2 border-primary-500 bg-background text-primary-600 hover:bg-gray-800 hover:text-white hover:border-gray-800",
         secondary: "bg-gradient-secondary text-secondary-foreground shadow-medium hover:shadow-large hover:scale-105",
         accent: "bg-gradient-accent text-accent-foreground shadow-medium hover:shadow-large hover:scale-105",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-accent hover:text-gray-900",
         link: "text-primary underline-offset-4 hover:underline",
         success: "bg-gradient-to-r from-success-500 to-success-600 text-success-foreground shadow-medium hover:shadow-large hover:scale-105",
         warning: "bg-gradient-to-r from-warning-500 to-warning-600 text-warning-foreground shadow-medium hover:shadow-large hover:scale-105",

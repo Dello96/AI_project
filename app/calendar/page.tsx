@@ -61,7 +61,7 @@ export default function CalendarPage() {
 
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 pt-8 pb-4 max-w-7xl">
       <AnimatePresence mode="wait">
         {view === 'calendar' && (
           <motion.div
