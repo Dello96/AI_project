@@ -4,45 +4,46 @@ import { Event } from '@/types'
 
 export function useRealtimeEvents() {
   const [events, setEvents] = useState<Event[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // 이벤트 목록을 다시 가져오는 함수
+  const fetchEvents = async () => {
+    try {
+      console.log('이벤트 목록 새로고침 중...')
+      const response = await fetch('/api/events?limit=100')
+      const data = await response.json()
+
+      if (data.success && data.data.events) {
+        const formattedEvents = data.data.events.map((event: any) => ({
+          ...event,
+          startDate: new Date(event.startDate),
+          endDate: new Date(event.endDate),
+          createdAt: new Date(event.createdAt),
+          updatedAt: new Date(event.updatedAt)
+        }))
+        setEvents(formattedEvents)
+        console.log('이벤트 목록 업데이트 완료:', formattedEvents.length, '개')
+      } else {
+        console.error('이벤트 조회 실패:', data.error)
+      }
+    } catch (error) {
+      console.error('이벤트 조회 중 오류:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     // 초기 이벤트 목록 조회
-    const fetchEvents = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('events')
-          .select(`
-            *,
-            user_profiles (
-              id,
-              name,
-              email
-            )
-          `)
-          .order('start_date', { ascending: true })
+    fetchEvents()
 
-        if (error) {
-          console.error('이벤트 조회 오류:', error)
-          return
-        }
-
-        if (data) {
-          setEvents(data.map(event => ({
-            ...event,
-            startDate: new Date(event.start_date),
-            endDate: new Date(event.end_date),
-            authorId: event.created_by,
-            author: event.user_profiles,
-            createdAt: new Date(event.created_at),
-            updatedAt: new Date(event.updated_at)
-          })))
-        }
-      } catch (error) {
-        console.error('이벤트 조회 중 오류:', error)
-      }
+    // 커스텀 이벤트 리스너 (이벤트 생성 시 목록 새로고침)
+    const handleEventCreated = () => {
+      console.log('이벤트 생성 감지 - 목록 새로고침')
+      fetchEvents()
     }
 
-    fetchEvents()
+    window.addEventListener('eventCreated', handleEventCreated)
 
     // 실시간 구독 설정
     const channel = supabase
@@ -57,58 +58,21 @@ export function useRealtimeEvents() {
         (payload) => {
           console.log('이벤트 변경 감지:', payload)
           
-          if (payload.eventType === 'INSERT') {
-            // 새 이벤트 추가
-            const newEvent: Event = {
-              id: payload.new.id,
-              title: payload.new.title,
-              description: payload.new.description,
-              startDate: new Date(payload.new.start_date),
-              endDate: new Date(payload.new.end_date),
-              location: payload.new.location,
-              category: payload.new.category,
-              isAllDay: payload.new.all_day,
-              authorId: payload.new.created_by,
-              createdAt: new Date(payload.new.created_at),
-              updatedAt: new Date(payload.new.updated_at)
-            }
-            setEvents(prev => [...prev, newEvent])
-          } else if (payload.eventType === 'UPDATE') {
-            // 이벤트 수정
-            const updatedEvent: Event = {
-              id: payload.new.id,
-              title: payload.new.title,
-              description: payload.new.description,
-              startDate: new Date(payload.new.start_date),
-              endDate: new Date(payload.new.end_date),
-              location: payload.new.location,
-              category: payload.new.category,
-              isAllDay: payload.new.all_day,
-              authorId: payload.new.created_by,
-              createdAt: new Date(payload.new.created_at),
-              updatedAt: new Date(payload.new.updated_at)
-            }
-            setEvents(prev => 
-              prev.map(event => 
-                event.id === updatedEvent.id ? updatedEvent : event
-              )
-            )
-          } else if (payload.eventType === 'DELETE') {
-            // 이벤트 삭제
-            setEvents(prev => 
-              prev.filter(event => event.id !== payload.old.id)
-            )
-          }
+          // 실시간 구독이 작동하지 않을 경우를 대비해 전체 목록을 다시 가져옴
+          fetchEvents()
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('실시간 구독 상태:', status)
+      })
 
     // 클린업 함수
     return () => {
+      window.removeEventListener('eventCreated', handleEventCreated)
       supabase.removeChannel(channel)
     }
   }, [])
 
-  return { events, setEvents }
+  return { events, setEvents, fetchEvents, isLoading }
 }
 

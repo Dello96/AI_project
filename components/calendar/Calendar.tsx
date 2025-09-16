@@ -34,8 +34,7 @@ type CalendarViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listW
 
 export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: CalendarProps) {
   const [view, setView] = useState<CalendarViewType>('dayGridMonth')
-  const { events, setEvents } = useRealtimeEvents()
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const { events, setEvents, isLoading } = useRealtimeEvents()
   const [currentDate, setCurrentDate] = useState(new Date())
 
   // 실시간 이벤트 사용으로 인해 별도 조회 불필요

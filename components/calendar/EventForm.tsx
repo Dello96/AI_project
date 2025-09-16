@@ -69,14 +69,14 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // 익명 작성자 ID 생성 (임시)
-    const anonymousAuthorId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    // 익명 작성자 ID 생성 (UUID 형식)
+    const anonymousAuthorId = '00000000-0000-0000-0000-000000000000'
 
     try {
       setIsLoading(true)
       setError(null)
 
-      let result: boolean | Event | null
+      let result: boolean | Event | null = null
 
       if (initialData?.id) {
         // 일정 수정
@@ -101,33 +101,81 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           }
         }
       } else {
-        // 새 일정 생성
-        result = await eventService.createEvent({
+        // 새 일정 생성 - API 호출
+        // 날짜 유효성 검사 및 변환
+        const startDate = formData.startDate instanceof Date ? formData.startDate : new Date(formData.startDate)
+        const endDate = formData.endDate instanceof Date ? formData.endDate : new Date(formData.endDate)
+        
+        // 날짜가 유효한지 확인
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          throw new Error('올바른 날짜를 선택해주세요.')
+        }
+        
+        const requestData = {
           title: formData.title.trim(),
-          description: formData.description?.trim() || '',
-          startDate: formData.startDate,
-          endDate: formData.endDate,
-          location: formData.location?.trim() || '',
+          description: formData.description?.trim() || undefined,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          location: formData.location?.trim() || undefined,
           category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup',
-          isAllDay: formData.isAllDay,
+          isAllDay: Boolean(formData.isAllDay),
           authorId: anonymousAuthorId
+        }
+        
+        console.log('=== EventForm에서 API 호출 ===')
+        console.log('보내는 데이터:', JSON.stringify(requestData, null, 2))
+        console.log('각 필드 타입:')
+        Object.keys(requestData).forEach(key => {
+          console.log(`${key}: ${typeof requestData[key]} = ${JSON.stringify(requestData[key])}`)
+        })
+        
+        const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData)
         })
 
-        if (result && sendNotification) {
-          // 생성 알림 발송
-          const { data: users } = await eventService.getEventParticipants(result.id)
-          if (users) {
-            await notificationService.notifyEventCreated(result, users as any[])
-          }
+        console.log('응답 상태:', response.status, response.statusText)
+        const data = await response.json()
+        console.log('응답 데이터:', data)
+        
+        if (!response.ok) {
+          console.error('이벤트 생성 API 오류:', data)
+          throw new Error(data.error || `서버 오류 (${response.status})`)
+        }
+        
+        if (data.success) {
+          result = data.event
+          console.log('이벤트 생성 성공:', result)
+          
+          // 이벤트 목록 새로고침을 위한 이벤트 발생
+          window.dispatchEvent(new CustomEvent('eventCreated', { detail: result }))
+          
+          // 즉시 onSuccess 호출
+          console.log('onSuccess 호출 시작')
+          onSuccess()
+          console.log('onSuccess 호출 완료')
+          
+          if (result && sendNotification) {
+            // 생성 알림 발송
+            const { data: users } = await eventService.getEventParticipants(result.id)
+            if (users) {
+              await notificationService.notifyEventCreated(result, users as any[])
+            }
 
-          // 리마인더 스케줄링
-          await notificationService.scheduleEventReminder(result, reminderMinutes || 30)
+            // 리마인더 스케줄링
+            await notificationService.scheduleEventReminder(result, reminderMinutes || 30)
+          }
+        } else {
+          throw new Error(data.error || '이벤트 생성에 실패했습니다.')
         }
       }
 
-      if (result) {
-        onSuccess()
-      } else {
+      console.log('최종 result 값:', result)
+      if (!result) {
+        console.log('result가 null이므로 에러 표시')
         setError('일정 저장에 실패했습니다.')
       }
     } catch (error) {
