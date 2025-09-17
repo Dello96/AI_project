@@ -27,9 +27,23 @@ interface EventDetailProps {
 export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }: EventDetailProps) {
   const { user } = useAuth()
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+
+  const handleEdit = () => {
+    setIsEditing(true)
+    onEdit(event)
+    // 수정 폼이 열리면 모달을 닫음
+    setTimeout(() => {
+      onClose()
+    }, 100)
+  }
 
   const handleDelete = async () => {
-    if (!confirm('이 일정을 삭제하시겠습니까?')) return
+    const confirmed = window.confirm(
+      `"${event.title}" 일정을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`
+    )
+    
+    if (!confirmed) return
 
     try {
       setIsDeleting(true)
@@ -37,10 +51,12 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }
       if (result) {
         onDelete(event.id)
         onClose()
+        // 성공 메시지 표시
+        alert('일정이 성공적으로 삭제되었습니다.')
       }
     } catch (error) {
       console.error('이벤트 삭제 오류:', error)
-      alert('일정 삭제에 실패했습니다.')
+      alert('일정 삭제에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setIsDeleting(false)
     }
@@ -145,26 +161,33 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }
             </div>
 
             {/* 액션 버튼 */}
-            {user && (user.id === event.authorId || user.role === 'admin') && (
+            {user && (user.id === event.authorId || user.role === 'admin') ? (
               <div className="flex gap-3 justify-end pt-4 border-t border-secondary-200">
                 <Button
                   variant="outline"
-                  onClick={() => onEdit(event)}
-                  className="flex items-center gap-2"
+                  onClick={handleEdit}
+                  disabled={isEditing}
+                  className="flex items-center gap-2 border-autumn-coral text-autumn-coral hover:bg-autumn-coral hover:text-white transition-all duration-200 disabled:opacity-50"
                 >
                   <PencilIcon className="w-4 h-4" />
-                  수정
+                  {isEditing ? '수정 중...' : '수정'}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleDelete}
                   loading={isDeleting}
                   disabled={isDeleting}
-                  className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                  className="flex items-center gap-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 disabled:opacity-50"
                 >
                   <TrashIcon className="w-4 h-4" />
-                  삭제
+                  {isDeleting ? '삭제 중...' : '삭제'}
                 </Button>
+              </div>
+            ) : (
+              <div className="pt-4 border-t border-secondary-200">
+                <p className="text-sm text-secondary-500 text-center">
+                  {!user ? '로그인하면 일정을 수정하거나 삭제할 수 있습니다.' : '본인이 작성한 일정만 수정하거나 삭제할 수 있습니다.'}
+                </p>
               </div>
             )}
           </CardContent>

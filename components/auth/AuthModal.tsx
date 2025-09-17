@@ -7,6 +7,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { SignupForm, LoginForm } from '@/types'
+import KakaoLoginButton from './KakaoLoginButton'
+import GoogleLoginButton from './GoogleLoginButton'
 
 
 interface AuthModalProps {
@@ -29,10 +31,9 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
     email: '',
     password: ''
   })
+  const [error, setError] = useState<string | null>(null)
   
-
-  
-  const { signIn, signUp, isLoading, error } = useAuth()
+  const { signIn, signUp, isLoading } = useAuth()
 
 
 
@@ -166,6 +167,38 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
               {mode === 'signin' ? '로그인' : '회원가입'}
             </Button>
           </form>
+
+          {/* 구분선 */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">또는</span>
+            </div>
+          </div>
+
+          {/* Google 로그인 */}
+          <GoogleLoginButton
+            onSuccess={() => {
+              onClose()
+            }}
+            onError={(error) => {
+              setError(error)
+            }}
+            className="mb-3"
+          />
+
+          {/* 카카오 로그인 */}
+          <KakaoLoginButton
+            onSuccess={() => {
+              onClose()
+            }}
+            onError={(error) => {
+              setError(error)
+            }}
+            className="mb-4"
+          />
 
           {/* 모드 전환 */}
           <div className="mt-6 text-center">

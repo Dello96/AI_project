@@ -19,7 +19,7 @@ export default function CalendarPage() {
 
   const handleSelectEvent = (event: Event) => {
     setSelectedEvent(event)
-    setView('detail')
+    // 모달 방식으로 변경 - view 변경하지 않음
   }
 
   const handleSelectDate = (date: Date) => {
@@ -59,26 +59,30 @@ export default function CalendarPage() {
     setSelectedDate(null)
   }
 
+  const handleCloseEventDetail = () => {
+    setSelectedEvent(null)
+  }
+
 
   return (
     <div className="container mx-auto px-4 pt-8 pb-4 max-w-7xl">
       <AnimatePresence mode="wait">
-        {view === 'calendar' && (
-          <motion.div
-            key="calendar"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Calendar
-              onAddEvent={handleAddEvent}
-              onSelectEvent={handleSelectEvent}
-              onSelectDate={handleSelectDate}
-            />
-          </motion.div>
-        )}
+        {/* 캘린더는 항상 표시 */}
+        <motion.div
+          key="calendar"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Calendar
+            onAddEvent={handleAddEvent}
+            onSelectEvent={handleSelectEvent}
+            onSelectDate={handleSelectDate}
+          />
+        </motion.div>
 
+        {/* 이벤트 추가/수정 폼 */}
         {view === 'add' && (
           <motion.div
             key="add"
@@ -112,25 +116,18 @@ export default function CalendarPage() {
             />
           </motion.div>
         )}
-
-        {view === 'detail' && selectedEvent && (
-          <motion.div
-            key="detail"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <EventDetail
-              event={selectedEvent}
-              isOpen={true}
-              onClose={handleBackToCalendar}
-              onEdit={handleEditEvent}
-              onDelete={handleDeleteEvent}
-            />
-          </motion.div>
-        )}
       </AnimatePresence>
+
+      {/* 이벤트 상세정보 모달 - 오버레이 방식 */}
+      {selectedEvent && (
+        <EventDetail
+          event={selectedEvent}
+          isOpen={true}
+          onClose={handleCloseEventDetail}
+          onEdit={handleEditEvent}
+          onDelete={handleDeleteEvent}
+        />
+      )}
     </div>
   )
 }

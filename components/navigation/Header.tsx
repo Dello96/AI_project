@@ -16,6 +16,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/Button'
 import { usePWA } from '@/hooks/usePWA'
+import { useAuth } from '@/hooks/useAuth'
+import AuthModal from '@/components/auth/AuthModal'
 
 const navigation = [
   { name: '홈', href: '/', icon: HomeIcon },
@@ -26,8 +28,10 @@ const navigation = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const pathname = usePathname()
   const { notificationPermission } = usePWA()
+  const { user, isLoading } = useAuth()
 
   // 스크롤 감지
   useEffect(() => {
@@ -83,17 +87,33 @@ export default function Header() {
 
           {/* 우측 액션 버튼들 */}
           <div className="flex items-center space-x-4">
-            {/* 내정보 버튼 */}
-            <Link href="/profile">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hidden sm:flex"
-                title="내정보"
-              >
-                <UserCircleIcon className="w-6 h-6" />
-              </Button>
-            </Link>
+            {/* 로그인 상태에 따른 버튼 */}
+            {!isLoading && (
+              <>
+                {user ? (
+                  /* 로그인된 경우 - 내정보 버튼 */
+                  <Link href="/profile">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hidden sm:flex"
+                      title="내정보"
+                    >
+                      <UserCircleIcon className="w-6 h-6" />
+                    </Button>
+                  </Link>
+                ) : (
+                  /* 로그인되지 않은 경우 - 로그인 버튼 */
+                  <Button
+                    onClick={() => setShowAuthModal(true)}
+                    variant="outline"
+                    className="hidden sm:flex border-autumn-coral text-autumn-coral hover:bg-autumn-coral hover:text-white"
+                  >
+                    로그인
+                  </Button>
+                )}
+              </>
+            )}
 
             {/* 모바일 메뉴 버튼 */}
             <Button
@@ -142,25 +162,47 @@ export default function Header() {
                   )
                 })}
                 
-                {/* 모바일 내정보 버튼 */}
-                <Link
-                  href="/profile"
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    pathname === '/profile'
-                      ? 'bg-autumn-coral/20 text-autumn-coral'
-                      : 'text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30'
-                  }`}
-                  onClick={closeMobileMenu}
-                >
-                  <UserCircleIcon className="w-5 h-5" />
-                  <span className="font-medium">내정보</span>
-                </Link>
+                {/* 모바일 로그인 상태에 따른 버튼 */}
+                {user ? (
+                  /* 로그인된 경우 - 내정보 버튼 */
+                  <Link
+                    href="/profile"
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                      pathname === '/profile'
+                        ? 'bg-autumn-coral/20 text-autumn-coral'
+                        : 'text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30'
+                    }`}
+                    onClick={closeMobileMenu}
+                  >
+                    <UserCircleIcon className="w-5 h-5" />
+                    <span className="font-medium">내정보</span>
+                  </Link>
+                ) : (
+                  /* 로그인되지 않은 경우 - 로그인 버튼 */
+                  <button
+                    onClick={() => {
+                      setShowAuthModal(true)
+                      closeMobileMenu()
+                    }}
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30 w-full text-left"
+                  >
+                    <UserCircleIcon className="w-5 h-5" />
+                    <span className="font-medium">로그인</span>
+                  </button>
+                )}
               </nav>
 
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 인증 모달 */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultMode="signin"
+      />
     </header>
   )
 }
