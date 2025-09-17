@@ -18,9 +18,12 @@
 ### 1.3 OAuth 리다이렉트 URI 설정
 1. "제품 설정" → "카카오 로그인" → "Redirect URI"
 2. 다음 URI들을 추가:
+   - `https://oeqowoirhxssdmycqynx.supabase.co/auth/v1/callback` (Supabase OAuth용)
    - `http://localhost:3000/auth/callback` (개발용)
    - `https://ai-project-f45i.vercel.app/auth/callback` (Vercel 배포용)
    - `https://your-domain.com/auth/callback` (프로덕션용)
+
+**중요**: Supabase OAuth를 사용할 때는 **Supabase 도메인**을 리다이렉트 URI로 사용해야 합니다!
 
 ### 1.4 동의항목 설정
 1. "제품 설정" → "카카오 로그인" → "동의항목"
@@ -50,6 +53,11 @@
    - `http://localhost:3000/auth/callback` (개발용)
    - `https://ai-project-f45i.vercel.app/auth/callback` (Vercel 배포용)
    - `https://your-domain.com/auth/callback` (프로덕션용)
+
+### 2.3 Supabase OAuth 리다이렉트 URI (중요!)
+**Supabase OAuth를 사용할 때는 Supabase 도메인을 리다이렉트 URI로 사용해야 합니다:**
+- Supabase URL: `https://oeqowoirhxssdmycqynx.supabase.co`
+- OAuth 리다이렉트 URI: `https://oeqowoirhxssdmycqynx.supabase.co/auth/v1/callback`
 
 ## 3. 환경 변수 설정
 

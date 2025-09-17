@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import AuthModal from '@/components/auth/AuthModal'
 import KakaoLoginButton from '@/components/auth/KakaoLoginButton'
-import GoogleLoginButton from '@/components/auth/GoogleLoginButton'
 import { useAuth } from '@/hooks/useAuth'
 
 function LoginContent() {
@@ -67,14 +66,6 @@ function LoginContent() {
             </div>
 
             <div className="space-y-4">
-              {/* Google 로그인 */}
-              <GoogleLoginButton
-                onSuccess={handleKakaoSuccess}
-                onError={(error) => {
-                  console.error('Google 로그인 오류:', error)
-                }}
-              />
-
               {/* 카카오 로그인 */}
               <KakaoLoginButton
                 onSuccess={handleKakaoSuccess}
@@ -84,7 +75,7 @@ function LoginContent() {
               />
 
               {/* 구분선 */}
-              <div className="relative my-6">
+              <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>

@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { SignupForm, LoginForm } from '@/types'
 import KakaoLoginButton from './KakaoLoginButton'
-import GoogleLoginButton from './GoogleLoginButton'
 
 
 interface AuthModalProps {
@@ -177,17 +176,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
               <span className="px-2 bg-white text-gray-500">또는</span>
             </div>
           </div>
-
-          {/* Google 로그인 */}
-          <GoogleLoginButton
-            onSuccess={() => {
-              onClose()
-            }}
-            onError={(error) => {
-              setError(error)
-            }}
-            className="mb-3"
-          />
 
           {/* 카카오 로그인 */}
           <KakaoLoginButton
