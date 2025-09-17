@@ -9,6 +9,7 @@ export interface User {
   isApproved: boolean;
   createdAt: Date;
   updatedAt: Date;
+  provider?: string; // OAuth 제공자 (google, kakao, email 등)
 }
 
 // 게시글 관련 타입

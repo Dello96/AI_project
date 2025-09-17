@@ -22,10 +22,14 @@ export default function KakaoLoginButton({
     try {
       setIsLoading(true)
       
+      // 현재 도메인을 동적으로 가져오기
+      const redirectUrl = `${window.location.origin}/auth/callback`
+      console.log('카카오 로그인 리다이렉트 URL:', redirectUrl)
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'kakao',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl
         }
       })
 

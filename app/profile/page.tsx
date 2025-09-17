@@ -10,21 +10,38 @@ import {
   ShieldCheckIcon,
   PencilIcon,
   CheckIcon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { useAuth } from '@/hooks/useAuth'
+import { useEffect } from 'react'
 
 export default function ProfilePage() {
+  const { user, isLoading, signOut } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    name: '홍길동',
-    email: 'hong@example.com',
-    phone: '010-1234-5678',
-    joinDate: '2024-01-15',
+    name: '',
+    email: '',
+    phone: '',
+    joinDate: '',
     role: 'user'
   })
+
+  // 사용자 데이터가 로드되면 폼 데이터 업데이트
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '사용자',
+        email: user.email || '',
+        phone: user.phone || '',
+        joinDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString('ko-KR') : '',
+        role: user.role || 'user'
+      })
+    }
+  }, [user])
 
   const roleLabels = {
     user: '일반 사용자',
@@ -58,6 +75,55 @@ export default function ProfilePage() {
     }))
   }
 
+  const handleLogout = async () => {
+    if (confirm('정말 로그아웃하시겠습니까?')) {
+      try {
+        await signOut()
+        // 로그아웃 후 홈페이지로 리다이렉트
+        window.location.href = '/'
+      } catch (error) {
+        console.error('로그아웃 오류:', error)
+        alert('로그아웃 중 오류가 발생했습니다.')
+      }
+    }
+  }
+
+  // 로딩 상태
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-autumn-peach via-autumn-cream to-autumn-beige flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-autumn-coral rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">로딩 중...</h2>
+          <p className="text-gray-600">프로필 정보를 불러오고 있습니다.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 로그인되지 않은 사용자
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-autumn-peach via-autumn-cream to-autumn-beige flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-autumn-coral rounded-full flex items-center justify-center mx-auto mb-4">
+            <UserCircleIcon className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">로그인이 필요합니다</h2>
+          <p className="text-gray-600 mb-6">프로필을 보려면 먼저 로그인해주세요.</p>
+          <Button
+            onClick={() => window.location.href = '/login'}
+            className="bg-autumn-coral text-white hover:bg-autumn-coral/90"
+          >
+            로그인하기
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-autumn-peach via-autumn-cream to-autumn-beige">
       <div className="container mx-auto px-4 pt-20 pb-8 max-w-4xl">
@@ -77,14 +143,50 @@ export default function ProfilePage() {
             <div className="lg:col-span-1">
               <Card>
                 <CardContent className="p-6 text-center">
-                  <div className="w-24 h-24 bg-gradient-autumn rounded-full flex items-center justify-center mx-auto mb-4">
-                    <UserCircleIcon className="w-12 h-12 text-white" />
+                  <div className="w-24 h-24 bg-gradient-autumn rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                    {user?.avatarUrl ? (
+                      <img 
+                        src={user.avatarUrl} 
+                        alt={formData.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <UserCircleIcon className="w-12 h-12 text-white" />
+                    )}
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900 mb-2">{formData.name}</h2>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${roleColors[formData.role as keyof typeof roleColors]}`}>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${roleColors[formData.role as keyof typeof roleColors]} mb-4`}>
                     <ShieldCheckIcon className="w-4 h-4 mr-1" />
                     {roleLabels[formData.role as keyof typeof roleLabels]}
                   </span>
+                  
+                  {/* OAuth 로그인 정보 */}
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center justify-center">
+                      <EnvelopeIcon className="w-4 h-4 mr-2" />
+                      <span className="truncate">{formData.email}</span>
+                    </div>
+                    {user?.provider && (
+                      <div className="text-xs text-gray-500">
+                        {user.provider === 'google' && 'Google 계정으로 로그인'}
+                        {user.provider === 'kakao' && '카카오 계정으로 로그인'}
+                        {user.provider === 'email' && '이메일 계정으로 로그인'}
+                        {!['google', 'kakao', 'email'].includes(user.provider) && `${user.provider} 계정으로 로그인`}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 로그아웃 버튼 */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <Button
+                      onClick={handleLogout}
+                      variant="outline"
+                      className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                    >
+                      <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
+                      로그아웃
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>

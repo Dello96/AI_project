@@ -12,12 +12,14 @@
 1. 생성된 앱 선택
 2. "플랫폼" → "Web 플랫폼 등록"
 3. 사이트 도메인: `http://localhost:3000` (개발용)
-4. 사이트 도메인: `https://your-domain.com` (프로덕션용)
+4. 사이트 도메인: `https://ai-project-f45i.vercel.app` (Vercel 배포용)
+5. 사이트 도메인: `https://your-domain.com` (프로덕션용)
 
 ### 1.3 OAuth 리다이렉트 URI 설정
 1. "제품 설정" → "카카오 로그인" → "Redirect URI"
 2. 다음 URI들을 추가:
    - `http://localhost:3000/auth/callback` (개발용)
+   - `https://ai-project-f45i.vercel.app/auth/callback` (Vercel 배포용)
    - `https://your-domain.com/auth/callback` (프로덕션용)
 
 ### 1.4 동의항목 설정
@@ -43,24 +45,33 @@
 
 ### 2.2 Redirect URLs 설정
 1. "Authentication" → "URL Configuration"
-2. Site URL: `http://localhost:3000` (개발용)
+2. Site URL: `https://ai-project-f45i.vercel.app` (Vercel 배포용)
 3. Redirect URLs에 추가:
-   - `http://localhost:3000/auth/callback`
-   - `https://your-domain.com/auth/callback`
+   - `http://localhost:3000/auth/callback` (개발용)
+   - `https://ai-project-f45i.vercel.app/auth/callback` (Vercel 배포용)
+   - `https://your-domain.com/auth/callback` (프로덕션용)
 
 ## 3. 환경 변수 설정
 
-`.env.local` 파일에 다음 변수들을 추가:
-
+### 3.1 로컬 개발 환경 (.env.local)
 ```env
 # 카카오 OAuth 설정
 KAKAO_CLIENT_ID=your_kakao_rest_api_key
 KAKAO_CLIENT_SECRET=your_kakao_client_secret
 
-# Supabase 설정 (이미 있다면 추가 설정 불필요)
+# Supabase 설정
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
+
+### 3.2 Vercel 배포 환경
+Vercel 대시보드에서 환경 변수 설정:
+1. 프로젝트 선택 → "Settings" → "Environment Variables"
+2. 다음 변수들을 추가:
+   - `KAKAO_CLIENT_ID`: 카카오 REST API 키
+   - `KAKAO_CLIENT_SECRET`: 카카오 Client Secret
+   - `NEXT_PUBLIC_SUPABASE_URL`: Supabase URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase Anon Key
 
 ## 4. 테스트
 

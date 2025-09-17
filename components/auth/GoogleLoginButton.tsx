@@ -22,10 +22,14 @@ export default function GoogleLoginButton({
     try {
       setIsLoading(true)
       
+      // 현재 도메인을 동적으로 가져오기
+      const redirectUrl = `${window.location.origin}/auth/callback`
+      console.log('Google 로그인 리다이렉트 URL:', redirectUrl)
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl
         }
       })
 

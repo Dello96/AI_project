@@ -26,16 +26,27 @@ export function useAuth() {
       }
       
       if (session?.user) {
+        // OAuth 사용자의 경우 user_metadata에서 정보 가져오기
         const userData: User = {
           id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || '사용자',
+          email: session.user.email || session.user.user_metadata?.email || '',
+          name: session.user.user_metadata?.name || 
+                session.user.user_metadata?.full_name || 
+                session.user.user_metadata?.nickname || 
+                '사용자',
           phone: session.user.user_metadata?.phone || null,
           // churchDomain 제거됨 (단순화)
           role: 'member',
           isApproved: true,
           createdAt: new Date(session.user.created_at || new Date()),
-          updatedAt: new Date(session.user.updated_at || new Date())
+          updatedAt: new Date(session.user.updated_at || new Date()),
+          // OAuth 제공자 정보 추가
+          provider: session.user.app_metadata?.provider || 'email',
+          // OAuth 사용자의 아바타 URL
+          avatarUrl: session.user.user_metadata?.avatar_url || 
+                    session.user.user_metadata?.picture || 
+                    session.user.user_metadata?.profile_image || 
+                    undefined
         }
         
         setAuthState(prev => ({
