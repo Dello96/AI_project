@@ -15,6 +15,7 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/Button'
+import Logo from '@/components/ui/Logo'
 import { usePWA } from '@/hooks/usePWA'
 import { useAuth } from '@/hooks/useAuth'
 import AuthModal from '@/components/auth/AuthModal'
@@ -68,13 +69,8 @@ export default function Header() {
       <div className="container-wide">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* 로고 */}
-          <Link href="/" className="flex items-center space-x-2 group">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-autumn rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg lg:text-xl">PG</span>
-            </div>
-            <span className="text-xl lg:text-2xl font-bold bg-gradient-autumn bg-clip-text text-transparent">
-              PrayGround
-            </span>
+          <Link href="/" className="group">
+            <Logo size="md" className="lg:scale-110" />
           </Link>
 
           {/* 데스크톱 네비게이션 */}

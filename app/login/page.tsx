@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import AuthModal from '@/components/auth/AuthModal'
 import KakaoLoginButton from '@/components/auth/KakaoLoginButton'
+import Logo from '@/components/ui/Logo'
 import { useAuth } from '@/hooks/useAuth'
 
 function LoginContent() {
@@ -58,8 +59,8 @@ function LoginContent() {
         <Card>
           <CardContent className="p-8">
             <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-autumn-coral to-autumn-orange rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-2xl">PG</span>
+              <div className="flex justify-center mb-4">
+                <Logo size="xl" showText={false} />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">PrayGround</h1>
               <p className="text-gray-600">교회 청년부를 위한 올인원 플랫폼</p>
