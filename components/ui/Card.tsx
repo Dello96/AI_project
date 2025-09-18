@@ -21,7 +21,7 @@ const Card = React.forwardRef<
     default: "bg-white border-neutral-200",
     elevated: "bg-white border-neutral-200 shadow-medium hover:shadow-large",
     glass: "bg-white/80 backdrop-blur-md border-white/20",
-    church: "bg-gradient-to-br from-church-purple/10 to-church-teal/10 border-church-purple/20"
+    church: "bg-gradient-to-br from-theme-primary/10 to-theme-secondary/10 border-theme-primary/20"
   }
 
   const animationProps = {

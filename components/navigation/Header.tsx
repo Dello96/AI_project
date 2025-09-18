@@ -83,8 +83,8 @@ export default function Header() {
                   href={item.href}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
                     isActive
-                      ? 'bg-autumn-coral/20 text-autumn-coral'
-                      : 'text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30'
+                      ? 'bg-theme-primary/20 text-theme-primary'
+                      : 'text-gray-600 hover:text-theme-primary hover:bg-theme-light/30'
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -127,7 +127,7 @@ export default function Header() {
                   <Button
                     onClick={() => setShowAuthModal(true)}
                     variant="outline"
-                    className="hidden sm:flex border-autumn-coral text-autumn-coral hover:bg-autumn-coral hover:text-white"
+                    className="hidden sm:flex border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white"
                   >
                     로그인
                   </Button>
@@ -171,8 +171,8 @@ export default function Header() {
                       href={item.href}
                       className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                         isActive
-                          ? 'bg-autumn-coral/20 text-autumn-coral'
-                          : 'text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30'
+                          ? 'bg-theme-primary/20 text-theme-primary'
+                          : 'text-gray-600 hover:text-theme-primary hover:bg-theme-light/30'
                       }`}
                       onClick={closeMobileMenu}
                     >
@@ -190,8 +190,8 @@ export default function Header() {
                       href="/profile"
                       className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                         pathname === '/profile'
-                          ? 'bg-autumn-coral/20 text-autumn-coral'
-                          : 'text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30'
+                          ? 'bg-theme-primary/20 text-theme-primary'
+                          : 'text-gray-600 hover:text-theme-primary hover:bg-theme-light/30'
                       }`}
                       onClick={closeMobileMenu}
                     >
@@ -216,7 +216,7 @@ export default function Header() {
                       setShowAuthModal(true)
                       closeMobileMenu()
                     }}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-600 hover:text-autumn-coral hover:bg-autumn-peach/30 w-full text-left"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-600 hover:text-theme-primary hover:bg-theme-light/30 w-full text-left"
                   >
                     <UserCircleIcon className="w-5 h-5" />
                     <span className="font-medium">로그인</span>

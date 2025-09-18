@@ -29,28 +29,28 @@ export default function Home() {
       icon: DocumentTextIcon,
       title: '공지사항',
       description: '교회 공지와 소식을 한눈에 확인하세요',
-      color: 'from-primary-500 to-primary-600',
+      color: 'from-theme-primary to-theme-accent',
       href: '/board'
     },
     {
       icon: CalendarIcon,
       title: '일정관리',
       description: '예배, 행사, 소그룹 일정을 체계적으로 관리하세요',
-      color: 'from-secondary-500 to-secondary-600',
+      color: 'from-theme-secondary to-theme-primary',
       href: '/calendar'
     },
     {
       icon: ChatBubbleLeftRightIcon,
       title: '소통공간',
       description: '청년부 성도들과 자유롭게 소통하고 교제하세요',
-      color: 'from-accent-500 to-accent-600',
+      color: 'from-theme-accent to-theme-primary',
       href: '/chat'
     },
     {
       icon: UserGroupIcon,
       title: '소그룹',
       description: '소그룹별 활동과 자료를 공유하고 관리하세요',
-      color: 'from-church-purple to-church-teal',
+      color: 'from-theme-primary to-theme-secondary',
       href: '/groups'
     }
   ]
@@ -76,7 +76,7 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-autumn-peach via-autumn-cream to-autumn-beige">
+    <div className="min-h-screen bg-gradient-to-br from-theme-light via-theme-secondary to-theme-primary">
       {/* 히어로 섹션 */}
       <section className="relative overflow-hidden bg-gradient-primary text-white shadow-large">
         <div className="absolute inset-0 bg-black/10"></div>

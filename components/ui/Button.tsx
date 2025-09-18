@@ -10,18 +10,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-primary text-primary-foreground shadow-medium hover:shadow-large hover:scale-105",
-        destructive: "bg-gradient-to-r from-error-500 to-error-600 text-error-foreground shadow-medium hover:shadow-large hover:scale-105",
-        outline: "border-2 border-primary-500 bg-background text-primary-600 hover:bg-gray-800 hover:text-white hover:border-gray-800",
-        secondary: "bg-gradient-secondary text-secondary-foreground shadow-medium hover:shadow-large hover:scale-105",
-        accent: "bg-gradient-accent text-accent-foreground shadow-medium hover:shadow-large hover:scale-105",
-        ghost: "hover:bg-accent hover:text-gray-900",
-        link: "text-primary underline-offset-4 hover:underline",
-        success: "bg-gradient-to-r from-success-500 to-success-600 text-success-foreground shadow-medium hover:shadow-large hover:scale-105",
-        warning: "bg-gradient-to-r from-warning-500 to-warning-600 text-warning-foreground shadow-medium hover:shadow-large hover:scale-105",
+        default: "bg-theme-primary text-white shadow-medium hover:shadow-large hover:scale-105",
+        destructive: "bg-red-500 text-white shadow-medium hover:shadow-large hover:scale-105",
+        outline: "border-2 border-theme-primary bg-background text-theme-primary hover:bg-theme-primary hover:text-white hover:border-theme-primary",
+        secondary: "bg-theme-secondary text-theme-primary shadow-medium hover:shadow-large hover:scale-105",
+        accent: "bg-theme-accent text-theme-primary shadow-medium hover:shadow-large hover:scale-105",
+        ghost: "hover:bg-theme-light hover:text-theme-primary",
+        link: "text-theme-primary underline-offset-4 hover:underline",
+        success: "bg-green-500 text-white shadow-medium hover:shadow-large hover:scale-105",
+        warning: "bg-yellow-500 text-white shadow-medium hover:shadow-large hover:scale-105",
         // 교회/청년부 특화 버튼
-        church: "bg-gradient-to-r from-church-purple to-church-teal text-white shadow-medium hover:shadow-large hover:scale-105",
-        youth: "bg-gradient-to-r from-church-coral to-church-gold text-white shadow-medium hover:shadow-large hover:scale-105",
+        church: "bg-theme-primary text-white shadow-medium hover:shadow-large hover:scale-105",
+        youth: "bg-theme-secondary text-theme-primary shadow-medium hover:shadow-large hover:scale-105",
       },
       size: {
         default: "h-12 px-6 py-3 min-h-[44px] min-w-[44px]", // 터치 목표 크기 44px 이상

@@ -50,7 +50,7 @@ export default function Logo({
       
       {showText && (
         <span className={cn(
-          'font-bold bg-gradient-to-r from-autumn-coral to-autumn-orange bg-clip-text text-transparent',
+          'font-bold bg-gradient-to-r from-theme-primary to-theme-accent bg-clip-text text-transparent',
           textSizeClasses[size]
         )}>
           PrayGround
