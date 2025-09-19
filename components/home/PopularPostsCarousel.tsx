@@ -98,9 +98,12 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
 
   return (
     <div className="w-full">
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">🔥 인기 게시글</h2>
-        <p className="text-gray-600">가장 많은 좋아요를 받은 게시글들을 확인해보세요</p>
+      <div className="mb-8 text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-2">
+          <span className="text-4xl">🔥</span>
+          인기 게시글
+        </h2>
+        <p className="text-gray-600 text-lg">가장 많은 좋아요를 받은 게시글들을 확인해보세요</p>
       </div>
       
       <Carousel
@@ -113,49 +116,51 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
         {posts.map((post) => (
           <Card 
             key={post.id}
-            className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-gray-50"
+            className="cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300"
             onClick={() => onPostClick(post)}
           >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[post.category]}`}>
+            <CardContent className="p-8">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${categoryColors[post.category]}`}>
                     {categoryLabels[post.category]}
                   </span>
                   {post.isAnonymous && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                    <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
                       익명
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
                   <HeartIcon className="w-4 h-4 text-red-500" />
                   <span className="font-medium">{post.likeCount}</span>
                 </div>
               </div>
               
-              <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 line-clamp-2 leading-tight">
                 {post.title}
               </h3>
               
-              <p className="text-gray-600 mb-4 line-clamp-3">
+              <p className="text-gray-600 mb-5 line-clamp-3 leading-relaxed">
                 {post.content}
               </p>
               
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>
+              <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100">
+                <span className="font-medium text-gray-700">
                   {post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}
                 </span>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <EyeIcon className="w-4 h-4" />
-                    <span>{post.viewCount}</span>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <EyeIcon className="w-4 h-4 text-blue-500" />
+                    <span className="font-medium">{post.viewCount}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <ChatBubbleLeftIcon className="w-4 h-4" />
-                    <span>{post.commentCount}</span>
+                  <div className="flex items-center gap-2">
+                    <ChatBubbleLeftIcon className="w-4 h-4 text-green-500" />
+                    <span className="font-medium">{post.commentCount}</span>
                   </div>
-                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                  <span className="text-gray-400 font-medium">
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </CardContent>
