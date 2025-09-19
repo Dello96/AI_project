@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { PlusIcon } from '@heroicons/react/24/outline'
@@ -11,8 +11,9 @@ import PostDetail from '@/components/board/PostDetail'
 import { Post } from '@/types'
 import { postService } from '@/lib/database'
 import { Button } from '@/components/ui/Button'
-export default function BoardPage() {
+function BoardContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [view, setView] = useState<'list' | 'write' | 'detail'>('list')
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [editingPost, setEditingPost] = useState<Post | null>(null)
@@ -50,6 +51,26 @@ export default function BoardPage() {
     setView('list')
     setEditingPost(null)
   }
+
+  // URL 파라미터에서 게시글 ID 확인
+  useEffect(() => {
+    const postId = searchParams.get('postId')
+    if (postId) {
+      // 게시글 ID가 있으면 해당 게시글을 조회하고 상세 페이지로 이동
+      const fetchPost = async () => {
+        try {
+          const post = await postService.getPost(postId)
+          if (post) {
+            setSelectedPost(post)
+            setView('detail')
+          }
+        } catch (error) {
+          console.error('게시글 조회 오류:', error)
+        }
+      }
+      fetchPost()
+    }
+  }, [searchParams])
 
   const handleBackToList = () => {
     setView('list')
@@ -132,5 +153,23 @@ export default function BoardPage() {
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+export default function BoardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">로딩 중...</h2>
+          <p className="text-gray-600">게시판을 불러오고 있습니다.</p>
+        </div>
+      </div>
+    }>
+      <BoardContent />
+    </Suspense>
   )
 }

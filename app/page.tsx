@@ -18,11 +18,21 @@ import NotificationBell from '@/components/notifications/NotificationBell'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
 import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import PaymentTest from '@/components/payments/PaymentTest'
+import PopularPostsCarousel from '@/components/home/PopularPostsCarousel'
+import { Post } from '@/types'
 
 export default function Home() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+
+  // 게시글 클릭 핸들러
+  const handlePostClick = (post: Post) => {
+    setSelectedPost(post)
+    // 게시판 페이지로 이동하고 해당 게시글을 선택하도록 상태 전달
+    router.push(`/board?postId=${post.id}`)
+  }
 
   const baseFeatures = [
     {
@@ -116,25 +126,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 검색바 */}
+      {/* 인기 게시글 캐러셀 */}
       <section className="container-narrow -mt-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="max-w-2xl mx-auto">
-            <Input
-              type="text"
-              placeholder="공지사항, 일정, 멤버를 검색해보세요..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onClick={() => setIsSearchOpen(true)}
-              inputSize="lg"
-              className="shadow-large cursor-pointer"
-              readOnly
-            />
-          </div>
+          <PopularPostsCarousel onPostClick={handlePostClick} />
         </motion.div>
       </section>
 
