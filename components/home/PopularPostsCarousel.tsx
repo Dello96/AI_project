@@ -20,13 +20,21 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
   const fetchPopularPosts = async () => {
     try {
       setIsLoading(true)
+      setError(null)
+      console.log('인기 게시글 조회 시작')
+      
       const response = await fetch('/api/posts/popular')
       const result = await response.json()
       
+      console.log('인기 게시글 API 응답:', { response: response.status, result })
+      
       if (response.ok && result.success) {
-        setPosts(result.data)
+        setPosts(result.data || [])
+        console.log('인기 게시글 조회 성공:', result.data)
       } else {
-        setError(result.error || '인기 게시글을 불러오는데 실패했습니다.')
+        const errorMsg = result.error || '인기 게시글을 불러오는데 실패했습니다.'
+        console.error('인기 게시글 조회 실패:', errorMsg)
+        setError(errorMsg)
       }
     } catch (error) {
       console.error('인기 게시글 조회 오류:', error)
@@ -48,7 +56,24 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
     )
   }
 
-  if (error || posts.length === 0) {
+  if (error) {
+    return (
+      <div className="w-full h-64 bg-red-50 rounded-xl flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-2">인기 게시글을 불러올 수 없습니다</div>
+          <div className="text-sm text-red-400 mb-4">{error}</div>
+          <button 
+            onClick={fetchPopularPosts}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (posts.length === 0) {
     return (
       <div className="w-full h-64 bg-gray-50 rounded-xl flex items-center justify-center">
         <div className="text-center">

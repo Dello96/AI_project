@@ -100,28 +100,6 @@ export default function Home() {
             <h1 className="text-4xl md:text-6xl font-bold mb-4 text-balance">
               PrayGround
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 text-balance">
-              공지사항부터 일정관리까지, 청년부를 위한 올인원 플랫폼
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button 
-                size="lg" 
-                variant="secondary"
-                onClick={() => router.push('/board')}
-                className="shadow-glow-secondary"
-              >
-                게시판 바로가기
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-primary-600"
-                onClick={() => router.push('/calendar')}
-              >
-                캘린더 바로가기
-              </Button>
-            </div>
           </motion.div>
         </div>
       </section>
