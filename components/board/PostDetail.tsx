@@ -318,7 +318,6 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
                 initialLikeCount={post.likeCount || 0}
                 initialIsLiked={false}
                 size="sm"
-                variant="ghost"
               />
               <span className="flex items-center gap-1">
                 <EyeIcon className="w-4 h-4" />
@@ -465,7 +464,6 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
                         initialLikeCount={comment.likeCount || 0}
                         initialIsLiked={false}
                         size="sm"
-                        variant="ghost"
                       />
                       
                       {/* 신고 버튼 */}

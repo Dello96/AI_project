@@ -38,6 +38,9 @@ export async function POST(
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1]
+      if (!token) {
+        return NextResponse.json({ error: '유효하지 않은 인증 토큰입니다.' }, { status: 401 })
+      }
       console.log('토큰 길이:', token.length)
       
       // 토큰으로 사용자 정보 확인
@@ -159,7 +162,7 @@ export async function GET(
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1]
-      const { data: { user: authUser } } = await supabase.auth.getUser(token)
+      const { data: { user: authUser } } = await supabaseAdmin.auth.getUser(token)
       user = authUser
     }
 

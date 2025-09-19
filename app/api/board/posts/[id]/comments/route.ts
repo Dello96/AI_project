@@ -125,7 +125,7 @@ export async function POST(
     console.log('댓글 생성 시도:', {
       authorId: user.id,
       postId,
-      content: sanitizedContent.substring(0, 50) + '...',
+      content: `${sanitizedContent.substring(0, 50)}...`,
       isAnonymous: isAnonymous || false
     })
 
