@@ -13,9 +13,14 @@ export async function GET(
   try {
     const { id: postId } = params
     const { searchParams } = new URL(request.url)
+    
+    // 쿼리 파라미터 파싱 (기본값 제공)
+    const pageParam = searchParams.get('page') || '1'
+    const limitParam = searchParams.get('limit') || '20'
+    
     const { page, limit } = CommentQuerySchema.parse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit')
+      page: pageParam,
+      limit: limitParam
     })
     
     // 게시글 존재 확인
@@ -24,7 +29,6 @@ export async function GET(
       .from('posts')
       .select('id')
       .eq('id', postId)
-      .is('deleted_at', null)
       .single()
 
     if (postError || !post) {
@@ -71,8 +75,25 @@ export async function POST(
     const { id: postId } = params
     
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    let user = null
+    let authError = null
+    
+    // Authorization 헤더에서 토큰 확인
+    const authHeader = request.headers.get('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token)
+      user = tokenUser
+      authError = tokenError
+    } else {
+      // 헤더가 없으면 기본 getUser() 시도
+      const { data: { user: defaultUser }, error: defaultError } = await supabase.auth.getUser()
+      user = defaultUser
+      authError = defaultError
+    }
+    
     if (authError || !user) {
+      console.error('댓글 작성 인증 오류:', authError)
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
@@ -84,7 +105,6 @@ export async function POST(
       .from('posts')
       .select('id')
       .eq('id', postId)
-      .is('deleted_at', null)
       .single()
 
     if (postError || !post) {
@@ -102,6 +122,13 @@ export async function POST(
     const sanitizedContent = sanitizeComment(content)
 
     // 댓글 생성
+    console.log('댓글 생성 시도:', {
+      authorId: user.id,
+      postId,
+      content: sanitizedContent.substring(0, 50) + '...',
+      isAnonymous: isAnonymous || false
+    })
+
     const result = await commentService.createComment({
       content: sanitizedContent,
       authorId: user.id,
@@ -110,9 +137,12 @@ export async function POST(
       parentId: parentId || null
     })
 
+    console.log('댓글 생성 결과:', result)
+
     if (!result) {
+      console.error('댓글 생성 실패 - commentService.createComment returned null')
       return NextResponse.json(
-        { error: '댓글 작성에 실패했습니다.' },
+        { error: '댓글 작성에 실패했습니다. RLS 정책을 확인해주세요.' },
         { status: 500 }
       )
     }

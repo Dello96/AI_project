@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { usePermissions } from '@/hooks/usePermissions'
 import { postService, commentService } from '@/lib/database'
 import { useRealtimeComments } from '@/hooks/useRealtimeComments'
+import { supabase } from '@/lib/supabase'
 
 interface PostDetailProps {
   post: Post
@@ -87,10 +88,26 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
       setIsLoading(true)
       setError(null)
 
+      // Supabase 세션에서 토큰 가져오기
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        setError('인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.')
+        return
+      }
+
+      console.log('댓글 작성 요청:', {
+        postId: post.id,
+        content: newComment.trim(),
+        isAnonymous,
+        hasToken: !!session.access_token
+      })
+
       const response = await fetch(`/api/board/posts/${post.id}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           content: newComment.trim(),
@@ -99,13 +116,15 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
       })
 
       const result = await response.json()
+      console.log('댓글 작성 응답:', { status: response.status, result })
 
       if (response.ok && result.success) {
         setNewComment('')
         setIsAnonymous(false)
         await fetchComments()
       } else {
-        setError(result.error || '댓글 작성에 실패했습니다.')
+        console.error('댓글 작성 API 오류:', result)
+        setError(result.error || result.details || '댓글 작성에 실패했습니다.')
       }
     } catch (error) {
       console.error('댓글 작성 오류:', error)
@@ -138,10 +157,19 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
       setIsLoading(true)
       setError(null)
 
+      // Supabase 세션에서 토큰 가져오기
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        setError('인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.')
+        return
+      }
+
       const response = await fetch(`/api/board/posts/${post.id}/comments/${commentId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ content: editContent.trim() })
       })
@@ -153,6 +181,7 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
         setEditContent('')
         await fetchComments()
       } else {
+        console.error('댓글 수정 API 오류:', result)
         setError(result.error || '댓글 수정에 실패했습니다.')
       }
     } catch (error) {
@@ -168,8 +197,19 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
     if (!confirm('댓글을 삭제하시겠습니까?')) return
 
     try {
+      // Supabase 세션에서 토큰 가져오기
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        setError('인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.')
+        return
+      }
+
       const response = await fetch(`/api/board/posts/${post.id}/comments/${commentId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        }
       })
 
       const result = await response.json()
@@ -177,6 +217,7 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
       if (response.ok && result.success) {
         await fetchComments()
       } else {
+        console.error('댓글 삭제 API 오류:', result)
         setError(result.error || '댓글 삭제에 실패했습니다.')
       }
     } catch (error) {

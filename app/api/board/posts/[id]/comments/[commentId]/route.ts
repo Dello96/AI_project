@@ -15,8 +15,25 @@ export async function PATCH(
     const { commentId } = params
     
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    let user = null
+    let authError = null
+    
+    // Authorization 헤더에서 토큰 확인
+    const authHeader = request.headers.get('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token)
+      user = tokenUser
+      authError = tokenError
+    } else {
+      // 헤더가 없으면 기본 getUser() 시도
+      const { data: { user: defaultUser }, error: defaultError } = await supabase.auth.getUser()
+      user = defaultUser
+      authError = defaultError
+    }
+    
     if (authError || !user) {
+      console.error('댓글 수정 인증 오류:', authError)
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
@@ -102,8 +119,25 @@ export async function DELETE(
     const { commentId } = params
     
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    let user = null
+    let authError = null
+    
+    // Authorization 헤더에서 토큰 확인
+    const authHeader = request.headers.get('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token)
+      user = tokenUser
+      authError = tokenError
+    } else {
+      // 헤더가 없으면 기본 getUser() 시도
+      const { data: { user: defaultUser }, error: defaultError } = await supabase.auth.getUser()
+      user = defaultUser
+      authError = defaultError
+    }
+    
     if (authError || !user) {
+      console.error('댓글 삭제 인증 오류:', authError)
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
@@ -141,10 +175,10 @@ export async function DELETE(
       )
     }
 
-    // 댓글 삭제 (소프트 삭제)
+    // 댓글 삭제 (실제 삭제)
     const { error: deleteError } = await supabase
       .from('comments')
-      .update({ deleted_at: new Date().toISOString() })
+      .delete()
       .eq('id', commentId)
 
     if (deleteError) {
