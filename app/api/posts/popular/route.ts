@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
         is_anonymous,
         view_count,
         like_count,
-        comment_count,
         created_at,
         author_id
       `)
@@ -80,7 +79,7 @@ export async function GET(request: NextRequest) {
             isAnonymous: post.is_anonymous,
             viewCount: post.view_count || 0,
             likeCount: post.like_count || 0,
-            commentCount: post.comment_count || 0,
+            commentCount: 0, // comment_count 컬럼이 없으므로 기본값 0
             author: null,
             createdAt: post.created_at
           }
@@ -101,7 +100,7 @@ export async function GET(request: NextRequest) {
           isAnonymous: post.is_anonymous,
           viewCount: post.view_count || 0,
           likeCount: post.like_count || 0,
-          commentCount: post.comment_count || 0,
+          commentCount: 0, // comment_count 컬럼이 없으므로 기본값 0
           author,
           createdAt: post.created_at
         }
