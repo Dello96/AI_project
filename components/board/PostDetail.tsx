@@ -61,6 +61,7 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
     if (hasIncrementedView) return
     
     try {
+      console.log('조회수 증가 시도:', post.id)
       const response = await fetch(`/api/board/posts/${post.id}/view`, {
         method: 'POST',
         headers: {
@@ -68,9 +69,15 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
         }
       })
       
-      if (response.ok) {
+      const result = await response.json()
+      console.log('조회수 증가 응답:', result)
+      
+      if (response.ok && result.success) {
         setViewCount(prev => prev + 1)
         setHasIncrementedView(true)
+        console.log('조회수 증가 성공')
+      } else {
+        console.error('조회수 증가 실패:', result.error)
       }
     } catch (error) {
       console.error('조회수 증가 오류:', error)
