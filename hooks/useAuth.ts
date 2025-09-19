@@ -117,14 +117,40 @@ export function useAuth() {
     try {
       setAuthState((prev: AuthState) => ({ ...prev, isLoading: true, error: null }))
       
+      console.log('로그인 시도 시작:', { email: data.email })
+      
+      // Supabase 연결 상태 확인
+      if (!supabase) {
+        throw new Error('Supabase 클라이언트가 초기화되지 않았습니다.')
+      }
+      
       // Supabase Auth 직접 사용
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
       })
       
+      console.log('Supabase 응답:', { authData, authError })
+      
       if (authError) {
-        throw new Error(authError.message)
+        console.error('Supabase 인증 오류:', authError)
+        
+        // 구체적인 에러 메시지 제공
+        let errorMessage = '로그인에 실패했습니다.'
+        
+        if (authError.message.includes('Invalid login credentials')) {
+          errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.'
+        } else if (authError.message.includes('Email not confirmed')) {
+          errorMessage = '이메일 인증이 필요합니다. 이메일을 확인해주세요.'
+        } else if (authError.message.includes('Too many requests')) {
+          errorMessage = '너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.'
+        } else if (authError.message.includes('User not found')) {
+          errorMessage = '등록되지 않은 이메일입니다.'
+        } else {
+          errorMessage = `로그인 오류: ${authError.message}`
+        }
+        
+        throw new Error(errorMessage)
       }
       
       if (authData.user) {
@@ -153,8 +179,22 @@ export function useAuth() {
         throw new Error('사용자 정보를 찾을 수 없습니다.')
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.'
-      setAuthState((prev: AuthState) => ({ ...prev, isLoading: false, error: errorMessage }))
+      console.error('로그인 에러 상세:', error)
+      
+      let errorMessage = '로그인 중 오류가 발생했습니다.'
+      
+      if (error instanceof Error) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      }
+      
+      setAuthState((prev: AuthState) => ({ 
+        ...prev, 
+        isLoading: false, 
+        error: errorMessage 
+      }))
+      
       return { success: false, message: errorMessage }
     }
   }, [])

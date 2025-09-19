@@ -32,7 +32,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
   })
   const [error, setError] = useState<string | null>(null)
   
-  const { signIn, signUp, isLoading } = useAuth()
+  const { signIn, signUp, isLoading, error: authError } = useAuth()
 
 
 
@@ -40,17 +40,23 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null) // 이전 에러 메시지 초기화
     
     if (mode === 'signin') {
       const result = await signIn(signInData)
       if (result.success) {
         onClose()
+      } else {
+        setError(result.message || '로그인에 실패했습니다.')
       }
     } else {
       const result = await signUp(signUpData)
       if (result.success) {
         setMode('signin')
         setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '' })
+        setError(null)
+      } else {
+        setError(result.message || '회원가입에 실패했습니다.')
       }
     }
   }
@@ -150,9 +156,9 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
               </button>
             </div>
 
-            {error && (
+            {(error || authError) && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-red-600">{error || authError}</p>
               </div>
             )}
 

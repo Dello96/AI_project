@@ -273,10 +273,9 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
             </span>
             <div className="flex items-center gap-4">
               <LikeButton
-                targetType="post"
-                targetId={post.id}
-                initialLiked={false}
-                initialCount={post.likeCount || 0}
+                postId={post.id}
+                initialLikeCount={post.likeCount || 0}
+                initialIsLiked={false}
                 size="sm"
                 variant="ghost"
               />
@@ -421,10 +420,9 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
                     <div className="flex gap-2">
                       {/* 좋아요 버튼 */}
                       <LikeButton
-                        targetType="comment"
-                        targetId={comment.id}
-                        initialLiked={false}
-                        initialCount={comment.likeCount || 0}
+                        postId={comment.id}
+                        initialLikeCount={comment.likeCount || 0}
+                        initialIsLiked={false}
                         size="sm"
                         variant="ghost"
                       />

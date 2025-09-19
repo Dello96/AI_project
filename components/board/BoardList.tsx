@@ -264,12 +264,10 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
                         <span>{post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}</span>
                         <div className="flex items-center gap-4">
                           <LikeButton
-                            targetType="post"
-                            targetId={post.id}
-                            initialLiked={false}
-                            initialCount={post.likeCount || 0}
+                            postId={post.id}
+                            initialLikeCount={post.likeCount || 0}
+                            initialIsLiked={false} // TODO: 실제 좋아요 상태 확인 필요
                             size="sm"
-                            variant="ghost"
                           />
                           <span>조회 {post.viewCount}</span>
                           <span>{new Date(post.createdAt).toLocaleDateString()}</span>

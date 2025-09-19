@@ -1,156 +1,123 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
-import { Button } from './Button'
-import { useAuth } from '@/hooks/useAuth'
+import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 
 interface LikeButtonProps {
-  targetType: 'post' | 'comment'
-  targetId: string
-  initialLiked?: boolean
-  initialCount?: number
-  onLikeChange?: (liked: boolean, count: number) => void
-  size?: 'sm' | 'default' | 'lg'
-  variant?: 'default' | 'outline' | 'ghost'
+  postId: string
+  initialLikeCount: number
+  initialIsLiked: boolean
+  onLikeChange?: (likeCount: number, isLiked: boolean) => void
   className?: string
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export default function LikeButton({
-  targetType,
-  targetId,
-  initialLiked = false,
-  initialCount = 0,
+  postId,
+  initialLikeCount,
+  initialIsLiked,
   onLikeChange,
-  size = 'sm',
-  variant = 'ghost',
-  className
+  className,
+  size = 'md'
 }: LikeButtonProps) {
-  const { user } = useAuth()
-  const [liked, setLiked] = useState(initialLiked)
-  const [count, setCount] = useState(initialCount)
+  const [likeCount, setLikeCount] = useState(initialLikeCount)
+  const [isLiked, setIsLiked] = useState(initialIsLiked)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  // 초기 상태 로드
-  useEffect(() => {
-    if (user) {
-      fetchLikeStatus()
-    }
-  }, [user, targetId])
-
-  // 좋아요 상태 조회
-  const fetchLikeStatus = async () => {
-    try {
-      const response = await fetch(
-        `/api/likes/status?targetType=${targetType}&targetId=${targetId}`
-      )
-      const result = await response.json()
-
-      if (response.ok && result.success) {
-        setLiked(result.data.liked)
-        setCount(result.data.count)
-      }
-    } catch (error) {
-      console.error('좋아요 상태 조회 오류:', error)
-    }
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6'
   }
 
-  // 좋아요 토글
-  const handleToggleLike = async () => {
-    if (!user) {
-      setError('로그인이 필요합니다.')
-      return
-    }
+  const textSizeClasses = {
+    sm: 'text-xs',
+    md: 'text-sm',
+    lg: 'text-base'
+  }
 
+  const handleLike = async () => {
     if (isLoading) return
 
+    setIsLoading(true)
+    
     try {
-      setIsLoading(true)
-      setError(null)
-
-      // 낙관적 업데이트
-      const newLiked = !liked
-      const newCount = newLiked ? count + 1 : count - 1
+      // 현재 세션에서 액세스 토큰 가져오기
+      const { data: { session } } = await supabase.auth.getSession()
       
-      setLiked(newLiked)
-      setCount(newCount)
-      onLikeChange?.(newLiked, newCount)
+      if (!session) {
+        console.error('로그인이 필요합니다.')
+        alert('로그인이 필요합니다.')
+        return
+      }
 
-      const response = await fetch('/api/likes/toggle', {
+      const response = await fetch(`/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
-          targetType,
-          targetId
-        })
       })
 
-      const result = await response.json()
+      const data = await response.json()
 
-      if (response.ok && result.success) {
-        setLiked(result.data.liked)
-        setCount(result.data.count)
-        onLikeChange?.(result.data.liked, result.data.count)
+      if (data.success) {
+        // API에서 반환된 실제 좋아요 수 사용
+        const newLikeCount = data.likeCount || (isLiked ? likeCount - 1 : likeCount + 1)
+        const newIsLiked = data.liked
+
+        setLikeCount(newLikeCount)
+        setIsLiked(newIsLiked)
+        onLikeChange?.(newLikeCount, newIsLiked)
       } else {
-        // 실패 시 롤백
-        setLiked(!newLiked)
-        setCount(newLiked ? count : count + 1)
-        onLikeChange?.(!newLiked, newLiked ? count : count + 1)
-        setError(result.error || '좋아요 처리에 실패했습니다.')
+        console.error('좋아요 처리 실패:', data.error)
+        alert(`좋아요 처리 실패: ${data.error}`)
       }
     } catch (error) {
-      console.error('좋아요 토글 오류:', error)
-      // 실패 시 롤백
-      setLiked(!liked)
-      setCount(liked ? count + 1 : count - 1)
-      onLikeChange?.(!liked, liked ? count + 1 : count - 1)
-      setError('네트워크 오류가 발생했습니다.')
+      console.error('좋아요 요청 실패:', error)
+      alert(`좋아요 요청 실패: ${error}`)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex items-center gap-1">
-      <Button
-        variant={variant}
-        size={size}
-        onClick={handleToggleLike}
-        disabled={isLoading || !user}
-        className={`${className} ${liked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
-      >
-        <motion.div
-          animate={liked ? { scale: [1, 1.2, 1] } : {}}
-          transition={{ duration: 0.3 }}
-        >
-          {liked ? (
-            <HeartSolidIcon className="w-4 h-4" />
-          ) : (
-            <HeartIcon className="w-4 h-4" />
-          )}
-        </motion.div>
-        {count > 0 && (
-          <span className="ml-1 text-sm font-medium">
-            {count}
-          </span>
-        )}
-      </Button>
-      
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="text-xs text-red-500"
-        >
-          {error}
-        </motion.div>
+    <motion.button
+      onClick={handleLike}
+      disabled={isLoading}
+      className={cn(
+        'flex items-center space-x-1 px-2 py-1 rounded-lg transition-all duration-200',
+        'hover:bg-theme-light/30 focus:outline-none focus:ring-2 focus:ring-theme-primary/20',
+        isLiked 
+          ? 'text-red-500 hover:text-red-600' 
+          : 'text-gray-500 hover:text-red-500',
+        className
       )}
-    </div>
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <motion.div
+        animate={isLiked ? { scale: [1, 1.2, 1] } : {}}
+        transition={{ duration: 0.3 }}
+      >
+        {isLiked ? (
+          <HeartSolidIcon className={cn(sizeClasses[size], 'text-red-500')} />
+        ) : (
+          <HeartIcon className={cn(sizeClasses[size])} />
+        )}
+      </motion.div>
+      
+      <span className={cn(
+        'font-medium',
+        textSizeClasses[size],
+        isLiked ? 'text-red-500' : 'text-gray-600'
+      )}>
+        {likeCount}
+      </span>
+    </motion.button>
   )
 }
