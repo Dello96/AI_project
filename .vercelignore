@@ -1,0 +1,27 @@
+# 개발 파일들
+.env.local
+.env.development
+.env.test
+
+# 로그 파일들
+*.log
+dev.log
+
+# 임시 파일들
+.DS_Store
+Thumbs.db
+
+# 테스트 파일들
+test-*
+debug-*
+
+# SQL 파일들 (개발용)
+database/*.sql
+
+# 문서 파일들
+docs/
+*.md
+!README.md
+
+# 스크립트 파일들
+scripts/
