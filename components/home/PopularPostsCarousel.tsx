@@ -98,12 +98,12 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
 
   return (
     <div className="w-full">
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-2">
-          <span className="text-4xl">🔥</span>
+      <div className="mb-6 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
+          <span className="text-3xl">🔥</span>
           인기 게시글
         </h2>
-        <p className="text-gray-600 text-lg">가장 많은 좋아요를 받은 게시글들을 확인해보세요</p>
+        <p className="text-gray-600">가장 많은 좋아요를 받은 게시글들을 확인해보세요</p>
       </div>
       
       <Carousel

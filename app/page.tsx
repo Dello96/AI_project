@@ -87,31 +87,39 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-theme-light via-theme-secondary to-theme-primary">
-      {/* 히어로 섹션 */}
-      <section className="relative overflow-hidden bg-gradient-primary text-white shadow-large">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative container-narrow pt-16 md:pt-24 pb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-balance">
-              PrayGround
-            </h1>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 인기 게시글 캐러셀 */}
-      <section className="container-narrow -mt-8 relative z-10">
+      {/* 통합 헤더 섹션 */}
+      <section className="container-narrow pt-16 md:pt-24 pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="relative"
         >
-          <PopularPostsCarousel onPostClick={handlePostClick} />
+          {/* 통합 컨테이너 카드 */}
+          <div className="bg-gradient-to-br from-white via-theme-light to-theme-secondary rounded-3xl shadow-2xl border border-theme-accent/20 overflow-hidden relative">
+            {/* 장식적 요소 */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-theme-accent/10 rounded-full translate-y-12 -translate-x-12"></div>
+            
+            {/* 상단 그라데이션 헤더 */}
+            <div className="bg-gradient-to-r from-theme-primary via-theme-accent to-theme-secondary text-white py-16 px-8 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-theme-primary/90 via-theme-accent/90 to-theme-secondary/90"></div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)]"></div>
+              <div className="relative z-10">
+                <h1 className="text-4xl md:text-6xl font-bold mb-6 text-balance drop-shadow-lg">
+                  PrayGround
+                </h1>
+                <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+                  교회 청년부를 위한 올인원 플랫폼
+                </p>
+              </div>
+            </div>
+            
+            {/* 인기 게시글 섹션 */}
+            <div className="p-8 bg-gradient-to-b from-white to-theme-light/30">
+              <PopularPostsCarousel onPostClick={handlePostClick} />
+            </div>
+          </div>
         </motion.div>
       </section>
 
