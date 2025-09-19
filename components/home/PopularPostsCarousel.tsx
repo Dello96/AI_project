@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import { HeartIcon, EyeIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline'
 import { Card, CardContent } from '@/components/ui/Card'
 import Carousel from '@/components/ui/Carousel'
@@ -12,6 +13,7 @@ interface PopularPostsCarouselProps {
 }
 
 export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarouselProps) {
+  const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -117,7 +119,14 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
           <Card 
             key={post.id}
             className="cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300"
-            onClick={() => onPostClick(post)}
+            onClick={() => {
+              // 게시글 클릭 시 바로 게시판 페이지로 이동
+              console.log('인기 게시글 클릭:', post.id)
+              // URL 파라미터와 함께 게시판 페이지로 이동
+              const url = `/board?postId=${post.id}`
+              console.log('이동할 URL:', url)
+              router.push(url)
+            }}
           >
             <CardContent className="p-8">
               <div className="flex items-start justify-between mb-6">

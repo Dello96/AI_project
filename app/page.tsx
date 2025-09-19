@@ -27,11 +27,10 @@ export default function Home() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
 
-  // 게시글 클릭 핸들러
+  // 게시글 클릭 핸들러 (이제 PopularPostsCarousel에서 직접 처리)
   const handlePostClick = (post: Post) => {
-    setSelectedPost(post)
-    // 게시판 페이지로 이동하고 해당 게시글을 선택하도록 상태 전달
-    router.push(`/board?postId=${post.id}`)
+    // 이 함수는 더 이상 사용되지 않지만 호환성을 위해 유지
+    window.location.href = `/board?postId=${post.id}`
   }
 
   const baseFeatures = [

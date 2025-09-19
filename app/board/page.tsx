@@ -55,20 +55,40 @@ function BoardContent() {
   // URL 파라미터에서 게시글 ID 확인
   useEffect(() => {
     const postId = searchParams.get('postId')
+    console.log('게시판 페이지 - URL 파라미터 확인:', { postId, searchParams: searchParams.toString() })
+    
     if (postId) {
+      console.log('게시글 ID 발견, 게시글 조회 시작:', postId)
       // 게시글 ID가 있으면 해당 게시글을 조회하고 상세 페이지로 이동
       const fetchPost = async () => {
         try {
+          console.log('postService.getPost 호출:', postId)
           const post = await postService.getPost(postId)
+          console.log('게시글 조회 결과:', post)
+          
           if (post) {
+            console.log('게시글 조회 성공, 상세 페이지로 이동')
             setSelectedPost(post)
             setView('detail')
+          } else {
+            console.log('게시글을 찾을 수 없음')
+            // 게시글을 찾을 수 없으면 목록으로 돌아가기
+            setView('list')
+            setSelectedPost(null)
           }
         } catch (error) {
           console.error('게시글 조회 오류:', error)
+          // 오류 발생 시 목록으로 돌아가기
+          setView('list')
+          setSelectedPost(null)
         }
       }
       fetchPost()
+    } else {
+      console.log('postId 파라미터가 없음, 목록 뷰 유지')
+      // postId가 없으면 목록 뷰로 설정
+      setView('list')
+      setSelectedPost(null)
     }
   }, [searchParams])
 

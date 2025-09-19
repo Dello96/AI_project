@@ -74,17 +74,17 @@ export default function Carousel({
         <>
           <button
             onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-gray-700 hover:text-gray-900 rounded-full p-2 shadow-lg transition-all duration-200"
+            className="absolute -left-12 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white/90 text-gray-400 hover:text-gray-600 rounded-full p-2.5 shadow-md transition-all duration-200 border border-gray-200/50 hover:border-gray-300"
             aria-label="이전 슬라이드"
           >
-            <ChevronLeftIcon className="w-6 h-6" />
+            <ChevronLeftIcon className="w-4 h-4" />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-gray-700 hover:text-gray-900 rounded-full p-2 shadow-lg transition-all duration-200"
+            className="absolute -right-12 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white/90 text-gray-400 hover:text-gray-600 rounded-full p-2.5 shadow-md transition-all duration-200 border border-gray-200/50 hover:border-gray-300"
             aria-label="다음 슬라이드"
           >
-            <ChevronRightIcon className="w-6 h-6" />
+            <ChevronRightIcon className="w-4 h-4" />
           </button>
         </>
       )}
