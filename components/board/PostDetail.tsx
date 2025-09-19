@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { 
   ArrowLeftIcon, 
@@ -30,6 +30,8 @@ interface PostDetailProps {
 }
 
 export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetailProps) {
+  console.log('🎯 PostDetail 컴포넌트 렌더링:', post.id)
+  
   const { user } = useAuth()
   const permissions = usePermissions()
   const [comments, setComments] = useState<Comment[]>([])
@@ -40,7 +42,29 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
   const [editingComment, setEditingComment] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
   const [viewCount, setViewCount] = useState(post.viewCount || 0)
-  const [hasIncrementedView, setHasIncrementedView] = useState(false)
+  
+  // 초기 viewCount 설정 (서버에서 받은 값 그대로 사용)
+  useEffect(() => {
+    console.log('🎯 초기 viewCount 설정:', post.viewCount)
+    setViewCount(post.viewCount || 0)
+  }, [post.viewCount])
+  
+  // 전역 중복 방지를 위한 고유 키 생성 (컴포넌트 마운트 시점에 고정)
+  const [viewIncrementKey] = useState(() => `view_${post.id}_${Date.now()}_${Math.random()}`)
+  const [hasIncremented, setHasIncremented] = useState(false)
+  
+  // React Strict Mode 중복 실행 완전 차단을 위한 ref
+  const hasIncrementedRef = useRef(false)
+  const hasInitializedRef = useRef(false)
+
+  // post.id 변경 시 상태 및 ref 리셋 (viewCount는 별도 처리)
+  useEffect(() => {
+    console.log('🎯 post.id 변경 시 상태 및 ref 리셋:', post.id, 'hasIncremented:', hasIncremented, 'hasIncrementedRef:', hasIncrementedRef.current)
+    setHasIncremented(false)
+    hasIncrementedRef.current = false
+    hasInitializedRef.current = false
+    // viewCount는 별도의 useEffect에서 처리
+  }, [post.id])
 
   // 실시간 댓글 구독
   useRealtimeComments({
@@ -56,12 +80,23 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
     }
   })
 
-  // 조회수 증가
-  const incrementViewCount = async () => {
-    if (hasIncrementedView) return
+  // 조회수 증가 (useRef 기반 중복 방지)
+  const incrementViewCount = useCallback(async () => {
+    console.log('🎯 incrementViewCount 호출:', post.id, 'hasIncrementedRef:', hasIncrementedRef.current, '키:', viewIncrementKey)
+    
+    // useRef 기반 중복 방지 체크 (React Strict Mode 완전 차단)
+    if (hasIncrementedRef.current) {
+      console.log('🎯 이미 조회수 증가됨 (useRef), 중복 호출 방지')
+      return
+    }
+    
+    // 즉시 ref 설정하여 중복 호출 방지
+    hasIncrementedRef.current = true
+    setHasIncremented(true)
+    console.log('🎯 조회수 증가 ref 설정됨 (동기)')
     
     try {
-      console.log('조회수 증가 시도:', post.id)
+      console.log('🎯 조회수 증가 API 호출:', post.id, '키:', viewIncrementKey)
       const response = await fetch(`/api/board/posts/${post.id}/view`, {
         method: 'POST',
         headers: {
@@ -70,22 +105,29 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
       })
       
       const result = await response.json()
-      console.log('조회수 증가 응답:', result)
+      console.log('🎯 조회수 증가 API 응답:', result)
       
       if (response.ok && result.success) {
-        setViewCount(prev => prev + 1)
-        setHasIncrementedView(true)
-        console.log('조회수 증가 성공')
+        // 서버에서 받은 정확한 조회수로 UI 업데이트
+        const newViewCount = result.viewCount || (viewCount + 1)
+        setViewCount(newViewCount)
+        console.log('🎯 조회수 증가 성공, UI 업데이트:', '이전:', viewCount, '새로운:', newViewCount)
       } else {
-        console.error('조회수 증가 실패:', result.error)
+        console.error('🎯 조회수 증가 실패:', result.error)
+        // 실패 시 ref와 상태 리셋
+        hasIncrementedRef.current = false
+        setHasIncremented(false)
       }
     } catch (error) {
-      console.error('조회수 증가 오류:', error)
+      console.error('🎯 조회수 증가 오류:', error)
+      // 오류 시 ref와 상태 리셋
+      hasIncrementedRef.current = false
+      setHasIncremented(false)
     }
-  }
+  }, [post.id, viewIncrementKey])
 
   // 댓글 목록 조회
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const response = await fetch(`/api/board/posts/${post.id}/comments`)
       const result = await response.json()
@@ -98,7 +140,7 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
     } catch (error) {
       console.error('댓글 조회 오류:', error)
     }
-  }
+  }, [post.id])
 
   // 댓글 작성
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -262,10 +304,15 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
     onDelete(post.id)
   }
 
+  // 컴포넌트 마운트 시 한 번만 실행되도록 보장 (useRef 기반)
   useEffect(() => {
-    fetchComments()
-    incrementViewCount() // 조회수 증가
-  }, [post.id])
+    if (!hasInitializedRef.current) {
+      console.log('🎯 PostDetail 초기화 실행 (useRef):', post.id, 'hasIncrementedRef:', hasIncrementedRef.current)
+      hasInitializedRef.current = true
+      fetchComments()
+      incrementViewCount() // 조회수 증가
+    }
+  }, [post.id, fetchComments, incrementViewCount])
 
   const categoryInfo = postCategories.find(cat => cat.value === post.category)
 

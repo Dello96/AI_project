@@ -20,8 +20,7 @@ export async function GET(
       )
     }
 
-    // 조회수 증가
-    await postService.incrementViewCount(id)
+    // 조회수 증가는 PostDetail 컴포넌트에서 처리
 
     return NextResponse.json({
       success: true,

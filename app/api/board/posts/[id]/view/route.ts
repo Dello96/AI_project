@@ -6,7 +6,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log('조회수 증가 API 호출:', params.id)
+    console.log('🎯 조회수 증가 API 호출:', params.id, '시간:', new Date().toISOString())
     
     const supabase = createServerSupabaseClient()
     const { id: postId } = params
@@ -58,7 +58,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: '조회수가 증가되었습니다.',
-      newViewCount: (post.view_count || 0) + 1
+      viewCount: (post.view_count || 0) + 1
     })
 
   } catch (error) {

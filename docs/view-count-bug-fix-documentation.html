@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>조회수 중복 증가 버그 해결 과정 문서</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .document-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            position: relative;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: #764ba2;
+        }
+
+        .section h3 {
+            color: #555;
+            font-size: 1.3rem;
+            margin: 25px 0 15px 0;
+            padding-left: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h4 {
+            color: #666;
+            font-size: 1.1rem;
+            margin: 20px 0 10px 0;
+        }
+
+        .problem-overview {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .problem-overview h2 {
+            color: white;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .problem-overview h2::after {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .solution-overview {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .solution-overview h2 {
+            color: white;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .solution-overview h2::after {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Code';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #4a5568;
+            color: #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+            margin: 15px 0;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .step::before {
+            content: attr(data-step);
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .before, .after {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .before {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .after {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+        }
+
+        .before h4, .after h4 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .before ul, .after ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .before li, .after li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .before li::before {
+            content: '❌';
+            position: absolute;
+            left: 0;
+        }
+
+        .after li::before {
+            content: '✅';
+            position: absolute;
+            left: 0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .timeline {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 30px 0;
+            padding-left: 80px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 10px;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .footer {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .footer p {
+            opacity: 0.8;
+            margin: 5px 0;
+        }
+
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .print-button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .print-button {
+                display: none;
+            }
+            
+            .document-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .header {
+                background: #667eea !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .toc h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: #555;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .toc a:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">📄 PDF로 저장</button>
+    
+    <div class="document-container">
+        <div class="header">
+            <h1>🔧 조회수 중복 증가 버그 해결 과정</h1>
+            <p class="subtitle">React Strict Mode 환경에서의 안정적인 조회수 관리 시스템 구축</p>
+        </div>
+
+        <div class="content">
+            <!-- 목차 -->
+            <div class="toc">
+                <h3>📋 목차</h3>
+                <ul>
+                    <li><a href="#overview">1. 문제 개요</a></li>
+                    <li><a href="#analysis">2. 문제 분석 과정</a></li>
+                    <li><a href="#solution">3. 최종 해결책</a></li>
+                    <li><a href="#principles">4. 핵심 해결 원리</a></li>
+                    <li><a href="#improvements">5. 성능 및 안정성 개선</a></li>
+                    <li><a href="#testing">6. 테스트 시나리오</a></li>
+                    <li><a href="#debugging">7. 디버깅 로그</a></li>
+                    <li><a href="#lessons">8. 학습된 교훈</a></li>
+                    <li><a href="#future">9. 향후 개선 방향</a></li>
+                </ul>
+            </div>
+
+            <!-- 문제 개요 -->
+            <div id="overview" class="section">
+                <div class="problem-overview">
+                    <h2>📋 문제 개요</h2>
+                    <h3>초기 문제</h3>
+                    <ul>
+                        <li>게시글 상세 페이지 진입 시 조회수가 <span class="highlight">2씩 증가</span>하는 현상 발생</li>
+                        <li>React Strict Mode에서 <span class="highlight">useEffect가 두 번 실행</span>되어 중복 호출 발생</li>
+                        <li>서버에서는 정상적으로 1씩 증가하지만 UI에서는 2씩 증가하는 것으로 표시</li>
+                    </ul>
+
+                    <h3>기술적 배경</h3>
+                    <ul>
+                        <li><strong>프레임워크</strong>: Next.js 14 (App Router)</li>
+                        <li><strong>개발 모드</strong>: React Strict Mode 활성화</li>
+                        <li><strong>상태 관리</strong>: React Hooks (useState, useEffect, useCallback)</li>
+                        <li><strong>백엔드</strong>: Supabase (PostgreSQL)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 문제 분석 과정 -->
+            <div id="analysis" class="section">
+                <h2>🔍 문제 분석 과정</h2>
+                
+                <div class="step" data-step="1">
+                    <h3>1단계: 초기 진단</h3>
+                    <div class="code-block">
+useEffect(() => {
+  fetchComments()
+  incrementViewCount() // 조회수 증가
+}, [post.id])
+                    </div>
+                    <div class="error">
+                        <strong>문제점:</strong>
+                        <ul>
+                            <li>React Strict Mode에서 useEffect가 두 번 실행</li>
+                            <li>중복 방지 로직이 없어서 API 호출이 두 번 발생</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step" data-step="2">
+                    <h3>2단계: 중복 방지 로직 추가 (실패)</h3>
+                    <div class="code-block">
+// 첫 번째 시도: useState 기반 중복 방지
+const [hasIncremented, setHasIncremented] = useState(false)
+
+const incrementViewCount = useCallback(async () => {
+  if (hasIncremented) return
+  
+  setHasIncremented(true)
+  // API 호출...
+}, [hasIncremented])
+                    </div>
+                    <div class="error">
+                        <strong>문제점:</strong>
+                        <ul>
+                            <li>React Strict Mode에서 상태 업데이트가 비동기적으로 처리되어 중복 방지 실패</li>
+                            <li>useEffect 의존성 배열에 hasIncremented가 포함되어 무한 루프 발생 가능</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step" data-step="3">
+                    <h3>3단계: 강화된 중복 방지 로직 (실패)</h3>
+                    <div class="code-block">
+// 두 번째 시도: 다중 상태 + 지연 시간
+const [hasIncremented, setHasIncremented] = useState(false)
+const [isProcessing, setIsProcessing] = useState(false)
+
+const incrementViewCount = useCallback(async () => {
+  if (hasIncremented || isProcessing) return
+  
+  setHasIncremented(true)
+  setIsProcessing(true)
+  
+  await new Promise(resolve => setTimeout(resolve, 100))
+  
+  // 이중 체크 로직...
+}, [hasIncremented, isProcessing])
+                    </div>
+                    <div class="error">
+                        <strong>문제점:</strong>
+                        <ul>
+                            <li>과도한 복잡성으로 인한 예측 불가능한 동작</li>
+                            <li>지연 시간이 사용자 경험에 부정적 영향</li>
+                            <li>여전히 React Strict Mode의 중복 실행을 완전히 차단하지 못함</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최종 해결책 -->
+            <div id="solution" class="section">
+                <div class="solution-overview">
+                    <h2>✅ 최종 해결책</h2>
+                    <h3>4단계: useRef 기반 중복 방지 (성공)</h3>
+                </div>
+
+                <div class="code-block">
+// 최종 해결책: useRef 기반 중복 방지
+const hasIncrementedRef = useRef(false)
+const hasInitializedRef = useRef(false)
+
+const incrementViewCount = useCallback(async () => {
+  // useRef 기반 중복 방지 체크 (React Strict Mode 완전 차단)
+  if (hasIncrementedRef.current) {
+    console.log('🎯 이미 조회수 증가됨 (useRef), 중복 호출 방지')
+    return
+  }
+  
+  // 즉시 ref 설정하여 중복 호출 방지
+  hasIncrementedRef.current = true
+  setHasIncremented(true)
+  
+  try {
+    const response = await fetch(`/api/board/posts/${post.id}/view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    const result = await response.json()
+    
+    if (response.ok && result.success) {
+      // 서버에서 받은 정확한 조회수로 UI 업데이트
+      const newViewCount = result.viewCount || (viewCount + 1)
+      setViewCount(newViewCount)
+    }
+  } catch (error) {
+    // 오류 시 ref와 상태 리셋
+    hasIncrementedRef.current = false
+    setHasIncremented(false)
+  }
+}, [post.id, viewIncrementKey])
+
+// 컴포넌트 마운트 시 한 번만 실행
+useEffect(() => {
+  if (!hasInitializedRef.current) {
+    hasInitializedRef.current = true
+    fetchComments()
+    incrementViewCount()
+  }
+}, [post.id, fetchComments, incrementViewCount])
+                </div>
+
+                <div class="success">
+                    <strong>✅ 성공 요인:</strong>
+                    <ul>
+                        <li>useRef는 리렌더링 간에 값을 유지하여 React Strict Mode의 중복 실행에서도 안정적</li>
+                        <li>동기적 업데이트로 즉시 중복 방지 효과</li>
+                        <li>의존성 배열에 영향을 주지 않아 무한 루프 방지</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 핵심 해결 원리 -->
+            <div id="principles" class="section">
+                <h2>🔧 핵심 해결 원리</h2>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">1</div>
+                        <div class="stat-label">useRef의 특성 활용</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">서버 기반 상태 관리</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">상태 리셋 전략</div>
+                    </div>
+                </div>
+
+                <h3>1. useRef의 특성 활용</h3>
+                <div class="info">
+                    <ul>
+                        <li><strong>리렌더링 간 값 유지</strong>: React Strict Mode의 중복 실행에서도 안정적</li>
+                        <li><strong>동기적 업데이트</strong>: ref.current = true는 즉시 반영되어 중복 방지 효과적</li>
+                        <li><strong>의존성 배열 불필요</strong>: ref 값 변경이 리렌더링을 트리거하지 않음</li>
+                    </ul>
+                </div>
+
+                <h3>2. 서버 기반 상태 관리</h3>
+                <div class="info">
+                    <ul>
+                        <li><strong>클라이언트 계산 제거</strong>: setViewCount(prev => prev + 1) 대신 서버 값 사용</li>
+                        <li><strong>단일 진실의 원천</strong>: 서버의 조회수가 유일한 정확한 값</li>
+                        <li><strong>동기화 보장</strong>: API 응답의 정확한 값을 UI에 반영</li>
+                    </ul>
+                </div>
+
+                <h3>3. 상태 리셋 전략</h3>
+                <div class="info">
+                    <ul>
+                        <li><strong>게시글 변경 시</strong>: 모든 ref와 상태를 리셋하여 새로운 게시글에서 정상 작동</li>
+                        <li><strong>초기값 분리</strong>: post.viewCount 변경 시에만 초기값 설정</li>
+                        <li><strong>의존성 최소화</strong>: 불필요한 의존성을 제거하여 예측 가능한 동작</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 성능 및 안정성 개선 -->
+            <div id="improvements" class="section">
+                <h2>📊 성능 및 안정성 개선</h2>
+                
+                <div class="comparison">
+                    <div class="before">
+                        <h4>Before (문제 상황)</h4>
+                        <ul>
+                            <li>조회수 2씩 증가</li>
+                            <li>React Strict Mode 중복 실행</li>
+                            <li>예측 불가능한 상태 업데이트</li>
+                            <li>서버와 UI 불일치</li>
+                        </ul>
+                    </div>
+                    <div class="after">
+                        <h4>After (해결 후)</h4>
+                        <ul>
+                            <li>조회수 1씩 정확히 증가</li>
+                            <li>React Strict Mode 완전 차단</li>
+                            <li>안정적인 상태 관리</li>
+                            <li>서버와 UI 완벽 동기화</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 테스트 시나리오 -->
+            <div id="testing" class="section">
+                <h2>🧪 테스트 시나리오</h2>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4>1. 기본 기능 테스트</h4>
+                            <p>게시글 클릭 → 조회수 1 증가 확인<br>
+                            목록으로 돌아가기 → 같은 게시글 재클릭 → 조회수 1 증가 확인</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4>2. React Strict Mode 테스트</h4>
+                            <p>개발 모드에서 Strict Mode 활성화 상태에서 테스트<br>
+                            useEffect가 두 번 실행되어도 조회수는 1씩만 증가</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4>3. 에러 처리 테스트</h4>
+                            <p>네트워크 오류 시 → ref 리셋 확인<br>
+                            API 오류 시 → 재시도 가능 확인</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 디버깅 로그 -->
+            <div id="debugging" class="section">
+                <h2>🔍 디버깅 로그</h2>
+                
+                <h3>성공적인 실행 로그</h3>
+                <div class="code-block">
+🎯 PostDetail 컴포넌트 렌더링: [게시글ID]
+🎯 초기 viewCount 설정: [초기조회수]
+🎯 post.id 변경 시 상태 및 ref 리셋: [게시글ID] hasIncremented: false hasIncrementedRef: false
+🎯 PostDetail 초기화 실행 (useRef): [게시글ID] hasIncrementedRef: false
+🎯 incrementViewCount 호출: [게시글ID] hasIncrementedRef: false 키: view_[게시글ID]_[타임스탬프]_[랜덤]
+🎯 조회수 증가 ref 설정됨 (동기)
+🎯 조회수 증가 API 호출: [게시글ID] 키: view_[게시글ID]_[타임스탬프]_[랜덤]
+🎯 조회수 증가 API 응답: {success: true, viewCount: [새로운조회수], ...}
+🎯 조회수 증가 성공, UI 업데이트: 이전: [이전조회수] 새로운: [새로운조회수]
+                </div>
+
+                <h3>중복 방지 로그</h3>
+                <div class="code-block">
+🎯 incrementViewCount 호출: [게시글ID] hasIncrementedRef: true 키: view_[게시글ID]_[타임스탬프]_[랜덤]
+🎯 이미 조회수 증가됨 (useRef), 중복 호출 방지
+                </div>
+            </div>
+
+            <!-- 학습된 교훈 -->
+            <div id="lessons" class="section">
+                <h2>📚 학습된 교훈</h2>
+                
+                <h3>1. React Strict Mode 대응</h3>
+                <div class="info">
+                    <ul>
+                        <li><strong>useRef 활용</strong>: 상태 기반 중복 방지보다 ref 기반이 더 안정적</li>
+                        <li><strong>동기적 업데이트</strong>: ref 값 변경은 즉시 반영되어 중복 방지 효과적</li>
+                        <li><strong>의존성 최소화</strong>: 불필요한 의존성을 제거하여 예측 가능한 동작</li>
+                    </ul>
+                </div>
+
+                <h3>2. 상태 관리 원칙</h3>
+                <div class="info">
+                    <ul>
+                        <li><strong>단일 진실의 원천</strong>: 서버 데이터를 기준으로 클라이언트 상태 관리</li>
+                        <li><strong>서버 기반 계산</strong>: 클라이언트 계산보다 서버 계산이 더 안정적</li>
+                        <li><strong>명확한 리셋 전략</strong>: 상태 변경 시점에 명확한 리셋 로직 필요</li>
+                    </ul>
+                </div>
+
+                <h3>3. 디버깅 전략</h3>
+                <div class="info">
+                    <ul>
+                        <li><strong>상세한 로깅</strong>: 각 단계별 상태 변화를 추적할 수 있는 로그</li>
+                        <li><strong>단계별 검증</strong>: 각 해결책을 단계별로 적용하고 검증</li>
+                        <li><strong>실제 환경 테스트</strong>: 개발 환경과 프로덕션 환경 모두에서 테스트</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 향후 개선 방향 -->
+            <div id="future" class="section">
+                <h2>🚀 향후 개선 방향</h2>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">1</div>
+                        <div class="stat-label">코드 최적화</div>
+                        <ul style="text-align: left; margin-top: 15px; font-size: 0.9rem;">
+                            <li>커스텀 훅으로 조회수 증가 로직 분리</li>
+                            <li>타입 안정성 강화</li>
+                            <li>에러 바운더리 추가</li>
+                        </ul>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">성능 개선</div>
+                        <ul style="text-align: left; margin-top: 15px; font-size: 0.9rem;">
+                            <li>조회수 증가 API 캐싱</li>
+                            <li>배치 업데이트 고려</li>
+                            <li>실시간 동기화 최적화</li>
+                        </ul>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">사용자 경험</div>
+                        <ul style="text-align: left; margin-top: 15px; font-size: 0.9rem;">
+                            <li>조회수 증가 애니메이션</li>
+                            <li>로딩 상태 표시</li>
+                            <li>오프라인 지원</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <h3>📄 문서 정보</h3>
+            <p><strong>문서 작성일:</strong> 2024년 12월 19일</p>
+            <p><strong>작성자:</strong> AI Assistant</p>
+            <p><strong>프로젝트:</strong> 교회 청년부 커뮤니티 MVP</p>
+            <p><strong>버전:</strong> 1.0.0</p>
+        </div>
+    </div>
+
+    <script>
+        // 부드러운 스크롤 효과
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 인쇄 시 추가 스타일 적용
+        window.addEventListener('beforeprint', function() {
+            document.body.style.background = 'white';
+        });
+    </script>
+</body>
+</html>

@@ -47,13 +47,7 @@ export async function GET(
       )
     }
 
-    // 조회수 증가
-    await supabase
-      .from('posts')
-      .update({ view_count: post.view_count + 1 })
-      .eq('id', id)
-
-    // 응답 데이터 가공
+    // 응답 데이터 가공 (조회수 증가는 별도 API에서 처리)
     const formattedPost = {
       id: post.id,
       title: post.title,
@@ -62,7 +56,7 @@ export async function GET(
       authorName: post.is_anonymous ? '익명' : post.author?.name || '알 수 없음',
       authorId: post.author_id,
       isAnonymous: post.is_anonymous,
-      viewCount: post.view_count + 1,
+      viewCount: post.view_count,
       likeCount: post.like_count,
       commentCount: post.comment_count,
       attachments: post.attachments || [],

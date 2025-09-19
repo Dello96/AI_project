@@ -23,23 +23,37 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
     try {
       setIsLoading(true)
       setError(null)
-      console.log('인기 게시글 조회 시작')
+      console.log('🔥 인기 게시글 조회 시작')
       
       const response = await fetch('/api/posts/popular')
+      console.log('🔥 API 응답 상태:', response.status, response.statusText)
+      
+      if (!response.ok) {
+        console.error('🔥 API 응답 오류:', response.status, response.statusText)
+        const errorText = await response.text()
+        console.error('🔥 오류 응답 본문:', errorText)
+        setError(`API 오류: ${response.status} ${response.statusText}`)
+        return
+      }
+      
       const result = await response.json()
+      console.log('🔥 인기 게시글 API 응답:', { response: response.status, result })
       
-      console.log('인기 게시글 API 응답:', { response: response.status, result })
-      
-      if (response.ok && result.success) {
+      if (result.success) {
         setPosts(result.data || [])
-        console.log('인기 게시글 조회 성공:', result.data)
+        console.log('🔥 인기 게시글 조회 성공:', result.data)
       } else {
         const errorMsg = result.error || '인기 게시글을 불러오는데 실패했습니다.'
-        console.error('인기 게시글 조회 실패:', errorMsg)
+        console.error('🔥 인기 게시글 조회 실패:', errorMsg)
         setError(errorMsg)
       }
     } catch (error) {
-      console.error('인기 게시글 조회 오류:', error)
+      console.error('🔥 인기 게시글 조회 오류:', error)
+      console.error('🔥 오류 상세:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      })
       setError('인기 게시글을 불러오는데 실패했습니다.')
     } finally {
       setIsLoading(false)
