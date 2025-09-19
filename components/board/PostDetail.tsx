@@ -39,6 +39,8 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
   const [error, setError] = useState<string | null>(null)
   const [editingComment, setEditingComment] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
+  const [viewCount, setViewCount] = useState(post.viewCount || 0)
+  const [hasIncrementedView, setHasIncrementedView] = useState(false)
 
   // 실시간 댓글 구독
   useRealtimeComments({
@@ -53,6 +55,27 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
       setComments(prev => prev.filter(c => c.id !== commentId))
     }
   })
+
+  // 조회수 증가
+  const incrementViewCount = async () => {
+    if (hasIncrementedView) return
+    
+    try {
+      const response = await fetch(`/api/board/posts/${post.id}/view`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      if (response.ok) {
+        setViewCount(prev => prev + 1)
+        setHasIncrementedView(true)
+      }
+    } catch (error) {
+      console.error('조회수 증가 오류:', error)
+    }
+  }
 
   // 댓글 목록 조회
   const fetchComments = async () => {
@@ -234,6 +257,7 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
 
   useEffect(() => {
     fetchComments()
+    incrementViewCount() // 조회수 증가
   }, [post.id])
 
   const categoryInfo = postCategories.find(cat => cat.value === post.category)
@@ -321,7 +345,7 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
               />
               <span className="flex items-center gap-1">
                 <EyeIcon className="w-4 h-4" />
-                {post.viewCount}
+                {viewCount}
               </span>
               <span>{new Date(post.createdAt).toLocaleDateString()}</span>
             </div>

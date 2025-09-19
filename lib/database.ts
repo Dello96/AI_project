@@ -157,9 +157,6 @@ export const postService = {
 
       if (error) throw error
 
-      // 조회수 증가
-      await this.incrementViewCount(postId)
-
       return post
     } catch (error) {
       console.error('게시글 상세 조회 오류:', error)
