@@ -267,7 +267,7 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
                           <LikeButton
                             postId={post.id}
                             initialLikeCount={post.likeCount || 0}
-                            initialIsLiked={false} // TODO: 실제 좋아요 상태 확인 필요
+                            initialIsLiked={post.userLiked || false}
                             size="sm"
                           />
                           <div className="flex items-center gap-1">

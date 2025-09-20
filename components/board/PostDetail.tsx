@@ -394,7 +394,7 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
               <LikeButton
                 postId={post.id}
                 initialLikeCount={post.likeCount || 0}
-                initialIsLiked={false}
+                initialIsLiked={post.userLiked || false}
                 size="sm"
               />
               <span className="flex items-center gap-1">

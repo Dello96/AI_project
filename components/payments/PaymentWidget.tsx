@@ -1,16 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { loadTossPayments } from '@tosspayments/payment-sdk'
-import { PaymentRequest, PaymentWidgetEvents, PaymentError } from '@/types/payment'
-import { Button } from '@/components/ui/Button'
+import { PaymentRequest, PaymentError } from '@/types/payment'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { 
-  CreditCardIcon, 
-  BanknotesIcon, 
-  DevicePhoneMobileIcon,
-  GiftIcon 
-} from '@heroicons/react/24/outline'
 
 interface PaymentWidgetProps {
   clientKey: string
@@ -21,38 +14,6 @@ interface PaymentWidgetProps {
   className?: string
 }
 
-const paymentMethods = [
-  { 
-    method: '카드', 
-    icon: CreditCardIcon, 
-    description: '신용카드, 체크카드',
-    color: 'bg-blue-500'
-  },
-  { 
-    method: '계좌이체', 
-    icon: BanknotesIcon, 
-    description: '실시간 계좌이체',
-    color: 'bg-green-500'
-  },
-  { 
-    method: '가상계좌', 
-    icon: BanknotesIcon, 
-    description: '가상계좌 입금',
-    color: 'bg-purple-500'
-  },
-  { 
-    method: '휴대폰', 
-    icon: DevicePhoneMobileIcon, 
-    description: '휴대폰 소액결제',
-    color: 'bg-orange-500'
-  },
-  { 
-    method: '상품권', 
-    icon: GiftIcon, 
-    description: '문화상품권, 도서상품권',
-    color: 'bg-pink-500'
-  }
-]
 
 function PaymentWidget({ 
   clientKey, 
@@ -62,11 +23,8 @@ function PaymentWidget({
   onCancel,
   className = ''
 }: PaymentWidgetProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [selectedMethod, setSelectedMethod] = useState<string>('카드')
   const [widget, setWidget] = useState<any | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const widgetRef = useRef<HTMLDivElement>(null)
 
   // 토스페이먼츠 위젯 초기화
   useEffect(() => {
@@ -75,7 +33,14 @@ function PaymentWidget({
     const initializeWidget = async () => {
       try {
         const tossPayments = await loadTossPayments(clientKey)
-        setWidget(tossPayments)
+        
+        // PaymentWidget 인스턴스 생성
+        const paymentWidget = tossPayments.PaymentWidget({
+          customerKey: 'customer_' + Date.now(), // 고유한 고객 키
+          brandColor: '#3b82f6' // 브랜드 컬러
+        })
+        
+        setWidget(paymentWidget)
       } catch (err) {
         console.error('토스페이먼츠 위젯 초기화 오류:', err)
         setError('결제 시스템을 초기화하는데 실패했습니다.')
@@ -85,40 +50,19 @@ function PaymentWidget({
     initializeWidget()
   }, [clientKey])
 
-  // 결제 요청
-  const handlePayment = async () => {
-    if (!widget) {
-      setError('결제 시스템이 준비되지 않았습니다.')
-      return
-    }
 
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      await widget.requestPayment(selectedMethod, {
-        amount: paymentRequest.amount,
-        orderId: paymentRequest.orderId,
-        orderName: paymentRequest.orderName,
-        customerName: paymentRequest.customerName,
-        customerEmail: paymentRequest.customerEmail,
-        customerMobilePhone: paymentRequest.customerMobilePhone,
-        successUrl: paymentRequest.successUrl,
-        failUrl: paymentRequest.failUrl,
-        easyPay: selectedMethod === '카드' ? '토스페이' : undefined
-      })
-    } catch (err) {
-      console.error('결제 요청 오류:', err)
-      setError('결제 요청 중 오류가 발생했습니다.')
-      onFail?.(err as PaymentError)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // 결제 성공 콜백
+  // 위젯 렌더링 및 이벤트 리스너 등록
   useEffect(() => {
     if (!widget) return
+
+    const renderWidget = async () => {
+      try {
+        await widget.render('#payment-widget')
+      } catch (err) {
+        console.error('위젯 렌더링 오류:', err)
+        setError('결제 위젯을 불러오는데 실패했습니다.')
+      }
+    }
 
     const handleSuccess = (payment: any) => {
       console.log('결제 성공:', payment)
@@ -135,6 +79,9 @@ function PaymentWidget({
       console.log('결제 취소:', error)
       onCancel?.(error)
     }
+
+    // 위젯 렌더링
+    renderWidget()
 
     // 이벤트 리스너 등록
     widget.on('success', handleSuccess)
@@ -163,31 +110,18 @@ function PaymentWidget({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* 결제 수단 선택 */}
+        {/* 결제 위젯 영역 */}
         <div>
           <h3 className="text-lg font-semibold mb-4">결제 수단을 선택하세요</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {paymentMethods.map((method) => (
-              <button
-                key={method.method}
-                onClick={() => setSelectedMethod(method.method)}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                  selectedMethod === method.method
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 rounded-full ${method.color} flex items-center justify-center`}>
-                    <method.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-gray-900">{method.method}</p>
-                    <p className="text-sm text-gray-500">{method.description}</p>
-                  </div>
+          <div id="payment-widget" className="min-h-[400px] border border-gray-200 rounded-lg p-4">
+            {!widget && (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">결제 위젯을 불러오는 중...</p>
                 </div>
-              </button>
-            ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -223,17 +157,6 @@ function PaymentWidget({
           </div>
         )}
 
-        {/* 결제 버튼 */}
-        <div className="pt-4">
-          <Button
-            onClick={handlePayment}
-            disabled={isLoading || !widget}
-            className="w-full h-14 text-lg font-semibold"
-            loading={isLoading}
-          >
-            {isLoading ? '결제 진행 중...' : `${paymentRequest.amount.toLocaleString()}원 결제하기`}
-          </Button>
-        </div>
 
         {/* 안내 메시지 */}
         <div className="text-center text-sm text-gray-500">

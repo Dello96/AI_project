@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { HeartIcon, EyeIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline'
+import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 import { Card, CardContent } from '@/components/ui/Card'
 import Carousel from '@/components/ui/Carousel'
 import { Post } from '@/types'
@@ -155,7 +156,11 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <HeartIcon className="w-4 h-4 text-red-500" />
+                  {post.userLiked ? (
+                    <HeartSolidIcon className="w-4 h-4 text-red-500" />
+                  ) : (
+                    <HeartIcon className="w-4 h-4 text-red-500" />
+                  )}
                   <span className="font-medium">{post.likeCount}</span>
                 </div>
               </div>

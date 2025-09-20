@@ -24,6 +24,7 @@ export interface Post {
   viewCount: number;
   likeCount: number;
   commentCount: number;
+  userLiked?: boolean; // 현재 사용자가 좋아요를 눌렀는지 여부
   attachments?: string[];
   deletedAt?: string | null;
   createdAt: Date;

@@ -67,9 +67,27 @@ export async function GET(request: NextRequest) {
 
     const posts = sortedPosts
 
-    // 각 게시글의 작성자 정보 조회
+    // 각 게시글의 작성자 정보와 사용자 좋아요 상태 조회
     const postsWithAuthors = await Promise.all(
       posts.map(async (post) => {
+        // 사용자 좋아요 상태 조회 (인증된 사용자가 있는 경우에만)
+        let userLiked = false
+        try {
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            const { data: like } = await supabase
+              .from('likes')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('post_id', post.id)
+              .single()
+            userLiked = !!like
+          }
+        } catch (error) {
+          // 인증 오류는 무시 (비로그인 사용자)
+          console.log('사용자 인증 확인 중 오류 (무시됨):', error)
+        }
+
         if (post.is_anonymous) {
           return {
             id: post.id,
@@ -80,6 +98,7 @@ export async function GET(request: NextRequest) {
             viewCount: post.view_count || 0,
             likeCount: post.like_count || 0,
             commentCount: 0, // comment_count 컬럼이 없으므로 기본값 0
+            userLiked,
             author: null,
             createdAt: post.created_at
           }
@@ -101,6 +120,7 @@ export async function GET(request: NextRequest) {
           viewCount: post.view_count || 0,
           likeCount: post.like_count || 0,
           commentCount: 0, // comment_count 컬럼이 없으므로 기본값 0
+          userLiked,
           author,
           createdAt: post.created_at
         }

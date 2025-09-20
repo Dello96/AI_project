@@ -278,23 +278,43 @@ export async function GET(request: NextRequest) {
     // 총 페이지 수 계산
     const totalPages = Math.ceil((count || 0) / limit)
     
-    // 각 게시글의 댓글 개수 조회
-    const postsWithCommentCount = await Promise.all(
+    // 각 게시글의 댓글 개수와 사용자 좋아요 상태 조회
+    const postsWithDetails = await Promise.all(
       (posts || []).map(async (post) => {
+        // 댓글 개수 조회
         const { count: commentCount } = await serverSupabase
           .from('comments')
           .select('*', { count: 'exact', head: true })
           .eq('post_id', post.id)
         
+        // 사용자 좋아요 상태 조회 (인증된 사용자가 있는 경우에만)
+        let userLiked = false
+        try {
+          const { data: { user } } = await serverSupabase.auth.getUser()
+          if (user) {
+            const { data: like } = await serverSupabase
+              .from('likes')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('post_id', post.id)
+              .single()
+            userLiked = !!like
+          }
+        } catch (error) {
+          // 인증 오류는 무시 (비로그인 사용자)
+          console.log('사용자 인증 확인 중 오류 (무시됨):', error)
+        }
+        
         return {
           ...post,
-          commentCount: commentCount || 0
+          commentCount: commentCount || 0,
+          userLiked
         }
       })
     )
     
     // 응답 데이터 가공
-    const formattedPosts = postsWithCommentCount.map(post => ({
+    const formattedPosts = postsWithDetails.map(post => ({
       id: post.id,
       title: post.title,
       content: post.content,
@@ -306,6 +326,7 @@ export async function GET(request: NextRequest) {
       viewCount: post.view_count || 0,
       likeCount: post.like_count || 0,
       commentCount: post.commentCount,
+      userLiked: post.userLiked,
       attachments: post.attachments || []
     }))
     
