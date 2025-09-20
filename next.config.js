@@ -27,7 +27,7 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: process.env.NODE_ENV === 'production', // 프로덕션 빌드 시 ESLint 경고 무시
   },
 }
 

@@ -6,7 +6,9 @@
     "prefer-const": "error",
     "no-var": "error",
     "object-shorthand": "error",
-    "prefer-template": "error"
+    "prefer-template": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "@next/next/no-img-element": "warn"
   },
   "env": {
     "browser": true,
