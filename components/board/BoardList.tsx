@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { 
@@ -50,28 +50,57 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
     sortBy: 'latest' as 'latest' | 'popular' | 'views'
   })
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [totalPosts, setTotalPosts] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const isLoadingRef = useRef(false)
 
   // 게시글 목록 조회
-  const fetchPosts = async () => {
+  const fetchPosts = async (page: number = 1, append: boolean = false) => {
+    // 이미 로딩 중이면 중복 요청 방지
+    if (isLoadingRef.current) return
+    
     try {
-      setIsLoading(true)
+      isLoadingRef.current = true
+      if (page === 1) {
+        setIsLoading(true)
+      } else {
+        setIsLoadingMore(true)
+      }
       
       // API 호출을 위한 쿼리 파라미터 구성
       const params = new URLSearchParams()
       if (filters.category) params.append('category', filters.category)
       if (filters.search) params.append('search', filters.search)
       if (filters.sortBy) params.append('sortBy', filters.sortBy)
-      params.append('page', currentPage.toString())
-      params.append('limit', '10')
+      params.append('page', page.toString())
+      params.append('limit', '5') // 5개씩 로드
       
       const response = await fetch(`/api/board/posts?${params.toString()}`)
       const data = await response.json()
       
       if (data.success) {
-        setPosts(data.data.posts)
+        if (append) {
+          setPosts(prev => [...prev, ...data.data.posts])
+        } else {
+          setPosts(data.data.posts)
+        }
         setTotalPosts(data.data.pagination.totalCount)
+        // 현재까지 로드된 게시글 수가 전체 게시글 수보다 적으면 더 로드 가능
+        const currentTotalLoaded = append ? posts.length + data.data.posts.length : data.data.posts.length
+        const shouldHaveMore = currentTotalLoaded < data.data.pagination.totalCount
+        console.log('게시글 로드 상태:', {
+          page,
+          append,
+          '받은 게시글 수': data.data.posts.length,
+          '현재 총 로드된 수': currentTotalLoaded,
+          '전체 게시글 수': data.data.pagination.totalCount,
+          '더 로드 가능': shouldHaveMore
+        })
+        setHasMore(shouldHaveMore)
       } else {
         console.error('게시글 조회 실패:', data.error)
       }
@@ -79,19 +108,53 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
       console.error('게시글 조회 오류:', error)
     } finally {
       setIsLoading(false)
+      setIsLoadingMore(false)
+      isLoadingRef.current = false
     }
   }
+
+  // Intersection Observer 설정
+  useEffect(() => {
+    if (!hasMore || isLoading) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !isLoadingRef.current) {
+          console.log('Intersection detected, loading more...')
+          setCurrentPage(prev => prev + 1)
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    )
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current)
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current)
+      }
+      observer.disconnect()
+    }
+  }, [hasMore, posts.length])
 
   // 필터 변경 시 게시글 재조회
   useEffect(() => {
     setCurrentPage(1)
-    fetchPosts()
+    setPosts([])
+    setHasMore(true)
+    fetchPosts(1, false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters])
 
-  // 페이지 변경 시 게시글 재조회
+  // 페이지 변경 시 게시글 추가 로드
   useEffect(() => {
-    fetchPosts()
-  }, [currentPage])
+    if (currentPage > 1 && hasMore && !isLoadingMore) {
+      fetchPosts(currentPage, true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, hasMore, isLoadingMore])
 
   const handleCategoryFilter = (category: 'notice' | 'free' | 'qna' | undefined) => {
     setFilters(prev => ({ ...prev, category }))
@@ -105,9 +168,6 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
     setFilters(prev => ({ ...prev, sortBy }))
   }
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
 
   if (isLoading) {
     return (
@@ -289,21 +349,24 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
         )}
       </div>
 
-      {/* 페이지네이션 */}
-      {totalPosts > 10 && (
-        <div className="flex justify-center">
-          <div className="flex gap-2">
-            {Array.from({ length: Math.ceil(totalPosts / 10) }, (_, i) => (
-              <Button
-                key={i + 1}
-                variant={currentPage === i + 1 ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handlePageChange(i + 1)}
-              >
-                {i + 1}
-              </Button>
-            ))}
-          </div>
+      {/* 로드 모어 트리거 및 로딩 인디케이터 */}
+      {hasMore && posts.length > 0 && (
+        <div ref={loadMoreRef} className="flex justify-center py-8">
+          {isLoadingMore ? (
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+              <span className="text-gray-600">게시글을 불러오는 중...</span>
+            </div>
+          ) : (
+            <div className="text-gray-500 text-sm">스크롤하여 더 보기</div>
+          )}
+        </div>
+      )}
+
+      {/* 모든 게시글을 로드한 경우 */}
+      {!hasMore && posts.length > 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">모든 게시글을 불러왔습니다.</p>
         </div>
       )}
     </div>
