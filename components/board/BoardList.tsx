@@ -8,7 +8,8 @@ import {
   MagnifyingGlassIcon,
   DocumentTextIcon,
   ChatBubbleLeftRightIcon,
-  QuestionMarkCircleIcon
+  QuestionMarkCircleIcon,
+  ChatBubbleLeftIcon
 } from '@heroicons/react/24/outline'
 import { Post, postCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -269,7 +270,13 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
                             initialIsLiked={false} // TODO: 실제 좋아요 상태 확인 필요
                             size="sm"
                           />
-                          <span>조회 {post.viewCount}</span>
+                          <div className="flex items-center gap-1">
+                            <ChatBubbleLeftIcon className="w-4 h-4" />
+                            <span>{post.commentCount || 0}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span>조회 {post.viewCount}</span>
+                          </div>
                           <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>

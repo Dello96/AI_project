@@ -278,8 +278,23 @@ export async function GET(request: NextRequest) {
     // 총 페이지 수 계산
     const totalPages = Math.ceil((count || 0) / limit)
     
+    // 각 게시글의 댓글 개수 조회
+    const postsWithCommentCount = await Promise.all(
+      (posts || []).map(async (post) => {
+        const { count: commentCount } = await serverSupabase
+          .from('comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('post_id', post.id)
+        
+        return {
+          ...post,
+          commentCount: commentCount || 0
+        }
+      })
+    )
+    
     // 응답 데이터 가공
-    const formattedPosts = (posts || []).map(post => ({
+    const formattedPosts = postsWithCommentCount.map(post => ({
       id: post.id,
       title: post.title,
       content: post.content,
@@ -290,7 +305,7 @@ export async function GET(request: NextRequest) {
       updatedAt: post.updated_at,
       viewCount: post.view_count || 0,
       likeCount: post.like_count || 0,
-      commentCount: 0, // 임시로 0으로 설정
+      commentCount: post.commentCount,
       attachments: post.attachments || []
     }))
     
