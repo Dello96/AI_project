@@ -28,11 +28,41 @@ export async function POST(request: NextRequest) {
 
     const { paymentKey, orderId, amount } = parsed.data
 
-    // 토스페이먼츠 클라이언트
-    const tossClient = getTossPaymentsClient()
+    // 토스페이먼츠 API를 직접 호출하여 결제 승인
+    const secretKey = process.env.TOSS_PAYMENTS_SECRET_KEY
+    if (!secretKey) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '토스페이먼츠 시크릿 키가 설정되지 않았습니다.' 
+        },
+        { status: 500 }
+      )
+    }
 
-    // 결제 승인
-    const payment = await tossClient.confirmPayment(paymentKey, orderId, amount)
+    console.log('결제 승인 요청:', { paymentKey, orderId, amount })
+
+    const response = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${secretKey}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        paymentKey,
+        orderId,
+        amount
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('토스페이먼츠 API 오류:', errorData)
+      throw new Error(errorData.message || '결제 승인에 실패했습니다.')
+    }
+
+    const payment = await response.json()
+    console.log('결제 승인 성공:', payment)
 
     // 결제 성공 시 데이터베이스에 저장
     if (payment.status === 'DONE') {

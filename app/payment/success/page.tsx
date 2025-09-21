@@ -17,20 +17,21 @@ function PaymentSuccessContent() {
   useEffect(() => {
     const paymentKey = searchParams.get('paymentKey')
     const orderId = searchParams.get('orderId')
+    const amount = searchParams.get('amount')
 
-    if (!paymentKey || !orderId) {
+    if (!paymentKey || !orderId || !amount) {
       setError('결제 정보를 찾을 수 없습니다.')
       setIsLoading(false)
       return
     }
 
-    // 결제 정보 조회
-    fetchPaymentInfo(paymentKey, orderId)
+    // 결제 승인 및 정보 조회
+    confirmPayment(paymentKey, orderId, parseInt(amount))
   }, [searchParams])
 
-  const fetchPaymentInfo = async (paymentKey: string, orderId: string) => {
+  const confirmPayment = async (paymentKey: string, orderId: string, amount: number) => {
     try {
-      const response = await fetch('/api/payments/verify', {
+      const response = await fetch('/api/payments/confirm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,20 +39,20 @@ function PaymentSuccessContent() {
         body: JSON.stringify({
           paymentKey,
           orderId,
-          amount: 0 // 검증용이므로 0으로 설정
+          amount
         })
       })
 
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || '결제 정보 조회에 실패했습니다.')
+        throw new Error(result.error || '결제 승인에 실패했습니다.')
       }
 
       setPayment(result.payment)
     } catch (err) {
-      console.error('결제 정보 조회 오류:', err)
-      setError(err instanceof Error ? err.message : '결제 정보를 불러오는데 실패했습니다.')
+      console.error('결제 승인 오류:', err)
+      setError(err instanceof Error ? err.message : '결제 승인에 실패했습니다.')
     } finally {
       setIsLoading(false)
     }

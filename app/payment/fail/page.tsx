@@ -10,6 +10,8 @@ function PaymentFailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const error = searchParams.get('error') || '알 수 없는 오류가 발생했습니다.'
+  const code = searchParams.get('code')
+  const orderId = searchParams.get('orderId')
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -22,7 +24,18 @@ function PaymentFailContent() {
           </p>
           
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-700 text-sm font-medium mb-2">오류 메시지:</p>
             <p className="text-red-700 text-sm">{error}</p>
+            {code && (
+              <div className="mt-2">
+                <p className="text-red-700 text-xs">오류 코드: {code}</p>
+              </div>
+            )}
+            {orderId && (
+              <div className="mt-2">
+                <p className="text-red-700 text-xs">주문 ID: {orderId}</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">

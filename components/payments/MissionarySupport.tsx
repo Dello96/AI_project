@@ -67,7 +67,22 @@ export default function MissionarySupport() {
     if (donorName) params.set('customerName', donorName)
     if (donorEmail) params.set('customerEmail', donorEmail)
 
-    router.push(`/payment?${params.toString()}`)
+    // 직접 결제 API로 리다이렉트
+    const orderId = `MISSIONARY_${Date.now()}`
+    const successUrl = `${window.location.origin}/payment/success`
+    const failUrl = `${window.location.origin}/payment/fail`
+
+    const paymentParams = new URLSearchParams({
+      amount: amount,
+      orderId,
+      orderName: '선교사님 후원',
+      customerName: donorName || '',
+      customerEmail: donorEmail || '',
+      successUrl,
+      failUrl
+    })
+
+    window.location.href = `/api/payments/redirect?${paymentParams.toString()}`
   }
 
   const formatAmount = (amount: number) => {
