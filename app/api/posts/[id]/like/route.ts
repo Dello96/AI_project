@@ -62,35 +62,20 @@ export async function POST(
 
     const postId = params.id
 
-    // 게시글 존재 확인
-    console.log('게시글 존재 확인 중...')
-    const { data: post, error: postError } = await supabaseAdmin
-      .from('posts')
-      .select('id, like_count')
-      .eq('id', postId)
-      .single()
-
-    if (postError || !post) {
-      console.error('게시글 조회 실패:', postError)
-      return NextResponse.json({ error: '게시글을 찾을 수 없습니다.' }, { status: 404 })
-    }
-    
-    console.log('게시글 조회 성공:', post)
-
-    // posts 테이블에 liked_by JSONB 컬럼을 사용하여 좋아요 정보 저장
-    console.log('좋아요 상태 확인 중...')
-    
-    // 현재 게시글의 liked_by 정보 조회
-    const { data: currentPost, error: postError2 } = await supabaseAdmin
+    // 게시글의 좋아요 정보를 한 번에 조회
+    console.log('게시글 좋아요 정보 조회 중...')
+    const { data: currentPost, error: postError } = await supabaseAdmin
       .from('posts')
       .select('id, like_count, liked_by')
       .eq('id', postId)
       .single()
 
-    if (postError2 || !currentPost) {
-      console.error('게시글 상세 조회 실패:', postError2)
+    if (postError || !currentPost) {
+      console.error('게시글 조회 실패:', postError)
       return NextResponse.json({ error: '게시글을 찾을 수 없습니다.' }, { status: 404 })
     }
+    
+    console.log('게시글 조회 성공:', currentPost)
 
     const likedBy = currentPost.liked_by || []
     const isCurrentlyLiked = likedBy.includes(user.id)

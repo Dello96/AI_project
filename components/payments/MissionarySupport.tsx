@@ -67,8 +67,10 @@ export default function MissionarySupport() {
     if (donorName) params.set('customerName', donorName)
     if (donorEmail) params.set('customerEmail', donorEmail)
 
-    // 직접 결제 API로 리다이렉트
-    const orderId = `MISSIONARY_${Date.now()}`
+    // 고유한 주문 ID 생성 (중복 방지)
+    const timestamp = Date.now()
+    const random = Math.random().toString(36).substr(2, 9)
+    const orderId = `MISSIONARY_${timestamp}_${random}`
     const successUrl = `${window.location.origin}/payment/success`
     const failUrl = `${window.location.origin}/payment/fail`
 
@@ -91,10 +93,10 @@ export default function MissionarySupport() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* 기부 통계 카드 */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      {/* 기부 통계 카드 - 다크 테마 */}
+      <Card className="bg-gradient-to-r from-gray-800 to-gray-700 border-orange-500/30 shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center text-blue-800">
+          <CardTitle className="flex items-center text-orange-400">
             <HeartIcon className="w-6 h-6 mr-2" />
             기부 현황
           </CardTitle>
@@ -102,39 +104,39 @@ export default function MissionarySupport() {
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-2 text-gray-600">기부 현황을 불러오는 중...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+              <p className="mt-2 text-gray-300">기부 현황을 불러오는 중...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
+                <div className="text-3xl font-bold text-orange-400 mb-2">
                   {formatAmount(donationStats.totalAmount)}원
                 </div>
-                <p className="text-sm text-gray-600">총 기부금액</p>
+                <p className="text-sm text-gray-400">총 기부금액</p>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">
+                <div className="text-3xl font-bold text-red-400 mb-2">
                   {donationStats.totalCount}건
                 </div>
-                <p className="text-sm text-gray-600">총 기부건수</p>
+                <p className="text-sm text-gray-400">총 기부건수</p>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">
+                <div className="text-3xl font-bold text-yellow-400 mb-2">
                   {donationStats.totalCount > 0 ? Math.round(donationStats.totalAmount / donationStats.totalCount).toLocaleString() : 0}원
                 </div>
-                <p className="text-sm text-gray-600">평균 기부금액</p>
+                <p className="text-sm text-gray-400">평균 기부금액</p>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* 최근 기부 내역 */}
+      {/* 최근 기부 내역 - 다크 테마 */}
       {donationStats.recentDonations.length > 0 && (
-        <Card>
+        <Card className="bg-gradient-to-r from-gray-800 to-gray-700 border-orange-500/30">
           <CardHeader>
-            <CardTitle className="flex items-center text-gray-800">
+            <CardTitle className="flex items-center text-orange-400">
               <GiftIcon className="w-5 h-5 mr-2" />
               최근 기부 내역
             </CardTitle>
@@ -142,16 +144,16 @@ export default function MissionarySupport() {
           <CardContent>
             <div className="space-y-3">
               {donationStats.recentDonations.slice(0, 5).map((donation, index) => (
-                <div key={index} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex justify-between items-center py-3 px-4 bg-gray-700/50 rounded-lg border border-gray-600/30">
                   <div>
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-white">
                       {donation.donorName || '익명'}
                     </span>
-                    <span className="text-sm text-gray-500 ml-2">
+                    <span className="text-sm text-gray-400 ml-2">
                       {new Date(donation.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className="font-semibold text-green-600">
+                  <div className="font-semibold text-orange-400">
                     {formatAmount(donation.amount)}원
                   </div>
                 </div>
@@ -161,17 +163,17 @@ export default function MissionarySupport() {
         </Card>
       )}
 
-      {/* 기부 폼 */}
-      <Card className="w-full max-w-md mx-auto">
+      {/* 기부 폼 - 다크 테마 */}
+      <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-gray-800 to-gray-900 border-orange-500/30 shadow-2xl">
         <CardHeader>
-          <CardTitle className="flex items-center text-center justify-center">
+          <CardTitle className="flex items-center text-center justify-center text-orange-400">
             <HeartIcon className="w-6 h-6 mr-2 text-red-500" />
             선교사님 후원
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               후원 금액 (원)
             </label>
             <Input
@@ -180,11 +182,12 @@ export default function MissionarySupport() {
               onChange={(e) => setAmount(e.target.value)}
               placeholder="10000"
               min="1000"
+              className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               후원자명 (선택)
             </label>
             <Input
@@ -192,11 +195,12 @@ export default function MissionarySupport() {
               value={donorName}
               onChange={(e) => setDonorName(e.target.value)}
               placeholder="홍길동"
+              className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               이메일 (선택)
             </label>
             <Input
@@ -204,19 +208,20 @@ export default function MissionarySupport() {
               value={donorEmail}
               onChange={(e) => setDonorEmail(e.target.value)}
               placeholder="donor@example.com"
+              className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
             />
           </div>
 
           <Button
             onClick={handleDonation}
-            className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+            className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 transition-all duration-300 hover:scale-105 hover:shadow-lg"
             disabled={!amount || parseInt(amount) < 1000}
           >
             <BanknotesIcon className="w-4 h-4 mr-2" />
             {parseInt(amount || '0').toLocaleString()}원 후원하기
           </Button>
 
-          <div className="text-xs text-gray-500 text-center space-y-1">
+          <div className="text-xs text-gray-400 text-center space-y-1">
             <p>• 후원금은 선교사님의 사역에 사용됩니다</p>
             <p>• 최소 후원 금액: 1,000원</p>
             <p>• 후원 내역은 익명으로 처리됩니다</p>

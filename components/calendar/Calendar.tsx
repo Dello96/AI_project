@@ -174,100 +174,127 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
   }
 
   return (
-    <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-8">
+      {/* 헤더 - 극장 스타일 */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h2 className="text-2xl font-bold text-secondary-900">일정 관리</h2>
-          <p className="text-secondary-600">청년부 일정을 한눈에 확인하고 관리하세요</p>
+          <h2 className="text-4xl font-bold text-white mb-2">일정 관리</h2>
+          <p className="text-gray-300 text-lg">청년부 일정을 한눈에 확인하고 관리하세요</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={goToToday} variant="outline" size="sm">
+        <div className="flex gap-3">
+          <Button 
+            onClick={goToToday} 
+            variant="outline" 
+            size="lg"
+            className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3"
+          >
             오늘
           </Button>
-          <Button onClick={onAddEvent} variant="default" size="sm">
-            <PlusIcon className="w-4 h-4 mr-2" />
+          <Button 
+            onClick={onAddEvent} 
+            size="lg"
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3"
+          >
+            <PlusIcon className="w-5 h-5 mr-2" />
             일정 추가
           </Button>
         </div>
       </div>
 
-      {/* 캘린더 네비게이션 */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                onClick={() => navigateCalendar('prev')}
-                variant="ghost"
-                size="sm"
-              >
-                <ChevronLeftIcon className="w-5 h-5" />
-              </Button>
-              
-              <Button
-                onClick={() => navigateCalendar('next')}
-                variant="ghost"
-                size="sm"
-              >
-                <ChevronRightIcon className="w-5 h-5" />
-              </Button>
-            </div>
+      {/* 캘린더 네비게이션 - 극장 스타일 */}
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+          {/* 네비게이션 화살표 */}
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => navigateCalendar('prev')}
+              variant="ghost"
+              size="lg"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 p-3"
+            >
+              <ChevronLeftIcon className="w-6 h-6" />
+            </Button>
             
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setView('dayGridMonth')}
-                variant={view === 'dayGridMonth' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                월
-              </Button>
-              <Button
-                onClick={() => setView('timeGridWeek')}
-                variant={view === 'timeGridWeek' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <ViewColumnsIcon className="w-4 h-4 mr-2" />
-                주
-              </Button>
-              <Button
-                onClick={() => setView('timeGridDay')}
-                variant={view === 'timeGridDay' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <CalendarDaysIcon className="w-4 h-4 mr-2" />
-                일
-              </Button>
-              <Button
-                onClick={() => setView('listWeek')}
-                variant={view === 'listWeek' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <ListBulletIcon className="w-4 h-4 mr-2" />
-                목록
-              </Button>
-            </div>
-            
-            <div className="flex gap-2">
-              {Object.entries(eventCategories).map(([key, category]) => (
-                <div key={key} className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <span className="text-sm text-secondary-600">{category.label}</span>
-                </div>
-              ))}
-            </div>
+            <Button
+              onClick={() => navigateCalendar('next')}
+              variant="ghost"
+              size="lg"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 p-3"
+            >
+              <ChevronRightIcon className="w-6 h-6" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+          
+          {/* 뷰 선택 버튼 */}
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setView('dayGridMonth')}
+              variant={view === 'dayGridMonth' ? 'default' : 'outline'}
+              size="lg"
+              className={view === 'dayGridMonth' 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-3' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3'
+              }
+            >
+              <CalendarIcon className="w-5 h-5 mr-2" />
+              월
+            </Button>
+            <Button
+              onClick={() => setView('timeGridWeek')}
+              variant={view === 'timeGridWeek' ? 'default' : 'outline'}
+              size="lg"
+              className={view === 'timeGridWeek' 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-3' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3'
+              }
+            >
+              <ViewColumnsIcon className="w-5 h-5 mr-2" />
+              주
+            </Button>
+            <Button
+              onClick={() => setView('timeGridDay')}
+              variant={view === 'timeGridDay' ? 'default' : 'outline'}
+              size="lg"
+              className={view === 'timeGridDay' 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-3' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3'
+              }
+            >
+              <CalendarDaysIcon className="w-5 h-5 mr-2" />
+              일
+            </Button>
+            <Button
+              onClick={() => setView('listWeek')}
+              variant={view === 'listWeek' ? 'default' : 'outline'}
+              size="lg"
+              className={view === 'listWeek' 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-3' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3'
+              }
+            >
+              <ListBulletIcon className="w-5 h-5 mr-2" />
+              목록
+            </Button>
+          </div>
+          
+          {/* 카테고리 범례 */}
+          <div className="flex gap-4">
+            {Object.entries(eventCategories).map(([key, category]) => (
+              <div key={key} className="flex items-center gap-2">
+                <div 
+                  className="w-4 h-4 rounded-full shadow-lg"
+                  style={{ backgroundColor: category.color }}
+                />
+                <span className="text-sm text-gray-300 font-medium">{category.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      {/* FullCalendar */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="calendar-container">
+      {/* FullCalendar - 극장 스타일 */}
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-6">
+        <div className="calendar-container">
             <FullCalendar
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
               headerToolbar={false}
@@ -328,9 +355,8 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
                 list: '목록'
               }}
             />
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

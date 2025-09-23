@@ -92,13 +92,20 @@ export async function GET(request: NextRequest) {
             customerEmail: '${customerEmail || ''}',
             successUrl: '${successUrl}',
             failUrl: '${failUrl}'
+        }).then(function(result) {
+            console.log('결제 성공:', result);
+            // 테스트 환경에서는 즉시 성공 페이지로 이동
+            if (result) {
+                window.location.href = '${successUrl}?paymentKey=' + encodeURIComponent(result.paymentKey || 'test_payment_key') + '&orderId=' + encodeURIComponent('${orderId}') + '&amount=${amount}';
+            }
         }).catch(function(error) {
+            console.error('결제 오류:', error);
             if (error.code === 'USER_CANCEL') {
                 alert('결제가 취소되었습니다.');
-                window.location.href = '${failUrl}?error=USER_CANCEL';
+                window.location.href = '${failUrl}?error=USER_CANCEL&orderId=${orderId}';
             } else {
                 alert('결제 중 오류가 발생했습니다: ' + error.message);
-                window.location.href = '${failUrl}?error=' + encodeURIComponent(error.message);
+                window.location.href = '${failUrl}?error=' + encodeURIComponent(error.message) + '&orderId=${orderId}';
             }
         });
     </script>

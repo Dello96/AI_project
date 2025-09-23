@@ -58,7 +58,7 @@ export default function ChatBot() {
           >
             <Button
               onClick={toggleChat}
-              className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg"
+              className="w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-2xl hover:scale-110 transition-all duration-300"
               size="lg"
             >
               <MessageCircle className="w-6 h-6" />
@@ -88,19 +88,19 @@ export default function ChatBot() {
             }}
             className={`fixed ${config.position === 'bottom-right' ? 'bottom-6 right-6' : 'bottom-6 left-6'} z-[9999]`}
           >
-            <Card className="w-80 h-96 bg-white shadow-2xl border-0 flex flex-col">
-              {/* 헤더 */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-blue-600 text-white rounded-t-lg">
+            <Card className="w-80 h-96 bg-gradient-to-br from-gray-900 to-black shadow-2xl border border-orange-500/30 flex flex-col">
+              {/* 헤더 - 인터파크 스타일 */}
+              <div className="flex items-center justify-between p-4 border-b border-orange-500/30 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-lg">
                 <div className="flex items-center gap-2">
                   <Bot className="w-5 h-5" />
-                  <span className="font-semibold">AI 어시스턴트</span>
+                  <span className="font-semibold">PrayGround AI</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Button
                     onClick={toggleMinimize}
                     size="sm"
                     variant="ghost"
-                    className="text-white hover:bg-blue-700 p-1"
+                    className="text-white hover:bg-black/20 p-1 transition-all duration-300"
                   >
                     {config.isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
                   </Button>
@@ -108,7 +108,7 @@ export default function ChatBot() {
                     onClick={clearMessages}
                     size="sm"
                     variant="ghost"
-                    className="text-white hover:bg-blue-700 p-1"
+                    className="text-white hover:bg-black/20 p-1 transition-all duration-300"
                     title="대화 초기화"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -117,16 +117,16 @@ export default function ChatBot() {
                     onClick={toggleChat}
                     size="sm"
                     variant="ghost"
-                    className="text-white hover:bg-blue-700 p-1"
+                    className="text-white hover:bg-black/20 p-1 transition-all duration-300"
                   >
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
 
-              {/* 메시지 영역 */}
+              {/* 메시지 영역 - 다크 테마 */}
               {!config.isMinimized && (
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-800 to-gray-900">
                   {messages.map((message) => (
                     <div
                       key={message.id}
@@ -137,10 +137,10 @@ export default function ChatBot() {
                           message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg ${
                           message.role === 'user' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white' 
+                            : 'bg-gradient-to-r from-gray-600 to-gray-700 text-orange-400'
                         }`}>
                           {message.role === 'user' ? (
                             <User className="w-4 h-4" />
@@ -149,14 +149,14 @@ export default function ChatBot() {
                           )}
                         </div>
                         <div
-                          className={`px-3 py-2 rounded-lg ${
+                          className={`px-4 py-3 rounded-lg shadow-lg ${
                             message.role === 'user'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-800'
+                              ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
+                              : 'bg-gradient-to-r from-gray-700 to-gray-600 text-gray-100 border border-gray-600'
                           }`}
                         >
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                          <p className="text-xs opacity-70 mt-1">
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                          <p className="text-xs opacity-70 mt-2">
                             {message.timestamp.toLocaleTimeString('ko-KR', {
                               hour: '2-digit',
                               minute: '2-digit'
@@ -171,14 +171,14 @@ export default function ChatBot() {
                   {isLoading && (
                     <div className="flex justify-start">
                       <div className="flex items-start gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-gray-600 to-gray-700 text-orange-400 flex items-center justify-center shadow-lg">
                           <Bot className="w-4 h-4" />
                         </div>
-                        <div className="bg-gray-100 text-gray-800 px-3 py-2 rounded-lg">
+                        <div className="bg-gradient-to-r from-gray-700 to-gray-600 text-gray-100 px-4 py-3 rounded-lg shadow-lg border border-gray-600">
                           <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                           </div>
                         </div>
                       </div>
@@ -189,9 +189,9 @@ export default function ChatBot() {
                 </div>
               )}
 
-              {/* 입력 영역 */}
+              {/* 입력 영역 - 다크 테마 */}
               {!config.isMinimized && (
-                <div className="p-4 border-t border-gray-200">
+                <div className="p-4 border-t border-orange-500/30 bg-gray-800">
                   <form onSubmit={handleSubmit} className="flex gap-2">
                     <Input
                       value={inputValue}
@@ -199,13 +199,13 @@ export default function ChatBot() {
                       onKeyPress={handleKeyPress}
                       placeholder="메시지를 입력하세요..."
                       disabled={isLoading}
-                      className="flex-1"
+                      className="flex-1 bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
                     />
                     <Button
                       type="submit"
                       disabled={!inputValue.trim() || isLoading}
                       size="sm"
-                      className="px-3"
+                      className="px-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-none"
                     >
                       <Send className="w-4 h-4" />
                     </Button>

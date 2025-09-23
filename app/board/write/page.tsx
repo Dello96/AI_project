@@ -238,11 +238,36 @@ export default function WritePostPage() {
                 </p>
               </div>
               
-              {/* 익명 작성 안내 */}
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  💡 모든 게시글은 익명으로 작성됩니다.
-                </p>
+              {/* 익명/실명 선택 */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  작성자 표시 방식
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      {...register('isAnonymous')}
+                      value="true"
+                      className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">익명으로 작성</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      {...register('isAnonymous')}
+                      value="false"
+                      className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">실명으로 작성</span>
+                  </label>
+                </div>
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-700">
+                    💡 실명으로 작성하면 회원 이름이 표시됩니다.
+                  </p>
+                </div>
               </div>
               
               {/* 미리보기 */}

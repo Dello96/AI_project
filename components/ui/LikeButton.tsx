@@ -43,6 +43,14 @@ export default function LikeButton({
   const handleLike = async () => {
     if (isLoading) return
 
+    // 즉시 UI 업데이트 (낙관적 업데이트)
+    const newIsLiked = !isLiked
+    const newLikeCount = newIsLiked ? likeCount + 1 : likeCount - 1
+    
+    setLikeCount(newLikeCount)
+    setIsLiked(newIsLiked)
+    onLikeChange?.(newLikeCount, newIsLiked)
+    
     setIsLoading(true)
     
     try {
@@ -51,6 +59,10 @@ export default function LikeButton({
       
       if (!session) {
         console.error('로그인이 필요합니다.')
+        // 실패 시 UI 롤백
+        setLikeCount(likeCount)
+        setIsLiked(isLiked)
+        onLikeChange?.(likeCount, isLiked)
         alert('로그인이 필요합니다.')
         return
       }
@@ -66,19 +78,27 @@ export default function LikeButton({
       const data = await response.json()
 
       if (data.success) {
-        // API에서 반환된 실제 좋아요 수 사용
-        const newLikeCount = data.likeCount || (isLiked ? likeCount - 1 : likeCount + 1)
-        const newIsLiked = data.liked
+        // 서버에서 반환된 정확한 값으로 최종 업데이트
+        const finalLikeCount = data.likeCount || newLikeCount
+        const finalIsLiked = data.liked !== undefined ? data.liked : newIsLiked
 
-        setLikeCount(newLikeCount)
-        setIsLiked(newIsLiked)
-        onLikeChange?.(newLikeCount, newIsLiked)
+        setLikeCount(finalLikeCount)
+        setIsLiked(finalIsLiked)
+        onLikeChange?.(finalLikeCount, finalIsLiked)
       } else {
         console.error('좋아요 처리 실패:', data.error)
+        // 실패 시 UI 롤백
+        setLikeCount(likeCount)
+        setIsLiked(isLiked)
+        onLikeChange?.(likeCount, isLiked)
         alert(`좋아요 처리 실패: ${data.error}`)
       }
     } catch (error) {
       console.error('좋아요 요청 실패:', error)
+      // 실패 시 UI 롤백
+      setLikeCount(likeCount)
+      setIsLiked(isLiked)
+      onLikeChange?.(likeCount, isLiked)
       alert(`좋아요 요청 실패: ${error}`)
     } finally {
       setIsLoading(false)

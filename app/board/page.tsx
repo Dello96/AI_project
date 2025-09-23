@@ -105,22 +105,49 @@ function BoardContent() {
 
 
   return (
-    <div className="container mx-auto px-4 pt-8 pb-4 max-w-6xl">
-      {/* 게시판 헤더 */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">게시판</h1>
-            <p className="text-gray-600 mt-2">청년부 소식과 이야기를 나누어보세요</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="default" size="lg" onClick={handleWritePost}>
-              <PlusIcon className="w-5 h-5 mr-2" />
+    <div className="min-h-screen bg-black">
+      {/* Hero Section - 인터파크 극장 스타일 */}
+      <section className="relative overflow-hidden">
+        {/* 배경 그라데이션 */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800" />
+        
+        <div className="relative z-10 container mx-auto px-6 pt-20 pb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            {/* 메인 타이틀 */}
+            <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-white via-orange-500 to-red-500 bg-clip-text text-transparent">
+              게시판
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              청년부 소식과 이야기를 <span className="text-orange-500 font-semibold">나누어보세요</span>
+            </p>
+          </motion.div>
+
+          {/* 새 글 작성 버튼 */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="flex justify-center mb-16"
+          >
+            <Button 
+              onClick={handleWritePost}
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl"
+              size="lg"
+            >
+              <PlusIcon className="w-6 h-6 mr-3" />
               새 글 작성
             </Button>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </section>
+
+      {/* 게시판 콘텐츠 */}
+      <div className="relative z-10 container mx-auto px-6 pb-16 max-w-6xl">
       
       <AnimatePresence mode="wait">
         {view === 'list' && (
@@ -177,6 +204,7 @@ function BoardContent() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   )
 }

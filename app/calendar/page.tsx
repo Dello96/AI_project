@@ -65,22 +65,47 @@ export default function CalendarPage() {
 
 
   return (
-    <div className="container mx-auto px-4 pt-8 pb-4 max-w-7xl">
-      <AnimatePresence mode="wait">
-        {/* 캘린더는 항상 표시 */}
-        <motion.div
-          key="calendar"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 20 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Calendar
-            onAddEvent={handleAddEvent}
-            onSelectEvent={handleSelectEvent}
-            onSelectDate={handleSelectDate}
-          />
-        </motion.div>
+    <div className="min-h-screen bg-black">
+      {/* Hero Section - 인터파크 극장 스타일 */}
+      <section className="relative overflow-hidden">
+        {/* 배경 그라데이션 */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800" />
+        
+        <div className="relative z-10 container mx-auto px-6 pt-20 pb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            {/* 메인 타이틀 */}
+            <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-white via-orange-500 to-red-500 bg-clip-text text-transparent">
+              캘린더
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              청년부 일정을 <span className="text-orange-500 font-semibold">한눈에 확인하고 관리하세요</span>
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 캘린더 콘텐츠 */}
+      <div className="relative z-10 container mx-auto px-6 pb-16 max-w-7xl">
+        <AnimatePresence mode="wait">
+          {/* 캘린더는 항상 표시 */}
+          <motion.div
+            key="calendar"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Calendar
+              onAddEvent={handleAddEvent}
+              onSelectEvent={handleSelectEvent}
+              onSelectDate={handleSelectDate}
+            />
+          </motion.div>
 
         {/* 이벤트 추가/수정 폼 */}
         {view === 'add' && (
@@ -116,18 +141,19 @@ export default function CalendarPage() {
             />
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
 
-      {/* 이벤트 상세정보 모달 - 오버레이 방식 */}
-      {selectedEvent && (
-        <EventDetail
-          event={selectedEvent}
-          isOpen={true}
-          onClose={handleCloseEventDetail}
-          onEdit={handleEditEvent}
-          onDelete={handleDeleteEvent}
-        />
-      )}
+        {/* 이벤트 상세정보 모달 - 오버레이 방식 */}
+        {selectedEvent && (
+          <EventDetail
+            event={selectedEvent}
+            isOpen={true}
+            onClose={handleCloseEventDetail}
+            onEdit={handleEditEvent}
+            onDelete={handleDeleteEvent}
+          />
+        )}
+      </div>
     </div>
   )
 }

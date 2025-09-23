@@ -80,8 +80,26 @@ export async function POST(request: NextRequest) {
       
       const supabase = createServerSupabaseClient()
       
-      // 익명 사용자 ID
-      const anonymousUserId = '00000000-0000-0000-0000-000000000000'
+      // 인증된 사용자 정보 가져오기
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: '인증이 필요합니다.' },
+          { status: 401 }
+        )
+      }
+
+      // 사용자 프로필 확인 (실명 작성 시 필요)
+      let authorName = '익명'
+      if (!isAnonymous) {
+        const { data: userProfile } = await supabase
+          .from('user_profiles')
+          .select('name')
+          .eq('id', user.id)
+          .single()
+        
+        authorName = userProfile?.name || user.email?.split('@')[0] || '알 수 없음'
+      }
       
       const { data: post, error: createError } = await supabase
         .from('posts')
@@ -89,8 +107,8 @@ export async function POST(request: NextRequest) {
           title: sanitizedTitle,
           content: sanitizedContent,
           category,
-          author_id: anonymousUserId,
-          is_anonymous: true
+          author_id: isAnonymous ? '00000000-0000-0000-0000-000000000000' : user.id,
+          is_anonymous: isAnonymous
         })
         .select()
         .single()
@@ -126,8 +144,32 @@ export async function POST(request: NextRequest) {
     // 실제 Supabase 연결 사용
     const serverSupabase = createServerSupabaseClient()
     
+    // 인증된 사용자 정보 가져오기
+    const { data: { user }, error: authError } = await serverSupabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+
     // 익명 사용자 ID (데이터베이스에 미리 생성된 ID 사용)
     const anonymousUserId = '00000000-0000-0000-0000-000000000000'
+    
+    // 실제 작성자 ID 결정
+    const actualAuthorId = isAnonymous ? anonymousUserId : user.id
+    
+    // 사용자 프로필 확인 (실명 작성 시 필요)
+    let authorName = '익명'
+    if (!isAnonymous) {
+      const { data: userProfile } = await serverSupabase
+        .from('user_profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single()
+      
+      authorName = userProfile?.name || user.email?.split('@')[0] || '알 수 없음'
+    }
     
     // 먼저 익명 사용자 프로필이 있는지 확인하고 없으면 생성
     const { data: existingUser } = await serverSupabase
@@ -159,8 +201,8 @@ export async function POST(request: NextRequest) {
           title: sanitizedTitle,
           content: sanitizedContent,
           category,
-          author_id: anonymousUserId,
-          is_anonymous: true
+          author_id: actualAuthorId,
+          is_anonymous: isAnonymous
         })
         .select()
         .single()
@@ -278,7 +320,7 @@ export async function GET(request: NextRequest) {
     // 총 페이지 수 계산
     const totalPages = Math.ceil((count || 0) / limit)
     
-    // 각 게시글의 댓글 개수와 사용자 좋아요 상태 조회
+    // 각 게시글의 댓글 개수, 사용자 좋아요 상태, 작성자 정보 조회
     const postsWithDetails = await Promise.all(
       (posts || []).map(async (post) => {
         // 댓글 개수 조회
@@ -286,7 +328,7 @@ export async function GET(request: NextRequest) {
           .from('comments')
           .select('*', { count: 'exact', head: true })
           .eq('post_id', post.id)
-        
+
         // 사용자 좋아요 상태 조회 (인증된 사용자가 있는 경우에만)
         let userLiked = false
         try {
@@ -304,11 +346,24 @@ export async function GET(request: NextRequest) {
           // 인증 오류는 무시 (비로그인 사용자)
           console.log('사용자 인증 확인 중 오류 (무시됨):', error)
         }
+
+        // 작성자 정보 조회 (익명이 아닌 경우)
+        let authorName = '익명'
+        if (!post.is_anonymous && post.author_id !== '00000000-0000-0000-0000-000000000000') {
+          const { data: authorProfile } = await serverSupabase
+            .from('user_profiles')
+            .select('name, email')
+            .eq('id', post.author_id)
+            .single()
+          
+          authorName = authorProfile?.name || authorProfile?.email?.split('@')[0] || '알 수 없음'
+        }
         
         return {
           ...post,
           commentCount: commentCount || 0,
-          userLiked
+          userLiked,
+          authorName
         }
       })
     )
@@ -319,15 +374,20 @@ export async function GET(request: NextRequest) {
       title: post.title,
       content: post.content,
       category: post.category,
-      authorName: post.is_anonymous ? '익명' : '알 수 없음',
-      isAnonymous: post.is_anonymous || true,
+      authorName: post.authorName,
+      isAnonymous: post.is_anonymous || false,
       createdAt: post.created_at,
       updatedAt: post.updated_at,
       viewCount: post.view_count || 0,
       likeCount: post.like_count || 0,
       commentCount: post.commentCount,
       userLiked: post.userLiked,
-      attachments: post.attachments || []
+      attachments: post.attachments || [],
+      author: post.is_anonymous ? null : {
+        id: post.author_id,
+        name: post.authorName,
+        email: ''
+      }
     }))
     
     return NextResponse.json({

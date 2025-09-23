@@ -30,10 +30,15 @@ function PaymentWidget({
       setIsLoading(true)
       setError(null)
 
+      // 매번 새로운 고유한 주문 ID 생성 (중복 방지)
+      const timestamp = Date.now()
+      const random = Math.random().toString(36).substr(2, 9)
+      const uniqueOrderId = `${paymentRequest.orderId}_${timestamp}_${random}`
+
       // 토스페이먼츠 결제 페이지로 리다이렉트
       const params = new URLSearchParams({
         amount: paymentRequest.amount.toString(),
-        orderId: paymentRequest.orderId,
+        orderId: uniqueOrderId, // 고유한 주문 ID 사용
         orderName: paymentRequest.orderName,
         customerName: paymentRequest.customerName || '',
         customerEmail: paymentRequest.customerEmail || '',
@@ -44,7 +49,7 @@ function PaymentWidget({
       window.location.href = `/api/payments/redirect?${params.toString()}`
     } catch (err) {
       console.error('결제 오류:', err)
-      setError('결제 처리 중 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : '결제 처리 중 오류가 발생했습니다.')
       onFail?.({
         code: 'PAYMENT_ERROR',
         message: '결제 처리 중 오류가 발생했습니다.'

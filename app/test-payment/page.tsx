@@ -16,7 +16,9 @@ export default function TestPaymentPage() {
     try {
       setIsLoading(true)
       
-      const orderId = `TEST_${Date.now()}`
+      const timestamp = Date.now()
+      const random = Math.random().toString(36).substr(2, 9)
+      const orderId = `TEST_${timestamp}_${random}`
       const successUrl = `${window.location.origin}/payment/success`
       const failUrl = `${window.location.origin}/payment/fail`
 

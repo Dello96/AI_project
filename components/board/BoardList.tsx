@@ -201,49 +201,60 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
   }
 
   return (
-    <div className="space-y-6">
-      {/* 필터 */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* 카테고리 필터 */}
-            <div className="flex gap-2">
+    <div className="space-y-8">
+      {/* 필터 - 극장 스타일 */}
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* 카테고리 필터 */}
+          <div className="flex gap-3">
+            <Button
+              variant={filters.category === undefined ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleCategoryFilter(undefined)}
+              className={filters.category === undefined 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600'
+              }
+            >
+              전체
+            </Button>
+            {Object.entries(categoryLabels).map(([key, label]) => (
               <Button
-                variant={filters.category === undefined ? 'default' : 'outline'}
+                key={key}
+                variant={filters.category === key ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleCategoryFilter(undefined)}
+                onClick={() => handleCategoryFilter(key as any)}
+                className={filters.category === key 
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none' 
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600'
+                }
               >
-                전체
+                {label}
               </Button>
-              {Object.entries(categoryLabels).map(([key, label]) => (
-                <Button
-                  key={key}
-                  variant={filters.category === key ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleCategoryFilter(key as any)}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
+            ))}
+          </div>
 
-            {/* 검색 */}
-            <div className="flex-1">
-              <Input
-                type="search"
-                placeholder="제목으로 검색..."
-                value={filters.search || ''}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="max-w-md"
-              />
-            </div>
+          {/* 검색 */}
+          <div className="flex-1">
+            <Input
+              type="search"
+              placeholder="제목으로 검색..."
+              value={filters.search || ''}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="max-w-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
+            />
+          </div>
 
-            {/* 정렬 */}
-            <div className="flex gap-2">
-                          <Button
+          {/* 정렬 */}
+          <div className="flex gap-3">
+            <Button
               variant={filters.sortBy === 'latest' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handleSort('latest')}
+              className={filters.sortBy === 'latest' 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600'
+              }
             >
               최신순
             </Button>
@@ -251,6 +262,10 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
               variant={filters.sortBy === 'popular' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handleSort('popular')}
+              className={filters.sortBy === 'popular' 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600'
+              }
             >
               인기순
             </Button>
@@ -258,32 +273,33 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
               variant={filters.sortBy === 'views' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handleSort('views')}
+              className={filters.sortBy === 'views' 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600'
+              }
             >
               조회순
             </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* 게시글 목록 - 극장 스타일 */}
+      <div className="space-y-4">
+        {posts.length === 0 ? (
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-12 text-center">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-2xl">
+                <DocumentTextIcon className="w-10 h-10 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white mb-3">게시물이 아직 없습니다!</p>
+                <p className="text-gray-400 text-lg">
+                  {filters.category ? `${categoryLabels[filters.category]}에` : '이 게시판에'} 첫 번째 글을 작성해보세요.
+                </p>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* 게시글 목록 */}
-      <div className="space-y-3">
-        {posts.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className="flex flex-col items-center space-y-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                  <DocumentTextIcon className="w-8 h-8 text-gray-400" />
-                </div>
-                <div>
-                  <p className="text-lg font-medium text-gray-900 mb-2">게시물이 아직 없습니다!</p>
-                  <p className="text-gray-500 text-sm">
-                    {filters.category ? `${categoryLabels[filters.category]}에` : '이 게시판에'} 첫 번째 글을 작성해보세요.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         ) : (
           posts.map((post, index) => (
             <motion.div
@@ -292,81 +308,96 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <Card 
-                hover 
-                className="cursor-pointer transition-all duration-200 hover:shadow-lg"
+              <div 
+                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-6 cursor-pointer transition-all duration-300 hover:shadow-3xl hover:scale-[1.02] hover:border-orange-500/40"
+                onClick={() => onSelectPost(post)}
               >
-                <CardContent 
-                  className="p-4"
-                  onClick={() => onSelectPost(post)}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${categoryColors[post.category]}`}>
-                          {categoryLabels[post.category]}
+                <div className="flex items-start justify-between gap-6">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
+                        post.category === 'notice' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                        post.category === 'free' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                        'bg-green-500/20 text-green-400 border border-green-500/30'
+                      }`}>
+                        {categoryLabels[post.category]}
+                      </span>
+                      {post.isAnonymous && (
+                        <span className="px-4 py-2 bg-gray-600/20 text-gray-300 rounded-full text-sm border border-gray-600/30">
+                          익명
                         </span>
-                        {post.isAnonymous && (
-                          <span className="px-2 py-1 bg-secondary-100 text-secondary-600 rounded-full text-xs">
-                            익명
-                          </span>
-                        )}
+                      )}
+                    </div>
+                    
+                    <h3 className="text-2xl font-bold text-white mb-4 line-clamp-2 leading-tight">
+                      {post.title}
+                    </h3>
+                    
+                    <p className="text-gray-300 text-lg mb-6 line-clamp-2 leading-relaxed">
+                      {post.content}
+                    </p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-gray-400">
+                        <span className="text-lg font-medium">
+                          {post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}
+                        </span>
+                        <span className="text-sm">
+                          {new Date(post.createdAt).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </span>
                       </div>
                       
-                      <h3 className="font-semibold text-secondary-900 mb-2 line-clamp-2">
-                        {post.title}
-                      </h3>
-                      
-                      <p className="text-secondary-600 text-sm mb-3 line-clamp-2">
-                        {post.content}
-                      </p>
-                      
-                      <div className="flex items-center justify-between text-xs text-secondary-500">
-                        <span>{post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}</span>
-                        <div className="flex items-center gap-4">
-                          <LikeButton
-                            postId={post.id}
-                            initialLikeCount={post.likeCount || 0}
-                            initialIsLiked={post.userLiked || false}
-                            size="sm"
-                          />
-                          <div className="flex items-center gap-1">
-                            <ChatBubbleLeftIcon className="w-4 h-4" />
-                            <span>{post.commentCount || 0}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span>조회 {post.viewCount}</span>
-                          </div>
-                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-6">
+                        <LikeButton
+                          postId={post.id}
+                          initialLikeCount={post.likeCount || 0}
+                          initialIsLiked={post.userLiked || false}
+                          size="md"
+                          className="text-white hover:text-red-400"
+                        />
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <ChatBubbleLeftIcon className="w-5 h-5" />
+                          <span className="text-lg font-medium">{post.commentCount || 0}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <span className="text-lg font-medium">조회 {post.viewCount || 0}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </motion.div>
           ))
         )}
       </div>
 
-      {/* 로드 모어 트리거 및 로딩 인디케이터 */}
+      {/* 로드 모어 트리거 및 로딩 인디케이터 - 극장 스타일 */}
       {hasMore && posts.length > 0 && (
-        <div ref={loadMoreRef} className="flex justify-center py-8">
+        <div ref={loadMoreRef} className="flex justify-center py-12">
           {isLoadingMore ? (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-              <span className="text-gray-600">게시글을 불러오는 중...</span>
+            <div className="flex items-center gap-4 bg-gradient-to-r from-gray-800 to-gray-900 px-8 py-4 rounded-2xl border border-orange-500/20 shadow-2xl">
+              <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-white text-lg font-medium">게시글을 불러오는 중...</span>
             </div>
           ) : (
-            <div className="text-gray-500 text-sm">스크롤하여 더 보기</div>
+            <div className="text-gray-400 text-lg font-medium bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-3 rounded-xl border border-orange-500/20">
+              스크롤하여 더 보기
+            </div>
           )}
         </div>
       )}
 
       {/* 모든 게시글을 로드한 경우 */}
       {!hasMore && posts.length > 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">모든 게시글을 불러왔습니다.</p>
+        <div className="text-center py-12">
+          <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-8 py-4 rounded-2xl border border-orange-500/20 shadow-2xl inline-block">
+            <p className="text-gray-400 text-lg font-medium">모든 게시글을 불러왔습니다.</p>
+          </div>
         </div>
       )}
     </div>

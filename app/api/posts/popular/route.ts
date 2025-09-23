@@ -105,11 +105,20 @@ export async function GET(request: NextRequest) {
         }
 
         // 익명이 아닌 경우 작성자 정보 조회
-        const { data: author } = await supabase
-          .from('user_profiles')
-          .select('id, name, email')
-          .eq('id', post.author_id)
-          .single()
+        let author = null
+        if (!post.is_anonymous && post.author_id !== '00000000-0000-0000-0000-000000000000') {
+          const { data: authorData } = await supabase
+            .from('user_profiles')
+            .select('id, name, email')
+            .eq('id', post.author_id)
+            .single()
+          
+          author = authorData || {
+            id: post.author_id,
+            name: '알 수 없음',
+            email: ''
+          }
+        }
 
         return {
           id: post.id,

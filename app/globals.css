@@ -440,13 +440,14 @@ body {
   }
 }
 
-/* FullCalendar 커스텀 스타일 */
+/* FullCalendar 커스텀 스타일 - 다크 테마 */
 .calendar-container {
   @apply w-full;
 }
 
 .fc {
   @apply font-sans;
+  background-color: transparent !important;
 }
 
 .fc-header-toolbar {
@@ -454,67 +455,195 @@ body {
 }
 
 .fc-toolbar-title {
-  @apply text-lg font-semibold text-gray-900;
+  @apply text-2xl font-bold text-white;
 }
 
 .fc-button {
-  @apply bg-gray-100 text-gray-700 border border-gray-200 px-3 py-2 rounded-md text-sm font-medium transition-colors;
+  @apply bg-gray-700 text-gray-300 border border-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-gray-600 hover:text-white;
 }
 
 .fc-button:hover {
-  @apply bg-gray-200 text-gray-800;
+  @apply bg-gray-600 text-white;
 }
 
 .fc-button-primary {
-  @apply bg-primary text-primary-foreground border-primary;
+  @apply bg-gradient-to-r from-orange-500 to-red-500 text-white border-orange-500;
 }
 
 .fc-button-primary:hover {
-  @apply bg-primary/90;
+  @apply from-orange-600 to-red-600;
 }
 
 .fc-button-active {
-  @apply bg-primary text-primary-foreground;
+  @apply bg-gradient-to-r from-orange-500 to-red-500 text-white;
 }
 
 .fc-daygrid-day {
-  @apply min-h-[100px];
+  @apply min-h-[120px] bg-gray-800 border-gray-700;
 }
 
 .fc-daygrid-day-number {
-  @apply text-sm font-medium text-gray-900;
+  @apply text-sm font-medium text-gray-300;
 }
 
 .fc-day-today {
-  @apply bg-blue-50;
+  @apply bg-orange-500/20;
 }
 
 .fc-day-today .fc-daygrid-day-number {
-  @apply text-blue-600 font-bold;
+  @apply text-orange-400 font-bold;
+}
+
+.fc-daygrid-day:hover {
+  @apply bg-gray-700;
+}
+
+.fc-daygrid-day-number:hover {
+  @apply text-white;
 }
 
 .fc-event {
-  @apply cursor-pointer rounded px-2 py-1 text-xs font-medium;
+  @apply cursor-pointer rounded-lg px-3 py-2 text-sm font-medium shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105;
 }
 
 .fc-event:hover {
-  @apply opacity-80;
+  @apply opacity-90;
 }
 
 .fc-event-main {
+  @apply text-white font-semibold;
+}
+
+.fc-event-title {
+  @apply text-white;
+}
+
+.fc-event-time {
   @apply text-white;
 }
 
 .fc-timegrid-slot {
-  @apply h-12;
+  @apply h-12 bg-gray-800 border-gray-700;
+}
+
+.fc-timegrid-slot-label {
+  @apply text-gray-400;
+}
+
+.fc-timegrid-axis {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.fc-timegrid-axis-cushion {
+  @apply text-gray-400;
 }
 
 .fc-list-event {
-  @apply cursor-pointer;
+  @apply cursor-pointer bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700;
 }
 
 .fc-list-event:hover {
-  @apply bg-gray-50;
+  @apply bg-gray-700;
+}
+
+.fc-list-event-time {
+  @apply text-orange-400;
+}
+
+.fc-list-event-title {
+  @apply text-white;
+}
+
+.fc-event-title-container {
+  @apply text-white;
+}
+
+.fc-event-title {
+  @apply text-white;
+}
+
+.fc-event-time {
+  @apply text-white;
+}
+
+.fc-event-title-container .fc-event-title {
+  @apply text-white;
+}
+
+.fc-event-title-container .fc-event-time {
+  @apply text-white;
+}
+
+.fc-daygrid-event {
+  @apply rounded-lg shadow-md;
+}
+
+.fc-timegrid-event {
+  @apply rounded-lg shadow-md;
+}
+
+.fc-col-header-cell {
+  @apply bg-gray-900 border-gray-700;
+}
+
+.fc-col-header-cell-cushion {
+  @apply text-gray-300 font-semibold;
+}
+
+.fc-scrollgrid {
+  @apply border-gray-700;
+}
+
+.fc-scrollgrid-sync-table {
+  @apply border-gray-700;
+}
+
+.fc-scrollgrid-section > * {
+  @apply border-gray-700;
+}
+
+.fc-daygrid-day-frame {
+  @apply bg-gray-800;
+}
+
+.fc-daygrid-day-events {
+  @apply mt-2;
+}
+
+.fc-more-link {
+  @apply text-orange-400 hover:text-orange-300;
+}
+
+.fc-popover {
+  @apply bg-gray-800 border-gray-700 shadow-2xl;
+}
+
+.fc-popover-header {
+  @apply bg-gray-900 border-gray-700;
+}
+
+.fc-popover-title {
+  @apply text-white;
+}
+
+.fc-popover-close {
+  @apply text-gray-400 hover:text-white;
+}
+
+.fc-popover-body {
+  @apply text-gray-300;
+}
+
+.fc-tooltip {
+  @apply bg-gray-900 text-white border-gray-700;
+}
+
+.fc-tooltip-title {
+  @apply text-orange-400 font-semibold;
+}
+
+.fc-tooltip-content {
+  @apply text-gray-300;
 }
 
 /* 반응형 디자인 */
