@@ -268,12 +268,23 @@ export interface SearchFilters {
 }
 
 // AI 챗봇 관련 타입
+export interface ChatAttachment {
+  id: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  thumbnailUrl?: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
   isTyping?: boolean;
+  attachments?: ChatAttachment[];
 }
 
 export interface ChatSession {

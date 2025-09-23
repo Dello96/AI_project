@@ -1,12 +1,17 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { ChatMessage, ChatBotConfig } from '@/types'
+import { ChatMessage, ChatBotConfig, ChatAttachment } from '@/types'
 import { getGeminiService } from '@/lib/gemini'
+import { useAuth } from './useAuth'
+import { supabase } from '@/lib/supabase'
 
 export function useChatBot() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const [attachmentHistory, setAttachmentHistory] = useState<ChatAttachment[]>([])
   const [config, setConfig] = useState<ChatBotConfig>({
     isOpen: false,
     isMinimized: false,
@@ -16,6 +21,7 @@ export function useChatBot() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const geminiService = getGeminiService()
+  const { user } = useAuth()
 
   // 메시지 목록 스크롤을 맨 아래로
   const scrollToBottom = useCallback(() => {
@@ -33,16 +39,100 @@ export function useChatBot() {
     setMessages(prev => [...prev, newMessage])
   }, [])
 
+  // 파일 업로드
+  const uploadFile = useCallback(async (file: File): Promise<ChatAttachment | null> => {
+    setIsUploading(true)
+    
+    try {
+      // 사용자 인증 확인
+      if (!user) {
+        throw new Error('로그인이 필요합니다.')
+      }
+
+      // Supabase 세션에서 액세스 토큰 가져오기
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('인증 토큰을 가져올 수 없습니다.')
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/chat/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: formData
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '파일 업로드에 실패했습니다.')
+      }
+
+      return data.attachment
+    } catch (error) {
+      console.error('파일 업로드 오류:', error)
+      return null
+    } finally {
+      setIsUploading(false)
+    }
+  }, [user])
+
+  // 파일 선택 처리
+  const handleFileSelect = useCallback(async (file: File) => {
+    const attachment = await uploadFile(file)
+    if (attachment) {
+      setPendingAttachments(prev => [...prev, attachment])
+    }
+  }, [uploadFile])
+
+  // 파일 제거
+  const handleFileRemove = useCallback((fileId: string) => {
+    setPendingAttachments(prev => prev.filter(attachment => attachment.id !== fileId))
+  }, [])
+
+  // 히스토리에서 파일 다시 첨부
+  const handleReattachFile = useCallback((attachment: ChatAttachment) => {
+    // 이미 첨부된 파일인지 확인
+    const isAlreadyAttached = pendingAttachments.some(pending => pending.id === attachment.id)
+    
+    if (!isAlreadyAttached) {
+      setPendingAttachments(prev => [...prev, attachment])
+    }
+  }, [pendingAttachments])
+
+  // 히스토리에서 파일 제거
+  const handleRemoveFromHistory = useCallback((fileId: string) => {
+    setAttachmentHistory(prev => prev.filter(attachment => attachment.id !== fileId))
+  }, [])
+
   // 사용자 메시지 전송
   const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || isLoading) return
+    if ((!content.trim() && pendingAttachments.length === 0) || isLoading) return
 
-    // 사용자 메시지 추가
+    // 첨부파일이 있으면 히스토리에 추가
+    if (pendingAttachments.length > 0) {
+      setAttachmentHistory(prev => {
+        const newAttachments = pendingAttachments.filter(
+          newAttachment => !prev.some(existing => existing.id === newAttachment.id)
+        )
+        return [...prev, ...newAttachments]
+      })
+    }
+
+    // 사용자 메시지 추가 (첨부파일 포함)
     addMessage({
       role: 'user',
-      content: content.trim()
+      content: content.trim(),
+      attachments: pendingAttachments.length > 0 ? [...pendingAttachments] : undefined
     })
 
+    // 첨부파일 초기화
+    setPendingAttachments([])
     setIsLoading(true)
 
     try {
@@ -51,12 +141,16 @@ export function useChatBot() {
         id: Date.now().toString(),
         role: 'user' as const,
         content: content.trim(),
-        timestamp: new Date()
+        timestamp: new Date(),
+        attachments: pendingAttachments.length > 0 ? [...pendingAttachments] : undefined
       }]
 
-      console.log('챗봇 메시지 전송 중...', { messageCount: currentMessages.length })
+      console.log('챗봇 메시지 전송 중...', { 
+        messageCount: currentMessages.length,
+        hasAttachments: pendingAttachments.length > 0
+      })
 
-      // Gemini API 호출
+      // Gemini API 호출 (첨부파일 정보 포함)
       const response = await geminiService.sendMessage(currentMessages)
       
       console.log('챗봇 응답 받음:', response)
@@ -75,7 +169,7 @@ export function useChatBot() {
     } finally {
       setIsLoading(false)
     }
-  }, [messages, isLoading, addMessage])
+  }, [messages, isLoading, addMessage, pendingAttachments])
 
   // 챗봇 열기/닫기
   const toggleChat = useCallback(() => {
@@ -119,9 +213,16 @@ export function useChatBot() {
   return {
     messages,
     isLoading,
+    isUploading,
+    pendingAttachments,
+    attachmentHistory,
     config,
     messagesEndRef,
     sendMessage,
+    handleFileSelect,
+    handleFileRemove,
+    handleReattachFile,
+    handleRemoveFromHistory,
     toggleChat,
     toggleMinimize,
     clearMessages,
