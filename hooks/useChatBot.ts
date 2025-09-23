@@ -125,11 +125,16 @@ export function useChatBot() {
     }
 
     // 사용자 메시지 추가 (첨부파일 포함)
-    addMessage({
+    const messageData: Omit<ChatMessage, 'id' | 'timestamp'> = {
       role: 'user',
-      content: content.trim(),
-      attachments: pendingAttachments.length > 0 ? [...pendingAttachments] : undefined
-    })
+      content: content.trim()
+    }
+    
+    if (pendingAttachments.length > 0) {
+      messageData.attachments = [...pendingAttachments]
+    }
+    
+    addMessage(messageData)
 
     // 첨부파일 초기화
     setPendingAttachments([])
@@ -137,13 +142,18 @@ export function useChatBot() {
 
     try {
       // 현재 메시지 목록에 사용자 메시지 추가
-      const currentMessages = [...messages, {
+      const userMessage: ChatMessage = {
         id: Date.now().toString(),
-        role: 'user' as const,
+        role: 'user',
         content: content.trim(),
-        timestamp: new Date(),
-        attachments: pendingAttachments.length > 0 ? [...pendingAttachments] : undefined
-      }]
+        timestamp: new Date()
+      }
+      
+      if (pendingAttachments.length > 0) {
+        userMessage.attachments = [...pendingAttachments]
+      }
+      
+      const currentMessages = [...messages, userMessage]
 
       console.log('챗봇 메시지 전송 중...', { 
         messageCount: currentMessages.length,

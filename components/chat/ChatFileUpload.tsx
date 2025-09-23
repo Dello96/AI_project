@@ -90,14 +90,14 @@ export default function ChatFileUpload({
     setIsDragOver(false)
     
     const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
+    if (files.length > 0 && files[0]) {
       handleFileSelect(files[0]) // 첫 번째 파일만 처리
     }
   }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files && files.length > 0) {
+    if (files && files.length > 0 && files[0]) {
       handleFileSelect(files[0])
     }
   }
