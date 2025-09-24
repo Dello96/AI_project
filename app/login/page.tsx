@@ -115,7 +115,7 @@ function LoginContent() {
   )
 }
 
-export default function LoginPage() {
+function LoginPageWithSearchParams() {
   return (
     <Suspense fallback={
       <LoadingSpinner 
@@ -127,4 +127,8 @@ export default function LoginPage() {
       <LoginContent />
     </Suspense>
   )
+}
+
+export default function LoginPage() {
+  return <LoginPageWithSearchParams />
 }

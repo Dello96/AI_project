@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next.js 15 업데이트 로그</title>
+    <style>
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #404040;
+        }
+        .header h1 {
+            color: #61dafb;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .header p {
+            color: #888;
+            margin: 10px 0 0 0;
+        }
+        .log-section {
+            margin-bottom: 30px;
+        }
+        .log-section h2 {
+            color: #4fc3f7;
+            border-left: 4px solid #4fc3f7;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        .log-content {
+            background-color: #1a1a1a;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .success { color: #4caf50; }
+        .warning { color: #ff9800; }
+        .error { color: #f44336; }
+        .info { color: #2196f3; }
+        .highlight { background-color: #3a3a3a; padding: 2px 4px; border-radius: 3px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #61dafb;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #61dafb;
+            font-size: 1.1em;
+        }
+        .stat-card p {
+            margin: 0;
+            color: #ccc;
+        }
+        .api-data {
+            background-color: #1a1a1a;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .api-data pre {
+            margin: 0;
+            color: #d4d4d4;
+            font-size: 12px;
+        }
+        .timestamp {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #404040;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Next.js 15 업데이트 로그</h1>
+            <p>교회 청년부 커뮤니티 플랫폼 개발 서버 실행 기록</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>📊 서버 상태</h3>
+                <p><span class="success">✓</span> Next.js 15.5.4 실행 중</p>
+                <p><span class="success">✓</span> 포트: 3000</p>
+                <p><span class="success">✓</span> 네트워크: 192.168.0.102:3000</p>
+            </div>
+            <div class="stat-card">
+                <h3>📈 성능 지표</h3>
+                <p><span class="info">⚡</span> 초기 로딩: 1.9초</p>
+                <p><span class="info">⚡</span> 재시작: 2.8초</p>
+                <p><span class="info">⚡</span> 컴파일: 평균 1초</p>
+            </div>
+            <div class="stat-card">
+                <h3>🗄️ 데이터베이스</h3>
+                <p><span class="success">✓</span> 게시글: 13개</p>
+                <p><span class="success">✓</span> 인기글: 5개 조회</p>
+                <p><span class="warning">⚠</span> payments 테이블 누락</p>
+            </div>
+        </div>
+
+        <div class="log-section">
+            <h2>🔧 서버 시작 로그</h2>
+            <div class="log-content">
+yunseonghyeon@MacBook-Pro-2 ai_project % pkill -f "next dev" && npm run dev
+> youth-community@1.0.0 dev
+> next dev
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/yunseonghyeon/package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /Users/yunseonghyeon/Desktop/ai_project/package-lock.json
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.102:3000
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+ ✓ Starting...
+> [PWA] PWA support is disabled
+> [PWA] PWA support is disabled
+ ✓ Ready in 1931ms
+            </div>
+        </div>
+
+        <div class="log-section">
+            <h2>📦 컴파일 과정</h2>
+            <div class="log-content">
+ ✓ Compiled /middleware in 126ms (114 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 4.5s (1458 modules)
+GeminiService 초기화: { hasApiKey: true, apiKeyLength: 39, apiKeyPrefix: 'AIzaSyDjgM...' }
+(node:98048) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET / 200 in 4910ms
+ ✓ Compiled in 196ms (656 modules)
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.102:3000
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+ ✓ Starting...
+> [PWA] PWA support is disabled
+> [PWA] PWA support is disabled
+ ✓ Ready in 2.8s
+            </div>
+        </div>
+
+        <div class="log-section">
+            <h2>🌐 페이지 요청 로그</h2>
+            <div class="log-content">
+ ✓ Compiled /middleware in 104ms (114 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 1388ms (1449 modules)
+GeminiService 초기화: { hasApiKey: true, apiKeyLength: 39, apiKeyPrefix: 'AIzaSyDjgM...' }
+(node:6744) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET / 200 in 1930ms
+ ✓ Compiled in 580ms (656 modules)
+ ○ Compiling /board ...
+ ✓ Compiled /board in 869ms (1803 modules)
+GeminiService 초기화: { hasApiKey: true, apiKeyLength: 39, apiKeyPrefix: 'AIzaSyDjgM...' }
+ GET /board 200 in 1132ms
+ ○ Compiling /api/board/posts ...
+ ✓ Compiled /api/board/posts in 749ms (1987 modules)
+ GET /api/board/posts?category=free&sortBy=latest&page=1&limit=5 200 in 2167ms
+ GET /api/board/posts?category=free&sortBy=latest&page=2&limit=5 200 in 616ms
+ GET /api/board/posts?category=free&sortBy=latest&page=2&limit=5 200 in 403ms
+ ○ Compiling /calendar ...
+ ✓ Compiled /calendar in 682ms (2052 modules)
+ GET /calendar 200 in 756ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 689ms (2154 modules)
+GeminiService 초기화: { hasApiKey: true, apiKeyLength: 39, apiKeyPrefix: 'AIzaSyDjgM...' }
+ GET /icons/icon-144x144.png 404 in 999ms
+ GET /api/events?limit=100 200 in 1200ms
+ GET /api/events?limit=100 200 in 72ms
+ GET / 200 in 48ms
+            </div>
+        </div>
+
+        <div class="log-section">
+            <h2>📊 인기 게시글 API 응답</h2>
+            <div class="api-data">
+                <h3>전체 게시글 조회 결과</h3>
+                <pre>{
+  "count": 13,
+  "error": null
+}</pre>
+                
+                <h3>정렬된 상위 5개 게시글</h3>
+                <pre>[
+  {
+    "rank": 1,
+    "id": "f5246ea4-e410-46e8-a082-52551061cab1",
+    "title": "샬롬",
+    "like_count": 7,
+    "view_count": 7,
+    "created_at": "2025-09-17T15:57:00.557885+00:00"
+  },
+  {
+    "rank": 2,
+    "id": "2f6cef61-890f-4556-bb65-39293d5b0be6",
+    "title": "잘 구현되는지 보겠습니다",
+    "like_count": 2,
+    "view_count": 15,
+    "created_at": "2025-09-19T15:57:38.399352+00:00"
+  },
+  {
+    "rank": 3,
+    "id": "85bdecef-df91-4274-a0b0-bc9b8a89c4c2",
+    "title": "총5개를",
+    "like_count": 1,
+    "view_count": 15,
+    "created_at": "2025-09-19T15:57:27.239445+00:00"
+  },
+  {
+    "rank": 4,
+    "id": "50da6da0-028e-49dd-aa79-671a94120ba7",
+    "title": "테스트글",
+    "like_count": 1,
+    "view_count": 9,
+    "created_at": "2025-09-19T15:56:58.619777+00:00"
+  },
+  {
+    "rank": 5,
+    "id": "fdac59d2-6810-404f-8e79-4b6f9e1f295d",
+    "title": "1111111111111111",
+    "like_count": 1,
+    "view_count": 7,
+    "created_at": "2025-09-20T17:37:25.512766+00:00"
+  }
+]</pre>
+            </div>
+        </div>
+
+        <div class="log-section">
+            <h2>⚠️ 오류 및 경고</h2>
+            <div class="log-content">
+<span class="warning">⚠</span> Warning: Next.js inferred your workspace root, but it may not be correct.
+We detected multiple lockfiles and selected the directory of /Users/yunseonghyeon/package-lock.json as the root directory.
+
+<span class="warning">⚠</span> (node:98048) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. 
+Please use a userland alternative instead.
+
+<span class="error">❌</span> GET /icons/icon-144x144.png 404 in 999ms
+
+<span class="error">❌</span> 기부 통계 조회 오류: {
+  "code": "PGRST205",
+  "details": null,
+  "hint": "Perhaps you meant the table 'public.comments'",
+  "message": "Could not find the table 'public.payments' in the schema cache"
+}
+            </div>
+        </div>
+
+        <div class="log-section">
+            <h2>✅ 성공적인 기능들</h2>
+            <div class="log-content">
+<span class="success">✓</span> Next.js 15.5.4 정상 실행
+<span class="success">✓</span> GeminiService 초기화 성공 (API 키: 39자리)
+<span class="success">✓</span> 게시판 페이지 정상 로드 (1.1초)
+<span class="success">✓</span> 캘린더 페이지 정상 로드 (756ms)
+<span class="success">✓</span> 인기 게시글 API 정상 작동 (804ms)
+<span class="success">✓</span> 무한 스크롤 API 정상 작동 (616ms, 403ms)
+<span class="success">✓</span> 이벤트 API 정상 작동 (1200ms, 72ms)
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>📅 로그 생성 시간: 2025년 1월 24일</p>
+            <p>🛠️ 개발 환경: Next.js 15.5.4, Node.js, Supabase</p>
+            <p>📝 교회 청년부 커뮤니티 플랫폼 개발 로그</p>
+        </div>
+    </div>
+</body>
+</html>

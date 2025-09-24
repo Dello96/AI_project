@@ -317,9 +317,6 @@ export function useAuth() {
     // Supabase Auth 상태 변경 감지 (초기화 후에만)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // 초기화가 완료된 후에만 상태 변경 처리
-        if (!isInitialized.current) return
-        
         // 토큰 갱신 이벤트는 무시 (무한 루프 방지)
         if (event === 'TOKEN_REFRESHED') {
           console.log('토큰 갱신 이벤트 무시됨')

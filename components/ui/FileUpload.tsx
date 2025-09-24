@@ -12,9 +12,15 @@ import {
 } from '@heroicons/react/24/outline'
 import { Button } from './Button'
 
-export interface FileWithPreview extends File {
+export interface FileWithPreview {
   preview?: string
   id: string
+  size: number
+  type: string
+  name: string
+  lastModified: number
+  webkitRelativePath: string
+  file: File // 원본 File 객체 저장
 }
 
 interface FileUploadProps {
@@ -26,14 +32,14 @@ interface FileUploadProps {
 }
 
 const getFileIcon = (file: File) => {
-  if (file.type.startsWith('image/')) return PhotoIcon
-  if (file.type.startsWith('video/')) return VideoCameraIcon
-  if (file.type.startsWith('audio/')) return MusicalNoteIcon
+  if (file.type && file.type.startsWith('image/')) return PhotoIcon
+  if (file.type && file.type.startsWith('video/')) return VideoCameraIcon
+  if (file.type && file.type.startsWith('audio/')) return MusicalNoteIcon
   return DocumentIcon
 }
 
 const formatFileSize = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes'
+  if (!bytes || bytes === 0 || isNaN(bytes)) return '0 Bytes'
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -63,9 +69,19 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     const validFiles: FileWithPreview[] = []
     const errors: string[] = []
 
-    fileArray.forEach((file) => {
+    console.log('파일 추가 시작:', fileArray.length, '개 파일')
+
+    fileArray.forEach((file, index) => {
+      console.log(`파일 ${index + 1} 정보:`, {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      })
+
       const validationError = validateFile(file)
       if (validationError) {
+        console.error(`파일 ${file.name} 검증 실패:`, validationError)
         errors.push(`${file.name}: ${validationError}`)
         return
       }
@@ -76,14 +92,29 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       }
 
       const fileWithPreview: FileWithPreview = {
-        ...file,
-        id: Math.random().toString(36).substr(2, 9)
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name || 'unknown',
+        size: file.size || 0,
+        type: file.type || 'application/octet-stream',
+        lastModified: file.lastModified || Date.now(),
+        webkitRelativePath: file.webkitRelativePath || '',
+        file: file // 원본 File 객체 저장
       }
 
-      if (file.type.startsWith('image/')) {
+      console.log('FileWithPreview 생성:', {
+        id: fileWithPreview.id,
+        name: fileWithPreview.name,
+        size: fileWithPreview.size,
+        type: fileWithPreview.type,
+        originalFileSize: file.size,
+        originalFileType: file.type
+      })
+
+      if (file.type && file.type.startsWith('image/')) {
         const reader = new FileReader()
         reader.onload = () => {
           fileWithPreview.preview = reader.result as string
+          console.log('이미지 미리보기 생성 완료:', fileWithPreview.name)
         }
         reader.readAsDataURL(file)
       }
@@ -185,44 +216,53 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       {/* 파일 목록 */}
       {files.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <h4 className="text-sm font-medium text-gray-900">업로드된 파일 ({files.length}/{maxFiles})</h4>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {files.map((file) => (
               <motion.div
                 key={file.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="relative group bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="flex items-center space-x-3">
+                {/* 썸네일 영역 */}
+                <div className="aspect-square mb-3 rounded-lg overflow-hidden bg-gray-100">
                   {file.preview ? (
                     <img
                       src={file.preview}
                       alt={file.name}
-                      className="w-10 h-10 object-cover rounded"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
-                      {React.createElement(getFileIcon(file), { className: 'w-5 h-5 text-gray-500' })}
+                    <div className="w-full h-full flex items-center justify-center">
+                      {React.createElement(getFileIcon(file), { className: 'w-12 h-12 text-gray-400' })}
                     </div>
                   )}
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatFileSize(file.size)}
-                    </p>
-                  </div>
                 </div>
                 
+                {/* 파일 정보 */}
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
+                    {file.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {file.size && file.size > 0 ? formatFileSize(file.size) : `크기 정보 없음 (${file.size})`}
+                  </p>
+                  {file.type && file.type !== 'undefined' && (
+                    <p className="text-xs text-gray-400 capitalize">
+                      {file.type.split('/')[0] || 'Unknown'}
+                    </p>
+                  )}
+                </div>
+                
+                {/* 삭제 버튼 */}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(file.id)}
-                  className="text-gray-400 hover:text-red-500"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-red-50 text-gray-400 hover:text-red-500 p-1 rounded-full shadow-sm"
                 >
                   <XMarkIcon className="w-4 h-4" />
                 </Button>

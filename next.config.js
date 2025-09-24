@@ -8,13 +8,21 @@ const withPWA = require('next-pwa')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['images.unsplash.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
+    ],
   },
   experimental: {
     optimizePackageImports: ['@heroicons/react', 'framer-motion'],
   },
   // PWA 최적화
-  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
@@ -22,12 +30,12 @@ const nextConfig = {
   env: {
     GOOGLE_GEMINI_API_KEY: process.env.GOOGLE_GEMINI_API_KEY,
   },
-  // TypeScript 설정에서 Supabase Functions 제외
+  // TypeScript 설정
   typescript: {
     ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: process.env.NODE_ENV === 'production', // 프로덕션 빌드 시 ESLint 경고 무시
+    ignoreDuringBuilds: process.env.NODE_ENV === 'production',
   },
 }
 

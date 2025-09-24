@@ -416,38 +416,47 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
           {/* 첨부파일 */}
           {post.attachments && post.attachments.length > 0 && (
             <div className="mt-6">
-              <h4 className="text-sm font-medium text-secondary-700 mb-3">첨부파일</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {post.attachments.map((attachment, index) => (
-                  <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg border">
-                    <div className="flex-shrink-0 mr-3">
-                      {attachment.includes('image') ? (
-                        <img
-                          src={attachment}
-                          alt={`첨부파일 ${index + 1}`}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                          <DocumentIcon className="w-6 h-6 text-gray-500" />
-                        </div>
-                      )}
+              <h4 className="text-sm font-medium text-secondary-700 mb-3">첨부파일 ({post.attachments.length}개)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {post.attachments.map((attachment, index) => {
+                  const isImage = attachment.includes('image') || 
+                    attachment.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)
+                  
+                  return (
+                    <div key={index} className="group relative bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                      {/* 썸네일 영역 */}
+                      <div className="aspect-square mb-3 rounded-lg overflow-hidden bg-gray-100">
+                        {isImage ? (
+                          <img
+                            src={attachment}
+                            alt={`첨부파일 ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <DocumentIcon className="w-12 h-12 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 파일 정보 */}
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-gray-900 truncate" title={`첨부파일 ${index + 1}`}>
+                          첨부파일 {index + 1}
+                        </p>
+                        <a
+                          href={attachment}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 inline-flex items-center"
+                        >
+                          <DocumentIcon className="w-3 h-3 mr-1" />
+                          다운로드
+                        </a>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        첨부파일 {index + 1}
-                      </p>
-                      <a
-                        href={attachment}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                      >
-                        다운로드
-                      </a>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}

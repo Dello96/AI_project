@@ -131,7 +131,7 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
   }
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full max-w-6xl mx-auto">
       {/* 메인 캐러셀 영역 */}
       <div className="relative h-96 bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-xl overflow-hidden">
         <AnimatePresence mode="wait">
@@ -148,26 +148,27 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-70" />
             
             {/* 포스터 영역 (왼쪽) */}
-            <div className="absolute left-8 top-8 bottom-8 w-48">
+            <div className="absolute left-4 top-4 bottom-4 w-40 sm:w-48 flex items-center">
               <div 
-                className="w-full h-full rounded-lg shadow-2xl flex items-center justify-center text-white font-bold text-xl"
+                className="w-full h-full rounded-lg shadow-2xl flex items-center justify-center text-white font-bold text-lg sm:text-xl"
                 style={{
                   background: `linear-gradient(135deg, ${getCategoryColor(currentPost.category)}, ${getCategoryColor(currentPost.category)}dd)`
                 }}
               >
-                {getCategoryLabel(currentPost.category)}
+                <span className="text-center px-2">{getCategoryLabel(currentPost.category)}</span>
               </div>
             </div>
 
             {/* 콘텐츠 영역 (오른쪽) */}
-            <div className="absolute left-64 right-8 top-8 bottom-8 flex flex-col justify-center text-white">
+            <div className="absolute left-44 sm:left-56 right-4 top-4 bottom-4 flex flex-col text-white overflow-hidden">
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
+                className="h-full flex flex-col justify-between py-4"
               >
-                {/* 카테고리 태그 */}
-                <div className="flex items-center gap-2 mb-4">
+                {/* 상단: 카테고리 태그 */}
+                <div className="flex items-center gap-2">
                   <span 
                     className="px-3 py-1 rounded-full text-sm font-medium"
                     style={{ 
@@ -184,63 +185,69 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
                   )}
                 </div>
 
-                {/* 제목 */}
-                <h2 className="text-4xl font-bold mb-4 leading-tight">
-                  {currentPost.title}
-                </h2>
+                {/* 중간: 제목과 내용 */}
+                <div className="flex-1 flex flex-col justify-center">
+                  {/* 제목 */}
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 leading-tight break-words">
+                    {currentPost.title}
+                  </h2>
 
-                {/* 내용 미리보기 */}
-                <p className="text-lg text-gray-300 mb-6 line-clamp-3 leading-relaxed">
-                  {currentPost.content}
-                </p>
-
-                {/* 작성자 정보 */}
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">
-                      {currentPost.isAnonymous ? '익' : (currentPost.author?.name?.[0] || '?')}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium">
-                      {currentPost.isAnonymous ? '익명' : (currentPost.author?.name || '알 수 없음')}
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      {new Date(currentPost.createdAt).toLocaleDateString('ko-KR')}
-                    </p>
-                  </div>
+                  {/* 내용 미리보기 */}
+                  <p className="text-sm sm:text-base lg:text-lg text-gray-300 mb-4 sm:mb-6 line-clamp-2 sm:line-clamp-3 leading-relaxed break-words">
+                    {currentPost.content}
+                  </p>
                 </div>
 
-                {/* 통계 정보 */}
-                <div className="flex items-center gap-6 mb-6">
-                  <div className="flex items-center gap-2">
-                    {currentPost.userLiked ? (
-                      <HeartSolidIcon className="w-5 h-5 text-red-500" />
-                    ) : (
-                      <HeartIcon className="w-5 h-5 text-red-500" />
-                    )}
-                    <span className="text-lg font-medium">{currentPost.likeCount || 0}</span>
+                {/* 하단: 작성자, 통계, 버튼 */}
+                <div className="space-y-4">
+                  {/* 작성자 정보 */}
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-xs sm:text-sm">
+                        {currentPost.isAnonymous ? '익' : (currentPost.author?.name?.[0] || '?')}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm sm:text-base truncate">
+                        {currentPost.isAnonymous ? '익명' : (currentPost.author?.name || '알 수 없음')}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-400">
+                        {new Date(currentPost.createdAt).toLocaleDateString('ko-KR')}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <ChatBubbleLeftIcon className="w-5 h-5 text-blue-400" />
-                    <span className="text-lg font-medium">{currentPost.commentCount || 0}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <EyeIcon className="w-5 h-5 text-green-400" />
-                    <span className="text-lg font-medium">{currentPost.viewCount || 0}</span>
-                  </div>
-                </div>
 
-                {/* 액션 버튼 */}
-                <button 
-                  className="bg-orange-500 hover:bg-red-500 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handlePostClick(currentPost)
-                  }}
-                >
-                  게시글 보기
-                </button>
+                  {/* 통계 정보 */}
+                  <div className="flex items-center gap-3 sm:gap-6">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      {currentPost.userLiked ? (
+                        <HeartSolidIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+                      ) : (
+                        <HeartIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+                      )}
+                      <span className="text-sm sm:text-lg font-medium">{currentPost.likeCount || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <ChatBubbleLeftIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+                      <span className="text-sm sm:text-lg font-medium">{currentPost.commentCount || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+                      <span className="text-sm sm:text-lg font-medium">{currentPost.viewCount || 0}</span>
+                    </div>
+                  </div>
+
+                  {/* 액션 버튼 */}
+                  <button 
+                    className="bg-orange-500 hover:bg-red-500 text-white px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base lg:text-lg transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg w-full sm:w-auto"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handlePostClick(currentPost)
+                    }}
+                  >
+                    게시글 보기
+                  </button>
+                </div>
               </motion.div>
             </div>
           </motion.div>
@@ -254,18 +261,18 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
                 e.stopPropagation()
                 prevSlide()
               }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
             >
-              <ChevronLeftIcon className="w-6 h-6" />
+              <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 nextSlide()
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
             >
-              <ChevronRightIcon className="w-6 h-6" />
+              <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
             </button>
           </>
         )}

@@ -48,7 +48,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="mb-16"
+            className="mb-16 px-4 sm:px-6 lg:px-8"
           >
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -58,7 +58,9 @@ export default function Home() {
                 가장 많은 사랑을 받은 게시글들을 만나보세요
               </p>
             </div>
-            <PosterCarousel onPostClick={handlePostClick} />
+            <div className="w-full overflow-hidden">
+              <PosterCarousel onPostClick={handlePostClick} />
+            </div>
           </motion.div>
         </div>
       </section>

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input'
 import { FileUpload, FileWithPreview } from '@/components/ui/FileUpload'
 import { postService } from '@/lib/database'
 import { fileUploadService } from '@/lib/fileUpload'
+import { useAuth } from '@/hooks/useAuth'
 import { 
   postFormSchema, 
   defaultPostFormData, 
@@ -27,6 +28,7 @@ interface PostFormProps {
 
 export default function PostForm({ isOpen, onClose, onSuccess, initialData }: PostFormProps) {
   const [attachedFiles, setAttachedFiles] = useState<FileWithPreview[]>([])
+  const { user, isLoading: authLoading } = useAuth()
   
   // React Hook Form 설정
   const {
@@ -49,13 +51,50 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
 
   const onSubmit = async (data: PostFormData) => {
     try {
+      console.log('PostForm 제출 시도:', { 
+        authLoading, 
+        hasUser: !!user,
+        userInfo: user ? { id: user.id, email: user.email } : null
+      })
+      
+      // 인증 상태 확인
+      if (authLoading) {
+        console.log('인증 로딩 중...')
+        alert('인증 상태를 확인하는 중입니다. 잠시만 기다려주세요.')
+        return
+      }
+      
+      if (!user) {
+        console.log('사용자가 인증되지 않음')
+        alert('로그인이 필요합니다. 먼저 로그인해주세요.')
+        return
+      }
+      
+      console.log('사용자 인증 상태 확인됨:', { 
+        userId: user.id, 
+        userEmail: user.email,
+        isAuthenticated: !!user 
+      })
+      
       // 파일 업로드 처리
       let fileUrls: string[] = []
       if (attachedFiles.length > 0) {
+        console.log('첨부파일 업로드 시작:', attachedFiles.length, '개 파일')
+        console.log('첨부파일 정보:', attachedFiles.map(f => ({
+          name: f.name,
+          size: f.size,
+          type: f.type
+        })))
+        
         const uploadResult = await fileUploadService.uploadFiles(attachedFiles, 'posts')
+        console.log('파일 업로드 결과:', uploadResult)
+        
         if (uploadResult.success && uploadResult.files) {
           fileUrls = uploadResult.files.map(f => f.url)
+          console.log('업로드된 파일 URL들:', fileUrls)
         } else {
+          console.error('파일 업로드 실패:', uploadResult.error)
+          alert(`파일 업로드에 실패했습니다: ${uploadResult.error}`)
           return
         }
       }
@@ -120,16 +159,63 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">게시글 작성</h2>
-                              <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <XMarkIcon className="w-5 h-5" />
-                </button>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* 폼 */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* 인증 상태 표시 */}
+            {authLoading ? (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-gray-600">인증 상태를 확인하는 중...</span>
+                </div>
+              </div>
+            ) : !user ? (
+              <div className="text-center py-8">
+                <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-yellow-800 text-lg font-medium mb-3">로그인이 필요합니다</p>
+                  <p className="text-sm text-yellow-700 mb-4">
+                    게시글을 작성하려면 먼저 로그인해주세요.
+                  </p>
+                  <div className="space-x-3">
+                    <button
+                      onClick={() => {
+                        onClose()
+                        window.location.href = '/login'
+                      }}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      로그인하기
+                    </button>
+                    <button
+                      onClick={onClose}
+                      className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-800 text-sm">
+                    ✅ {user.name}님으로 로그인되어 있습니다 ({user.email})
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 폼 내용 - 인증된 사용자만 표시 */}
+            {user && (
+              <>
+                {/* 폼 */}
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* 카테고리 선택 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -231,7 +317,10 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
                   {isSubmitting ? '작성 중...' : '작성하기'}
                 </Button>
               </div>
-            </form>
+                </form>
+              </>
+            )}
+
           </CardContent>
         </Card>
       </motion.div>
