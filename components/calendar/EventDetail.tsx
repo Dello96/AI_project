@@ -29,6 +29,21 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
+  // 작성자 권한 확인
+  const canEditOrDelete = user && event.authorId === user.id
+  
+  // 디버깅을 위한 로그
+  console.log('EventDetail 디버깅:', {
+    user: user ? { id: user.id, email: user.email } : null,
+    event: {
+      id: event.id,
+      title: event.title,
+      authorId: event.authorId,
+      author: event.author
+    },
+    canEditOrDelete
+  })
+
   const handleEdit = () => {
     setIsEditing(true)
     onEdit(event)

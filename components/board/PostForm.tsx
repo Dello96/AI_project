@@ -74,7 +74,8 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
           content: data.content,
           category: data.category,
           authorId: anonymousAuthorId,
-          isAnonymous: true
+          isAnonymous: true,
+          attachments: fileUrls // 첨부파일 URL 배열 추가
         })
       })
 

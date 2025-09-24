@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         viewCount: 0,
         likeCount: 0,
         commentCount: 0,
-        attachments: []
+        attachments: attachments || []
       }
       
       console.log('모의 게시글 생성:', mockPost)
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
           viewCount: 0,
           likeCount: 0,
           commentCount: 0,
-          attachments: []
+          attachments: attachments || []
         }
       })
     }
@@ -202,7 +202,8 @@ export async function POST(request: NextRequest) {
           content: sanitizedContent,
           category,
           author_id: actualAuthorId,
-          is_anonymous: isAnonymous
+          is_anonymous: isAnonymous,
+          attachments: attachments || []
         })
         .select()
         .single()
@@ -236,7 +237,7 @@ export async function POST(request: NextRequest) {
         viewCount: 0,
         likeCount: 0,
         commentCount: 0,
-        attachments: []
+        attachments: attachments || []
       }
     })
     

@@ -25,7 +25,7 @@ export interface Event {
   startDate: Date;
   endDate: Date;
   location?: string;
-  category: 'worship' | 'meeting' | 'event' | 'smallgroup';
+  category: 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle';
   isAllDay: boolean;
   authorId: string;
   author?: User;
@@ -47,4 +47,5 @@ export const eventCategories = [
   { value: 'meeting', label: '모임', color: '#10b981' },
   { value: 'event', label: '행사', color: '#8b5cf6' },
   { value: 'smallgroup', label: '소그룹', color: '#f59e0b' },
+  { value: 'vehicle', label: '차량사용', color: '#ef4444' },
 ];

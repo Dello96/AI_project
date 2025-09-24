@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 // 이벤트 생성 스키마
 const CreateEventSchema = z.object({
@@ -9,10 +11,10 @@ const CreateEventSchema = z.object({
   startDate: z.string().min(1, '시작 날짜를 입력해주세요.'),
   endDate: z.string().min(1, '종료 날짜를 입력해주세요.'),
   location: z.string().optional().or(z.literal('')).transform(val => val === '' ? undefined : val),
-  category: z.enum(['worship', 'meeting', 'event', 'smallgroup'], { 
+  category: z.enum(['worship', 'meeting', 'event', 'smallgroup', 'vehicle'], { 
     message: '올바른 카테고리를 선택해주세요.' 
   }),
-  isAllDay: z.boolean().optional().default(false),
+  isAllDay: z.boolean().default(false),
   authorId: z.string().optional()
 })
 
@@ -27,6 +29,8 @@ const GetEventsSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     console.log('=== 이벤트 생성 API 호출 시작 ===')
+    console.log('요청 URL:', request.url)
+    console.log('요청 헤더:', Object.fromEntries(request.headers.entries()))
     
     // 요청 본문 파싱
     const body = await request.json()
@@ -48,7 +52,16 @@ export async function POST(request: NextRequest) {
         console.error(`   코드: ${issue.code}`)
         console.error(`   메시지: ${issue.message}`)
         console.error(`   받은 값: ${JSON.stringify(issue.input)}`)
+        console.error(`   받은 값 타입: ${typeof issue.input}`)
       })
+      
+      // 카테고리 특별 검증
+      if (body.category) {
+        console.error('카테고리 검증 실패:')
+        console.error(`받은 카테고리: "${body.category}" (타입: ${typeof body.category})`)
+        console.error(`유효한 카테고리: ['worship', 'meeting', 'event', 'smallgroup', 'vehicle']`)
+        console.error(`카테고리 포함 여부: ${['worship', 'meeting', 'event', 'smallgroup', 'vehicle'].includes(body.category)}`)
+      }
       
       return NextResponse.json(
         { 
@@ -64,13 +77,90 @@ export async function POST(request: NextRequest) {
     
     const { title, description, startDate, endDate, location, category, isAllDay, authorId } = parsed.data
     
-    // 서버 사이드 Supabase 클라이언트 사용
+    // Authorization 헤더에서 토큰 확인
+    const authHeader = request.headers.get('Authorization')
+    console.log('Authorization 헤더:', authHeader)
+    
+    let user = null
+    let authError = null
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // Authorization 헤더에서 토큰 사용
+      const token = authHeader.substring(7)
+      console.log('토큰으로 사용자 확인 중...')
+      
+      const supabase = createServerSupabaseClient()
+      const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token)
+      user = tokenUser
+      authError = tokenError
+      console.log('토큰 사용자 확인 결과:', { user: user ? { id: user.id, email: user.email } : null, error: tokenError })
+    } else {
+      // 쿠키에서 세션 확인
+      console.log('쿠키에서 세션 확인 중...')
+      const supabase = createRouteHandlerClient({ cookies })
+      const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
+      user = sessionUser
+      authError = sessionError
+      console.log('세션 사용자 확인 결과:', { user: user ? { id: user.id, email: user.email } : null, error: sessionError })
+    }
+    
+    if (authError || !user) {
+      console.error('인증 오류:', authError)
+      return NextResponse.json(
+        { error: '인증이 필요합니다.', details: authError?.message },
+        { status: 401 }
+      )
+    }
+    
+    console.log('인증된 사용자:', { id: user.id, email: user.email })
+    
+    // 사용자 프로필 확인 및 생성
+    let actualAuthorId = user.id
+    
+    // Service Role 클라이언트 사용 (프로필 생성/조회용)
     const serverSupabase = createServerSupabaseClient()
     
-    // 익명 사용자 ID (기본값) - UUID 형식 검증
-    const anonymousUserId = authorId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authorId) 
-      ? authorId 
-      : '00000000-0000-0000-0000-000000000000'
+    // user_profiles 테이블에서 사용자 프로필 확인
+    const { data: existingProfile, error: profileError } = await serverSupabase
+      .from('user_profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+    
+    if (profileError && profileError.code === 'PGRST116') {
+      // 프로필이 없는 경우 생성
+      console.log('사용자 프로필이 없어서 생성합니다:', user.id)
+      
+      const { error: createProfileError } = await serverSupabase
+        .from('user_profiles')
+        .insert({
+          id: user.id,
+          email: user.email || '',
+          name: user.user_metadata?.name || 
+                user.user_metadata?.full_name || 
+                user.user_metadata?.nickname || 
+                '사용자',
+          phone: user.user_metadata?.phone || null,
+          role: 'member',
+          is_approved: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+      
+      if (createProfileError) {
+        console.error('사용자 프로필 생성 오류:', createProfileError)
+        return NextResponse.json(
+          { error: '사용자 프로필 생성에 실패했습니다.' },
+          { status: 500 }
+        )
+      }
+    } else if (profileError) {
+      console.error('사용자 프로필 조회 오류:', profileError)
+      return NextResponse.json(
+        { error: '사용자 프로필을 확인할 수 없습니다.' },
+        { status: 500 }
+      )
+    }
     
     // 이벤트 생성
     // 데이터베이스 삽입을 위한 데이터 준비
@@ -82,7 +172,7 @@ export async function POST(request: NextRequest) {
       all_day: Boolean(isAllDay),
       location: location && location.trim() !== '' ? location.trim() : null,
       category,
-      created_by: anonymousUserId
+      created_by: actualAuthorId
     }
     
     console.log('데이터베이스에 삽입할 데이터:', insertData)
@@ -161,7 +251,14 @@ export async function GET(request: NextRequest) {
     
     let query = serverSupabase
       .from('events')
-      .select('*', { count: 'exact' })
+      .select(`
+        *,
+        user_profiles (
+          id,
+          name,
+          email
+        )
+      `, { count: 'exact' })
       .order('start_date', { ascending: true })
       .limit(limit)
     
@@ -199,6 +296,11 @@ export async function GET(request: NextRequest) {
       location: event.location,
       category: event.category,
       authorId: event.created_by,
+      author: event.user_profiles ? {
+        id: event.user_profiles.id,
+        name: event.user_profiles.name,
+        email: event.user_profiles.email
+      } : null,
       createdAt: event.created_at,
       updatedAt: event.updated_at
     }))

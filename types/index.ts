@@ -53,7 +53,7 @@ export interface Event {
   startDate: Date;
   endDate: Date;
   location?: string;
-  category: 'worship' | 'meeting' | 'event' | 'smallgroup';
+  category: 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle';
   isAllDay: boolean;
   authorId: string;
   author?: User;
@@ -112,6 +112,7 @@ export const eventCategories = [
   { value: 'meeting', label: '모임', color: 'bg-green-500' },
   { value: 'event', label: '행사', color: 'bg-purple-500' },
   { value: 'smallgroup', label: '소그룹', color: 'bg-orange-500' },
+  { value: 'vehicle', label: '차량사용', color: 'bg-red-500' },
 ];
 
 // 게시글 카테고리

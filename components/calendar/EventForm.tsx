@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { eventService } from '@/lib/database'
-import { notificationService } from '@/lib/notifications'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 
 interface EventFormProps {
   isOpen: boolean
@@ -20,13 +21,14 @@ interface EventFormProps {
 }
 
 export default function EventForm({ isOpen, onClose, onSuccess, initialData, selectedDate }: EventFormProps) {
+  const { user } = useAuth()
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
     startDate: Date;
     endDate: Date;
     location: string;
-    category: 'worship' | 'meeting' | 'event' | 'smallgroup';
+    category: 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle';
     isAllDay: boolean;
   }>({
     title: '',
@@ -39,8 +41,6 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [sendNotification, setSendNotification] = useState(true)
-  const [reminderMinutes, setReminderMinutes] = useState<number>(30)
 
   useEffect(() => {
             if (initialData) {
@@ -50,7 +50,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
             startDate: initialData.startDate || new Date(),
             endDate: initialData.endDate || new Date(),
             location: initialData.location || '',
-            category: (initialData.category as 'worship' | 'meeting' | 'event' | 'smallgroup') || 'worship',
+            category: (initialData.category as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle') || 'worship',
             isAllDay: initialData.isAllDay || false
           })
     } else if (selectedDate) {
@@ -69,8 +69,17 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // 익명 작성자 ID 생성 (UUID 형식)
-    const anonymousAuthorId = '00000000-0000-0000-0000-000000000000'
+    // 사용자 ID 확인
+    console.log('EventForm - 사용자 상태:', { user: user ? { id: user.id, email: user.email } : null })
+    
+    if (!user) {
+      console.error('EventForm - 사용자가 로그인되지 않음')
+      setError('로그인이 필요합니다.')
+      return
+    }
+    
+    const authorId = user.id
+    console.log('EventForm - 사용할 authorId:', authorId)
 
     try {
       setIsLoading(true)
@@ -86,20 +95,10 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           startDate: formData.startDate,
           endDate: formData.endDate,
           location: formData.location?.trim() || '',
-          category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup',
+          category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle',
           isAllDay: formData.isAllDay
         })
 
-        if (result && sendNotification) {
-          // 수정 알림 발송
-          const { data: users } = await eventService.getEventParticipants(initialData.id)
-          if (users) {
-            await notificationService.notifyEventUpdated(
-              { ...initialData, ...formData } as Event,
-              users as any[]
-            )
-          }
-        }
       } else {
         // 새 일정 생성 - API 호출
         // 날짜 유효성 검사 및 변환
@@ -117,9 +116,9 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
           location: formData.location?.trim() || undefined,
-          category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup',
+          category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle',
           isAllDay: Boolean(formData.isAllDay),
-          authorId: anonymousAuthorId
+          authorId: authorId
         }
         
         console.log('=== EventForm에서 API 호출 ===')
@@ -129,15 +128,31 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           console.log(`${key}: ${typeof (requestData as any)[key]} = ${JSON.stringify((requestData as any)[key])}`)
         })
         
+        console.log('API 호출 시작: /api/events')
+        
+        // Supabase에서 현재 세션 가져오기
+        const { data: { session } } = await supabase.auth.getSession()
+        console.log('클라이언트 세션 상태:', { session: session ? '존재' : '없음' })
+        
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        }
+        
+        // 세션이 있으면 Authorization 헤더 추가
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`
+          console.log('Authorization 헤더 추가됨')
+        } else {
+          console.warn('세션이 없어서 Authorization 헤더를 추가할 수 없음')
+        }
+        
         const response = await fetch('/api/events', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify(requestData)
         })
-
-        console.log('응답 상태:', response.status, response.statusText)
+        
+        console.log('API 응답 상태:', response.status, response.statusText)
         const data = await response.json()
         console.log('응답 데이터:', data)
         
@@ -158,16 +173,6 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           onSuccess()
           console.log('onSuccess 호출 완료')
           
-          if (result && sendNotification) {
-            // 생성 알림 발송
-            const { data: users } = await eventService.getEventParticipants(result.id)
-            if (users) {
-              await notificationService.notifyEventCreated(result, users as any[])
-            }
-
-            // 리마인더 스케줄링
-            await notificationService.scheduleEventReminder(result, reminderMinutes || 30)
-          }
         } else {
           throw new Error(data.error || '이벤트 생성에 실패했습니다.')
         }
@@ -273,15 +278,15 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
                 value={formData.category}
                 onValueChange={(value: string) => setFormData(prev => ({ 
                   ...prev, 
-                  category: value as 'worship' | 'meeting' | 'event' | 'smallgroup' 
+                  category: value as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle' 
                 }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(eventCategories).map(([key, category]) => (
-                    <SelectItem key={key} value={key}>
+                  {eventCategories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-3 h-3 rounded-full"
@@ -414,44 +419,6 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
               />
             </div>
 
-            {/* 알림 설정 */}
-            <div className="space-y-4 p-4 bg-secondary-50 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <input
-                  id="sendNotification"
-                  type="checkbox"
-                  checked={sendNotification}
-                  onChange={(e) => setSendNotification(e.target.checked)}
-                  className="rounded border-secondary-300 text-primary focus:ring-primary"
-                />
-                <label htmlFor="sendNotification" className="text-sm font-medium text-secondary-700">
-                  알림 발송
-                </label>
-              </div>
-
-              {sendNotification && (
-                <div className="space-y-2">
-                  <label htmlFor="reminderMinutes" className="text-sm font-medium text-secondary-700">
-                    리마인더 시간
-                  </label>
-                  <Select
-                    value={reminderMinutes.toString()}
-                    onValueChange={(value: string) => setReminderMinutes(Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5분 전</SelectItem>
-                      <SelectItem value="15">15분 전</SelectItem>
-                      <SelectItem value="30">30분 전</SelectItem>
-                      <SelectItem value="60">1시간 전</SelectItem>
-                      <SelectItem value="1440">1일 전</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
 
             {/* 에러 메시지 */}
             {error && (

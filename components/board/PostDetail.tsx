@@ -8,7 +8,8 @@ import {
   TrashIcon,
   EyeIcon,
   HeartIcon,
-  ChatBubbleLeftIcon
+  ChatBubbleLeftIcon,
+  DocumentIcon
 } from '@heroicons/react/24/outline'
 import ReportButton from '@/components/reports/ReportButton'
 import { Post, Comment, postCategories } from '@/types'
@@ -411,6 +412,45 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
               {post.content}
             </p>
           </div>
+
+          {/* 첨부파일 */}
+          {post.attachments && post.attachments.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-sm font-medium text-secondary-700 mb-3">첨부파일</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {post.attachments.map((attachment, index) => (
+                  <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg border">
+                    <div className="flex-shrink-0 mr-3">
+                      {attachment.includes('image') ? (
+                        <img
+                          src={attachment}
+                          alt={`첨부파일 ${index + 1}`}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                          <DocumentIcon className="w-6 h-6 text-gray-500" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        첨부파일 {index + 1}
+                      </p>
+                      <a
+                        href={attachment}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                      >
+                        다운로드
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

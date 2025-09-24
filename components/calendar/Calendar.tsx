@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -36,11 +36,33 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
   const [view, setView] = useState<CalendarViewType>('dayGridMonth')
   const { events, setEvents, isLoading } = useRealtimeEvents()
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [showMonthPicker, setShowMonthPicker] = useState(false)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['worship', 'meeting', 'event', 'smallgroup', 'vehicle'])
+  const calendarRef = useRef<FullCalendar>(null)
 
   // 실시간 이벤트 사용으로 인해 별도 조회 불필요
 
-  // FullCalendar 이벤트 데이터 변환
-  const calendarEvents = events.map(event => ({
+  // 월 선택기 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (showMonthPicker && !target.closest('.month-picker')) {
+        setShowMonthPicker(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showMonthPicker])
+
+  // 카테고리 필터링된 이벤트 데이터 변환
+  const filteredEvents = events.filter(event => 
+    selectedCategories.includes(event.category)
+  )
+
+  const calendarEvents = filteredEvents.map(event => ({
     id: event.id,
     title: event.title,
     start: event.startDate,
@@ -147,7 +169,7 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
 
   // 오늘로 이동
   const goToToday = () => {
-    const calendarApi = (document.querySelector('.fc') as any)?.getApi()
+    const calendarApi = calendarRef.current?.getApi()
     if (calendarApi) {
       calendarApi.today()
     }
@@ -155,13 +177,58 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
 
   // 이전/다음으로 이동
   const navigateCalendar = (direction: 'prev' | 'next') => {
-    const calendarApi = (document.querySelector('.fc') as any)?.getApi()
+    const calendarApi = calendarRef.current?.getApi()
     if (calendarApi) {
       if (direction === 'prev') {
         calendarApi.prev()
       } else {
         calendarApi.next()
       }
+    }
+  }
+
+  // 특정 월로 이동
+  const goToMonth = (year: number, month: number) => {
+    const calendarApi = calendarRef.current?.getApi()
+    if (calendarApi) {
+      calendarApi.gotoDate(new Date(year, month, 1))
+      setShowMonthPicker(false)
+    }
+  }
+
+  // 현재 표시 중인 년월 가져오기
+  const getCurrentYearMonth = () => {
+    const calendarApi = calendarRef.current?.getApi()
+    if (calendarApi) {
+      const currentView = calendarApi.view
+      return {
+        year: currentView.currentStart.getFullYear(),
+        month: currentView.currentStart.getMonth()
+      }
+    }
+    return {
+      year: new Date().getFullYear(),
+      month: new Date().getMonth()
+    }
+  }
+
+  // 카테고리 토글 함수
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(cat => cat !== category)
+      } else {
+        return [...prev, category]
+      }
+    })
+  }
+
+  // 모든 카테고리 선택/해제
+  const toggleAllCategories = () => {
+    if (selectedCategories.length === eventCategories.length) {
+      setSelectedCategories([])
+    } else {
+      setSelectedCategories(eventCategories.map(cat => cat.value))
     }
   }
 
@@ -204,7 +271,7 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
       {/* 캘린더 네비게이션 - 극장 스타일 */}
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-6">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-          {/* 네비게이션 화살표 */}
+          {/* 네비게이션 화살표 및 월 선택 */}
           <div className="flex items-center gap-4">
             <Button
               onClick={() => navigateCalendar('prev')}
@@ -214,6 +281,59 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
             >
               <ChevronLeftIcon className="w-6 h-6" />
             </Button>
+            
+            {/* 월 선택 버튼 */}
+            <div className="relative month-picker">
+              <Button
+                onClick={() => setShowMonthPicker(!showMonthPicker)}
+                variant="outline"
+                size="lg"
+                className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3 min-w-[120px]"
+              >
+                {getCurrentYearMonth().year}년 {getCurrentYearMonth().month + 1}월
+              </Button>
+              
+              {/* 월 선택 드롭다운 */}
+              {showMonthPicker && (
+                <div className="absolute top-full left-0 mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-xl z-50 p-4 min-w-[200px]">
+                  <div className="grid grid-cols-3 gap-2">
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <Button
+                        key={i}
+                        onClick={() => goToMonth(getCurrentYearMonth().year, i)}
+                        variant="ghost"
+                        size="sm"
+                        className={`text-gray-300 hover:bg-gray-700 ${
+                          i === getCurrentYearMonth().month ? 'bg-orange-500 text-white' : ''
+                        }`}
+                      >
+                        {i + 1}월
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-600">
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => goToMonth(getCurrentYearMonth().year - 1, getCurrentYearMonth().month)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-300 hover:bg-gray-700"
+                      >
+                        ← {getCurrentYearMonth().year - 1}
+                      </Button>
+                      <Button
+                        onClick={() => goToMonth(getCurrentYearMonth().year + 1, getCurrentYearMonth().month)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-300 hover:bg-gray-700"
+                      >
+                        {getCurrentYearMonth().year + 1} →
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             
             <Button
               onClick={() => navigateCalendar('next')}
@@ -225,10 +345,78 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
             </Button>
           </div>
           
+          {/* 카테고리 필터 */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-300">필터:</span>
+                <button
+                  onClick={toggleAllCategories}
+                  className={`text-xs px-3 py-2 rounded-md border transition-all duration-200 font-medium ${
+                    selectedCategories.length === eventCategories.length
+                      ? 'bg-orange-500 text-white border-orange-500 shadow-lg transform scale-105'
+                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600 hover:border-gray-500 hover:scale-105'
+                  }`}
+                  style={{
+                    backgroundColor: selectedCategories.length === eventCategories.length
+                      ? '#f97316'
+                      : '#1f2937',
+                    borderColor: selectedCategories.length === eventCategories.length
+                      ? '#f97316'
+                      : '#4b5563',
+                    boxShadow: selectedCategories.length === eventCategories.length
+                      ? '0 4px 12px rgba(249, 115, 22, 0.3)'
+                      : 'none'
+                  }}
+                >
+                  {selectedCategories.length === eventCategories.length ? '전체 해제' : '전체 선택'}
+                </button>
+              </div>
+              <div className="text-xs text-gray-400">
+                {filteredEvents.length}개 이벤트 표시 중
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {eventCategories.map((category) => {
+                const isSelected = selectedCategories.includes(category.value)
+                return (
+                  <button
+                    key={category.value}
+                    onClick={() => toggleCategory(category.value)}
+                    className={`text-xs px-3 py-2 rounded-md border transition-all duration-200 flex items-center font-medium ${
+                      isSelected
+                        ? 'text-white border-orange-500 shadow-lg transform scale-105'
+                        : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600 hover:border-gray-500 hover:scale-105'
+                    }`}
+                    style={{
+                      backgroundColor: isSelected ? '#f97316' : '#1f2937',
+                      borderColor: isSelected ? '#f97316' : '#4b5563',
+                      boxShadow: isSelected ? '0 4px 12px rgba(249, 115, 22, 0.3)' : 'none'
+                    }}
+                  >
+                    <div 
+                      className={`w-2 h-2 rounded-full mr-2 transition-all duration-200 ${
+                        isSelected ? 'ring-2 ring-white ring-opacity-50' : ''
+                      }`}
+                      style={{ backgroundColor: category.color }}
+                    />
+                    {category.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {/* 뷰 선택 버튼 */}
           <div className="flex gap-3">
             <Button
-              onClick={() => setView('dayGridMonth')}
+              onClick={() => {
+                setView('dayGridMonth')
+                const calendarApi = calendarRef.current?.getApi()
+                if (calendarApi) {
+                  calendarApi.changeView('dayGridMonth')
+                }
+              }}
               variant={view === 'dayGridMonth' ? 'default' : 'outline'}
               size="lg"
               className={view === 'dayGridMonth' 
@@ -240,7 +428,13 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
               월
             </Button>
             <Button
-              onClick={() => setView('timeGridWeek')}
+              onClick={() => {
+                setView('timeGridWeek')
+                const calendarApi = calendarRef.current?.getApi()
+                if (calendarApi) {
+                  calendarApi.changeView('timeGridWeek')
+                }
+              }}
               variant={view === 'timeGridWeek' ? 'default' : 'outline'}
               size="lg"
               className={view === 'timeGridWeek' 
@@ -252,7 +446,13 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
               주
             </Button>
             <Button
-              onClick={() => setView('timeGridDay')}
+              onClick={() => {
+                setView('timeGridDay')
+                const calendarApi = calendarRef.current?.getApi()
+                if (calendarApi) {
+                  calendarApi.changeView('timeGridDay')
+                }
+              }}
               variant={view === 'timeGridDay' ? 'default' : 'outline'}
               size="lg"
               className={view === 'timeGridDay' 
@@ -264,7 +464,13 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
               일
             </Button>
             <Button
-              onClick={() => setView('listWeek')}
+              onClick={() => {
+                setView('listWeek')
+                const calendarApi = calendarRef.current?.getApi()
+                if (calendarApi) {
+                  calendarApi.changeView('listWeek')
+                }
+              }}
               variant={view === 'listWeek' ? 'default' : 'outline'}
               size="lg"
               className={view === 'listWeek' 
@@ -277,18 +483,6 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
             </Button>
           </div>
           
-          {/* 카테고리 범례 */}
-          <div className="flex gap-4">
-            {Object.entries(eventCategories).map(([key, category]) => (
-              <div key={key} className="flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 rounded-full shadow-lg"
-                  style={{ backgroundColor: category.color }}
-                />
-                <span className="text-sm text-gray-300 font-medium">{category.label}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -296,6 +490,7 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-6">
         <div className="calendar-container">
             <FullCalendar
+              ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
               headerToolbar={false}
               initialView={view}

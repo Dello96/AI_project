@@ -75,7 +75,8 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
 
   const handlePostClick = (post: Post) => {
     console.log('포스터 클릭:', post.id, post.title)
-    router.push(`/board?postId=${post.id}`)
+    // 게시글 상세페이지로 직접 이동
+    router.push(`/board/${post.id}`)
   }
 
   const getCategoryColor = (category: string) => {

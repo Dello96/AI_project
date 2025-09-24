@@ -541,13 +541,20 @@ export const eventService = {
   // 이벤트 삭제
   async deleteEvent(eventId: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', eventId)
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-      if (error) throw error
-      return true
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `서버 오류 (${response.status})`)
+      }
+
+      const data = await response.json()
+      return data.success
     } catch (error) {
       console.error('이벤트 삭제 오류:', error)
       return false

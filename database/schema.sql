@@ -106,7 +106,7 @@ CREATE TABLE events (
 );
 
 -- 8. 이벤트 카테고리 ENUM
-CREATE TYPE event_category AS ENUM ('worship', 'meeting', 'event', 'smallgroup');
+CREATE TYPE event_category AS ENUM ('worship', 'meeting', 'event', 'smallgroup', 'vehicle');
 
 -- 9. 좋아요 테이블
 CREATE TABLE likes (
