@@ -20,8 +20,10 @@ interface DonationStats {
 export default function MissionarySupport() {
   const router = useRouter()
   const [amount, setAmount] = useState('10000')
+  const MAX_DONATION_AMOUNT = 1000000 // 최대 100만원
   const [donorName, setDonorName] = useState('')
   const [donorEmail, setDonorEmail] = useState('')
+  const [showMaxAmountAlert, setShowMaxAmountAlert] = useState(false)
   const [donationStats, setDonationStats] = useState<DonationStats>({
     totalAmount: 0,
     totalCount: 0,
@@ -49,7 +51,68 @@ export default function MissionarySupport() {
     fetchDonationStats()
   }, [])
 
+  // 금액 입력 핸들러 - 실시간 검증
+  const handleAmountChange = (value: string) => {
+    // 빈 문자열이나 숫자가 아닌 경우 처리
+    if (value === '' || value === '0') {
+      setAmount(value)
+      setShowMaxAmountAlert(false)
+      return
+    }
+    
+    const numericValue = parseInt(value) || 0
+    
+    if (numericValue > MAX_DONATION_AMOUNT) {
+      // 최대 금액 초과 시 알림 표시하고 최대 금액으로 제한
+      setShowMaxAmountAlert(true)
+      setAmount(MAX_DONATION_AMOUNT.toString())
+      
+      // 3초 후 알림 숨기기
+      setTimeout(() => {
+        setShowMaxAmountAlert(false)
+      }, 3000)
+    } else {
+      setAmount(value)
+      setShowMaxAmountAlert(false)
+    }
+  }
+
+  // 키보드 이벤트 핸들러 - 화살표 키, 숫자 패드 등 제한
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const currentValue = parseInt(amount) || 0
+    
+    // 위쪽 화살표 키 (증가)
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const newValue = currentValue + 1000 // 1000원씩 증가
+      if (newValue <= MAX_DONATION_AMOUNT) {
+        setAmount(newValue.toString())
+        setShowMaxAmountAlert(false)
+      } else {
+        setShowMaxAmountAlert(true)
+        setAmount(MAX_DONATION_AMOUNT.toString())
+        setTimeout(() => setShowMaxAmountAlert(false), 3000)
+      }
+    }
+    
+    // 아래쪽 화살표 키 (감소)
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const newValue = Math.max(1000, currentValue - 1000) // 최소 1000원
+      setAmount(newValue.toString())
+      setShowMaxAmountAlert(false)
+    }
+  }
+
   const handleDonation = () => {
+    const donationAmount = parseInt(amount)
+    
+    // 최대 금액 검증
+    if (donationAmount > MAX_DONATION_AMOUNT) {
+      alert(`최대 후원 금액은 ${MAX_DONATION_AMOUNT.toLocaleString()}원입니다.`)
+      return
+    }
+    
     const params = new URLSearchParams({
       amount,
       orderName: '선교사님 후원',
@@ -57,7 +120,7 @@ export default function MissionarySupport() {
         {
           id: 'missionary-support',
           name: '선교사님 후원',
-          price: parseInt(amount),
+          price: donationAmount,
           quantity: 1,
           description: '선교사님을 위한 후원금'
         }
@@ -179,11 +242,22 @@ export default function MissionarySupport() {
             <Input
               type="number"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="10000"
               min="1000"
+              max={MAX_DONATION_AMOUNT}
               className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
             />
+            
+            {/* 최대 금액 초과 알림 */}
+            {showMaxAmountAlert && (
+              <div className="mt-2 p-3 bg-orange-500/20 border border-orange-500/50 rounded-lg">
+                <p className="text-orange-400 text-sm font-medium">
+                  ⚠️ 최대 후원 금액은 {MAX_DONATION_AMOUNT.toLocaleString()}원입니다.
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -215,7 +289,7 @@ export default function MissionarySupport() {
           <Button
             onClick={handleDonation}
             className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            disabled={!amount || parseInt(amount) < 1000}
+            disabled={!amount || parseInt(amount) < 1000 || parseInt(amount) > MAX_DONATION_AMOUNT}
           >
             <BanknotesIcon className="w-4 h-4 mr-2" />
             {parseInt(amount || '0').toLocaleString()}원 후원하기
@@ -224,6 +298,7 @@ export default function MissionarySupport() {
           <div className="text-xs text-gray-400 text-center space-y-1">
             <p>• 후원금은 선교사님의 사역에 사용됩니다</p>
             <p>• 최소 후원 금액: 1,000원</p>
+            <p>• 최대 후원 금액: {MAX_DONATION_AMOUNT.toLocaleString()}원</p>
             <p>• 후원 내역은 익명으로 처리됩니다</p>
           </div>
         </CardContent>

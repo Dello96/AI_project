@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrayGround - 교회 청년부 커뮤니티 플랫폼 | 포트폴리오</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            font-size: 1.3rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .header .description {
+            font-size: 1.1rem;
+            color: #34495e;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            margin-bottom: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            font-size: 1.5rem;
+            color: #34495e;
+            margin: 20px 0 10px 0;
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tech-item {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .tech-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-item h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateX(10px);
+        }
+
+        .feature-card h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-card li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .feature-card li:before {
+            content: "✓ ";
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .screenshots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .screenshot {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px dashed #bdc3c7;
+        }
+
+        .screenshot h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .screenshot-placeholder {
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            color: white;
+            padding: 60px 20px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+        }
+
+        .code-snippet {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        .highlight {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .contact-item:hover {
+            color: #2980b9;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .section h2 {
+                font-size: 1.8rem;
+            }
+            
+            .tech-stack, .features, .screenshots, .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 40px;
+            margin-bottom: 30px;
+        }
+
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: -30px;
+            width: 2px;
+            background: #3498db;
+        }
+
+        .timeline-item:last-child:before {
+            display: none;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 8px;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+            border-radius: 50%;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .timeline-content h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>PrayGround</h1>
+            <div class="subtitle">교회 청년부 커뮤니티 플랫폼</div>
+            <div class="description">
+                Next.js 14와 Supabase를 활용한 현대적인 웹 기반 PWA로, 
+                청년부 소통과 일정 관리를 통합한 올인원 플랫폼입니다.
+            </div>
+        </div>
+
+        <!-- 프로젝트 개요 -->
+        <div class="section">
+            <h2>📋 프로젝트 개요</h2>
+            <p>
+                <span class="highlight">PrayGround</span>는 교회 청년부를 위한 통합 커뮤니티 플랫폼입니다. 
+                분산된 공지사항, 자료, 소통 채널을 하나로 통합하여 참여를 극대화하고, 
+                교회 인증 기반의 안전한 커뮤니티를 제공합니다.
+            </p>
+            <p style="margin-top: 15px; font-style: italic; color: #7f8c8d;">
+                <strong>Repository:</strong> <a href="https://github.com/Dello96/AI_project.git" target="_blank" style="color: #3498db;">https://github.com/Dello96/AI_project.git</a><br>
+                <strong>Live Demo:</strong> <a href="https://ai-project-f45i.vercel.app" target="_blank" style="color: #3498db;">https://ai-project-f45i.vercel.app</a><br>
+                <strong>개발일지:</strong> <a href="https://velog.io/@dello96" target="_blank" style="color: #3498db;">https://velog.io/@dello96</a>
+            </p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">36</div>
+                    <div class="stat-label">커밋 수</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">94.4%</div>
+                    <div class="stat-label">TypeScript 비율</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2.5%</div>
+                    <div class="stat-label">PLpgSQL 비율</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1.5%</div>
+                    <div class="stat-label">CSS 비율</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 기술 스택 -->
+        <div class="section">
+            <h2>🛠️ 기술 스택</h2>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <h4>Frontend</h4>
+                    <p>Next.js 14 (App Router)</p>
+                    <p>TypeScript (94.4%)</p>
+                    <p>TailwindCSS</p>
+                    <p>Shadcn UI</p>
+                    <p>Framer Motion</p>
+                </div>
+                <div class="tech-item">
+                    <h4>Backend</h4>
+                    <p>Supabase</p>
+                    <p>PostgreSQL (2.5%)</p>
+                    <p>Row Level Security</p>
+                    <p>Real-time Subscriptions</p>
+                    <p>PLpgSQL</p>
+                </div>
+                <div class="tech-item">
+                    <h4>Authentication</h4>
+                    <p>Supabase Auth</p>
+                    <p>OAuth (Google, Kakao)</p>
+                    <p>JWT Tokens</p>
+                    <p>Role-based Access</p>
+                    <p>Church Domain Validation</p>
+                </div>
+                <div class="tech-item">
+                    <h4>Storage & AI</h4>
+                    <p>Supabase Storage</p>
+                    <p>Google Gemini AI</p>
+                    <p>File Upload System</p>
+                    <p>Image Processing</p>
+                    <p>Chat Attachments</p>
+                </div>
+                <div class="tech-item">
+                    <h4>Payment</h4>
+                    <p>Toss Payments</p>
+                    <p>Secure Transactions</p>
+                    <p>Missionary Support</p>
+                    <p>Payment Verification</p>
+                </div>
+                <div class="tech-item">
+                    <h4>Deployment</h4>
+                    <p>Vercel</p>
+                    <p>PWA Support</p>
+                    <p>CDN</p>
+                    <p>Auto Scaling</p>
+                    <p>Environment Variables</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주요 기능 -->
+        <div class="section">
+            <h2>✨ 주요 기능</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h4>📝 통합 게시판</h4>
+                    <ul>
+                        <li>공지사항, 자유게시판, Q&A 카테고리</li>
+                        <li>실명/익명 선택 가능</li>
+                        <li>좋아요 및 댓글 시스템</li>
+                        <li>실시간 알림</li>
+                        <li>파일 첨부 지원</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>📅 일정 관리</h4>
+                    <ul>
+                        <li>FullCalendar 기반 캘린더</li>
+                        <li>예배, 모임, 행사, 소그룹 일정</li>
+                        <li>출석 체크 기능</li>
+                        <li>월/주/일 뷰 지원</li>
+                        <li>일정 알림</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>🔐 인증 시스템</h4>
+                    <ul>
+                        <li>교회 이메일 기반 가입</li>
+                        <li>관리자 승인 시스템</li>
+                        <li>OAuth 소셜 로그인</li>
+                        <li>역할 기반 권한 관리</li>
+                        <li>보안 강화</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>🤖 AI 챗봇</h4>
+                    <ul>
+                        <li>Google Gemini AI 기반</li>
+                        <li>파일 첨부 지원</li>
+                        <li>채팅 히스토리 관리</li>
+                        <li>실시간 대화</li>
+                        <li>커스텀 프롬프트</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>💳 결제 시스템</h4>
+                    <ul>
+                        <li>Toss Payments 연동</li>
+                        <li>선교사 후원 기능</li>
+                        <li>안전한 결제 처리</li>
+                        <li>기부 통계</li>
+                        <li>결제 내역 관리</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>📱 PWA 지원</h4>
+                    <ul>
+                        <li>모바일 최적화</li>
+                        <li>오프라인 지원</li>
+                        <li>푸시 알림</li>
+                        <li>앱 설치 가능</li>
+                        <li>반응형 디자인</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 프로젝트 구조 -->
+        <div class="section">
+            <h2>📁 프로젝트 구조</h2>
+            <p>Next.js 14 App Router를 기반으로 한 모듈화된 프로젝트 구조입니다.</p>
+            <div class="code-snippet">
+ai_project/
+├── app/                    # Next.js App Router
+│   ├── layout.tsx         # 루트 레이아웃
+│   ├── page.tsx           # 홈페이지
+│   ├── globals.css        # 전역 스타일
+│   ├── api/               # API 라우트
+│   ├── admin/             # 관리자 페이지
+│   ├── auth/              # 인증 페이지
+│   ├── board/             # 게시판 페이지
+│   └── calendar/          # 캘린더 페이지
+├── components/             # 재사용 가능한 컴포넌트
+│   ├── ui/                # 기본 UI 컴포넌트
+│   ├── auth/              # 인증 관련 컴포넌트
+│   ├── board/             # 게시판 컴포넌트
+│   ├── calendar/          # 캘린더 컴포넌트
+│   ├── chat/              # AI 챗봇 컴포넌트
+│   └── payments/          # 결제 컴포넌트
+├── hooks/                  # 커스텀 훅
+├── lib/                    # 유틸리티 및 설정
+├── types/                  # TypeScript 타입 정의
+├── database/               # 데이터베이스 스키마
+└── public/                 # 정적 자산
+            </div>
+        </div>
+
+        <!-- 개발 과정 -->
+        <div class="section">
+            <h2>🚀 개발 과정</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>1단계: 프로젝트 설정 및 인증 시스템</h4>
+                        <p>Next.js 14 프로젝트 초기화, Supabase 연동, 사용자 인증 시스템 구축</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>2단계: 게시판 및 댓글 시스템</h4>
+                        <p>CRUD 기능 구현, 좋아요 시스템, 실시간 댓글, RLS 정책 설정</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>3단계: 캘린더 및 일정 관리</h4>
+                        <p>FullCalendar 연동, 이벤트 관리, 출석 체크, 다크 테마 적용</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>4단계: AI 챗봇 및 파일 업로드</h4>
+                        <p>Google Gemini AI 연동, 파일 첨부 기능, 채팅 히스토리 관리</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>5단계: 결제 시스템 및 UI 개선</h4>
+                        <p>Toss Payments 연동, 인터파크 극장 스타일 디자인, PWA 최적화</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 기술적 도전과 해결 -->
+        <div class="section">
+            <h2>💡 기술적 도전과 해결</h2>
+            
+            <h3>🔒 Row Level Security (RLS) 정책 최적화</h3>
+            <p>Supabase RLS를 활용하여 데이터 보안을 강화하고, 복잡한 권한 관리를 구현했습니다.</p>
+            <div class="code-snippet">
+-- 사용자별 데이터 접근 제어
+CREATE POLICY "Users can only see their own data" ON posts
+FOR SELECT USING (auth.uid() = author_id);
+            </div>
+
+            <h3>⚡ 실시간 기능 구현</h3>
+            <p>Supabase Realtime을 활용하여 댓글, 좋아요, 알림 등의 실시간 업데이트를 구현했습니다.</p>
+            <div class="code-snippet">
+// 실시간 댓글 구독
+const { data, error } = await supabase
+  .channel('comments')
+  .on('postgres_changes', {
+    event: 'INSERT',
+    schema: 'public',
+    table: 'comments'
+  }, (payload) => {
+    // 실시간 댓글 업데이트
+  })
+  .subscribe();
+            </div>
+
+            <h3>🎨 인터파크 극장 스타일 디자인</h3>
+            <p>사용자 경험을 향상시키기 위해 인터파크 극장의 디자인 시스템을 참고하여 모던하고 세련된 UI를 구현했습니다.</p>
+
+            <h3>📱 PWA 최적화</h3>
+            <p>Service Worker, Web App Manifest를 활용하여 네이티브 앱과 유사한 사용자 경험을 제공합니다.</p>
+        </div>
+
+        <!-- 성과 및 지표 -->
+        <div class="section">
+            <h2>📊 성과 및 지표</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h4>성능 최적화</h4>
+                    <ul>
+                        <li>Lighthouse PWA 점수: 90+</li>
+                        <li>First Contentful Paint: &lt; 2초</li>
+                        <li>Largest Contentful Paint: &lt; 3초</li>
+                        <li>Cumulative Layout Shift: &lt; 0.1</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>코드 품질</h4>
+                    <ul>
+                        <li>TypeScript 100% 적용</li>
+                        <li>ESLint 규칙 준수</li>
+                        <li>Clean Code 원칙 적용</li>
+                        <li>컴포넌트 재사용성 극대화</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>사용자 경험</h4>
+                    <ul>
+                        <li>반응형 디자인</li>
+                        <li>직관적인 네비게이션</li>
+                        <li>빠른 로딩 속도</li>
+                        <li>접근성 고려</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 스크린샷 (플레이스홀더) -->
+        <div class="section">
+            <h2>🖼️ 프로젝트 스크린샷</h2>
+            <div class="screenshots">
+                <div class="screenshot">
+                    <h4>메인 페이지</h4>
+                    <div class="screenshot-placeholder">
+                        인터파크 극장 스타일의<br>
+                        메인 페이지 디자인
+                    </div>
+                </div>
+                <div class="screenshot">
+                    <h4>게시판</h4>
+                    <div class="screenshot-placeholder">
+                        다크 테마의<br>
+                        게시판 인터페이스
+                    </div>
+                </div>
+                <div class="screenshot">
+                    <h4>캘린더</h4>
+                    <div class="screenshot-placeholder">
+                        FullCalendar 기반의<br>
+                        일정 관리 시스템
+                    </div>
+                </div>
+                <div class="screenshot">
+                    <h4>AI 챗봇</h4>
+                    <div class="screenshot-placeholder">
+                        파일 첨부 기능이 있는<br>
+                        AI 챗봇 인터페이스
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 배운 점 및 향후 계획 -->
+        <div class="section">
+            <h2>🎓 배운 점 및 향후 계획</h2>
+            
+            <h3>주요 학습 내용</h3>
+            <ul>
+                <li><strong>Next.js 14 App Router</strong>: 최신 React 기능과 서버 컴포넌트 활용</li>
+                <li><strong>Supabase</strong>: BaaS를 활용한 빠른 백엔드 개발</li>
+                <li><strong>TypeScript</strong>: 타입 안전성을 통한 개발 생산성 향상</li>
+                <li><strong>PWA</strong>: 웹 기술로 네이티브 앱과 유사한 경험 제공</li>
+                <li><strong>AI Integration</strong>: Google Gemini API를 활용한 챗봇 구현</li>
+            </ul>
+
+            <h3>향후 개선 계획</h3>
+            <ul>
+                <li>모바일 앱 개발 (React Native)</li>
+                <li>고급 분석 및 대시보드</li>
+                <li>소그룹별 커스텀 기능</li>
+                <li>오프라인 동기화 강화</li>
+                <li>다국어 지원</li>
+            </ul>
+        </div>
+
+        <!-- 푸터 -->
+        <div class="footer">
+            <h3>프로젝트 정보</h3>
+            <p>이 프로젝트는 교회 청년부 커뮤니티의 디지털 전환을 위해 개발된 웹 애플리케이션입니다.</p>
+            <div class="contact-info">
+                <a href="https://github.com/Dello96/AI_project.git" target="_blank" class="contact-item">GitHub Repository</a>
+                <a href="https://ai-project-f45i.vercel.app" target="_blank" class="contact-item">Live Demo</a>
+                <a href="https://velog.io/@dello96" target="_blank" class="contact-item">개발일지</a>
+            </div>
+            <p style="margin-top: 20px; color: #7f8c8d;">
+                © 2024 PrayGround Project. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

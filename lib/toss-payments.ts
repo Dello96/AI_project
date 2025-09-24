@@ -137,6 +137,7 @@ export function getTossPaymentsWidget(clientKey: string) {
 // 결제 요청 데이터 검증
 export function validatePaymentRequest(request: PaymentRequest): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
+  const MAX_PAYMENT_AMOUNT = 1000000 // 최대 100만원
 
   if (!request.orderId || request.orderId.trim() === '') {
     errors.push('주문 ID는 필수입니다.')
@@ -144,6 +145,11 @@ export function validatePaymentRequest(request: PaymentRequest): { isValid: bool
 
   if (!request.amount || request.amount <= 0) {
     errors.push('결제 금액은 0보다 커야 합니다.')
+  }
+
+  // 최대 금액 검증
+  if (request.amount > MAX_PAYMENT_AMOUNT) {
+    errors.push(`최대 결제 금액은 ${MAX_PAYMENT_AMOUNT.toLocaleString()}원입니다.`)
   }
 
   if (!request.orderName || request.orderName.trim() === '') {
