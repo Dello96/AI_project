@@ -7,6 +7,7 @@ import { HeartIcon, ChatBubbleLeftIcon, EyeIcon } from '@heroicons/react/24/outl
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid'
 import { Post } from '@/types'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface PosterCarouselProps {
   onPostClick?: (post: Post) => void
@@ -100,12 +101,11 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
   if (isLoading) {
     return (
       <div className="relative w-full h-96 bg-gray-900 rounded-xl overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-lg">인기 게시글을 불러오는 중...</p>
-          </div>
-        </div>
+        <LoadingSpinner 
+          message="인기 게시글을 불러오는 중..."
+          size="sm"
+          className="h-full"
+        />
       </div>
     )
   }

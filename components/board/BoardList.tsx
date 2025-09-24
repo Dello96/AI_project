@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/Input'
 import LikeButton from '@/components/ui/LikeButton'
 import { ListSkeleton } from '@/components/ui/Skeleton'
 import { postService } from '@/lib/database'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface BoardListProps {
   onWritePost: () => void
@@ -171,22 +172,10 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center space-y-6">
-          {/* 로딩 메시지 */}
-          <div className="space-y-3">
-            <h2 className="text-3xl font-bold text-white mb-2">
-              잠시만 기다려주세요
-            </h2>
-            <p className="text-gray-400 text-lg">
-              게시글을 불러오는 중입니다...
-            </p>
-          </div>
-          
-          {/* Circle 로딩 애니메이션만 */}
-          <div className="w-24 h-24 border-4 border-gray-700 border-t-orange-500 rounded-full animate-spin mx-auto"></div>
-        </div>
-      </div>
+      <LoadingSpinner 
+        message="잠시만 기다려주세요"
+        subMessage="게시글을 불러오는 중입니다..."
+      />
     )
   }
 

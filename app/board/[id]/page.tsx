@@ -8,6 +8,7 @@ import PostDetail from '@/components/board/PostDetail'
 import { Post } from '@/types'
 import { postService } from '@/lib/database'
 import { Button } from '@/components/ui/Button'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 function PostDetailContent() {
   const router = useRouter()
@@ -71,44 +72,10 @@ function PostDetailContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center space-y-6">
-          {/* 로딩 메시지 - 상단으로 이동 */}
-          <div className="space-y-3">
-            <h2 className="text-3xl font-bold text-white mb-2">
-              잠시만 기다려주세요
-            </h2>
-            <p className="text-gray-400 text-lg">
-              게시글을 불러오는 중입니다...
-            </p>
-          </div>
-          
-          {/* 메인 로딩 애니메이션 */}
-          <div className="relative">
-            {/* 단일 링 */}
-            <div className="w-24 h-24 border-4 border-gray-700 border-t-orange-500 rounded-full animate-spin mx-auto"></div>
-            
-            {/* 중앙 점 */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
-          </div>
-          
-          {/* 점 애니메이션 */}
-          <div className="flex justify-center space-x-1">
-            <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-          </div>
-          
-          {/* 극장 스타일 장식 요소 */}
-          <div className="flex justify-center space-x-4 mt-6">
-            <div className="w-1 h-1 bg-orange-500 rounded-full animate-pulse"></div>
-            <div className="w-1 h-1 bg-orange-500 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
-            <div className="w-1 h-1 bg-orange-500 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
-            <div className="w-1 h-1 bg-orange-500 rounded-full animate-pulse" style={{ animationDelay: '600ms' }}></div>
-            <div className="w-1 h-1 bg-orange-500 rounded-full animate-pulse" style={{ animationDelay: '800ms' }}></div>
-          </div>
-        </div>
-      </div>
+      <LoadingSpinner 
+        message="잠시만 기다려주세요"
+        subMessage="게시글을 불러오는 중입니다..."
+      />
     )
   }
 

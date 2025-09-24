@@ -22,6 +22,7 @@ import { Event, CalendarView, eventCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useRealtimeEvents } from '@/hooks/useRealtimeEvents'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { eventService } from '@/lib/database'
 
 interface CalendarProps {
@@ -234,9 +235,12 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <LoadingSpinner 
+        message="잠시만 기다려주세요"
+        subMessage="일정을 불러오는 중입니다..."
+        size="sm"
+        className="py-12"
+      />
     )
   }
 

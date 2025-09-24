@@ -9,6 +9,7 @@ import AuthModal from '@/components/auth/AuthModal'
 import KakaoLoginButton from '@/components/auth/KakaoLoginButton'
 import Logo from '@/components/ui/Logo'
 import { useAuth } from '@/hooks/useAuth'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 function LoginContent() {
   const router = useRouter()
@@ -117,15 +118,11 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-autumn-cream flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-autumn-coral rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">로딩 중...</h2>
-          <p className="text-gray-600">페이지를 불러오고 있습니다.</p>
-        </div>
-      </div>
+      <LoadingSpinner 
+        message="로딩 중..."
+        subMessage="페이지를 불러오고 있습니다."
+        className="bg-autumn-cream"
+      />
     }>
       <LoginContent />
     </Suspense>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { HeartIcon, BanknotesIcon, GiftIcon } from '@heroicons/react/24/outline'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface DonationStats {
   totalAmount: number
@@ -166,10 +167,11 @@ export default function MissionarySupport() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-              <p className="mt-2 text-gray-300">기부 현황을 불러오는 중...</p>
-            </div>
+            <LoadingSpinner 
+              message="기부 현황을 불러오는 중..."
+              size="sm"
+              className="py-8"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
