@@ -8,6 +8,7 @@ import { GlobalSearch } from '@/components/search/GlobalSearch'
 import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import MissionarySupport from '@/components/payments/MissionarySupport'
 import PosterCarousel from '@/components/home/PosterCarousel'
+import NextScriptKakaoMap from '@/components/map/NextScriptKakaoMap'
 import { Post } from '@/types'
 
 export default function Home() {
@@ -65,6 +66,44 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 교회 위치 - 카카오맵 */}
+      <section className="relative py-20 bg-gradient-to-br from-gray-800 via-black to-gray-900">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,107,53,0.05)_0%,transparent_70%)]" />
+        
+        <div className="relative z-10 container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              📍 <span className="text-orange-500">교회 위치</span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              떨림과 설렘의 갱신공동체 <span className="text-orange-400 font-semibold">잠실중앙교회</span>를 찾아보세요
+            </p>
+            
+            {/* 장식적 요소 */}
+            <div className="mt-8 flex justify-center">
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                <span className="text-orange-400 font-medium">Church Location</span>
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="max-w-4xl mx-auto"
+          >
+            <NextScriptKakaoMap className="w-full" />
+          </motion.div>
+        </div>
+      </section>
 
       {/* 선교사님 후원 - 극장 스타일 */}
       <section className="relative py-20 bg-gradient-to-r from-gray-900 via-black to-gray-900">

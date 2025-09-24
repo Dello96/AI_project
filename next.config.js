@@ -19,6 +19,20 @@ const nextConfig = {
       },
     ],
   },
+  // CSP 설정 제거 (개발 환경에서만)
+  // async headers() {
+  //   return [
+  //     {
+  //       source: '/(.*)',
+  //       headers: [
+  //         {
+  //           key: 'Content-Security-Policy',
+  //           value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.daumcdn.net https://t1.kakaocdn.net; connect-src 'self' https://dapi.kakao.com https://t1.daumcdn.net; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https:;",
+  //         },
+  //       ],
+  //     },
+  //   ]
+  // },
   experimental: {
     optimizePackageImports: ['@heroicons/react', 'framer-motion'],
   },
