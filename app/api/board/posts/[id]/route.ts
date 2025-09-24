@@ -28,16 +28,14 @@ export async function GET(
       )
     }
 
-    // 게시글 조회 (삭제되지 않은 게시글만)
+    // 게시글 조회
     const { data: post, error } = await supabase
       .from('posts')
       .select(`
         *,
-        author:author_id(id, name, role),
         comments:comments(id, content, author_id, is_anonymous, created_at)
       `)
       .eq('id', id)
-      .is('deleted_at', null)
       .single()
 
     if (error || !post) {
@@ -215,13 +213,10 @@ export async function DELETE(
       )
     }
 
-    // 소프트 삭제 (deleted_at 필드 설정)
+    // 게시글 삭제 (실제 삭제)
     const { error: deleteError } = await supabase
       .from('posts')
-      .update({ 
-        deleted_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .delete()
       .eq('id', id)
 
     if (deleteError) {

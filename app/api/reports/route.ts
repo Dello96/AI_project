@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
         .from('posts')
         .select('id')
         .eq('id', targetId)
-        .is('deleted_at', null)
         .single()
       targetExists = !!post
     } else if (targetType === 'comment') {
@@ -81,7 +80,6 @@ export async function POST(request: NextRequest) {
         .from('comments')
         .select('id')
         .eq('id', targetId)
-        .is('deleted_at', null)
         .single()
       targetExists = !!comment
     }

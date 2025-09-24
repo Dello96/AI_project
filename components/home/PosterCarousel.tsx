@@ -76,8 +76,8 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
 
   const handlePostClick = (post: Post) => {
     console.log('포스터 클릭:', post.id, post.title)
-    // 게시글 상세페이지로 직접 이동
-    router.push(`/board/${post.id}`)
+    // 게시판으로 이동
+    router.push('/board')
   }
 
   const getCategoryColor = (category: string) => {
@@ -148,9 +148,12 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-70" />
             
             {/* 포스터 영역 (왼쪽) */}
-            <div className="absolute left-4 top-4 bottom-4 w-40 sm:w-48 flex items-center">
+            <div 
+              className="absolute left-4 top-4 bottom-4 w-40 sm:w-48 flex items-center cursor-pointer"
+              onClick={() => handlePostClick(currentPost)}
+            >
               <div 
-                className="w-full h-full rounded-lg shadow-2xl flex items-center justify-center text-white font-bold text-lg sm:text-xl"
+                className="w-full h-full rounded-lg shadow-2xl flex items-center justify-center text-white font-bold text-lg sm:text-xl hover:scale-105 transition-transform duration-300"
                 style={{
                   background: `linear-gradient(135deg, ${getCategoryColor(currentPost.category)}, ${getCategoryColor(currentPost.category)}dd)`
                 }}
@@ -245,7 +248,7 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
                       handlePostClick(currentPost)
                     }}
                   >
-                    게시글 보기
+                    게시판으로 이동하기
                   </button>
                 </div>
               </motion.div>

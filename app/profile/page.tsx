@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   UserCircleIcon,
@@ -11,17 +11,27 @@ import {
   PencilIcon,
   CheckIcon,
   XMarkIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  DocumentTextIcon,
+  HeartIcon,
+  CalendarDaysIcon,
+  ChatBubbleLeftIcon
 } from '@heroicons/react/24/outline'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAuth } from '@/hooks/useAuth'
-import { useEffect } from 'react'
 
 export default function ProfilePage() {
   const { user, isLoading, signOut } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
+  const [stats, setStats] = useState({
+    postCount: 0,
+    totalLikes: 0,
+    eventCount: 0,
+    commentCount: 0
+  })
+  const [statsLoading, setStatsLoading] = useState(true)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -41,6 +51,68 @@ export default function ProfilePage() {
         role: user.role || 'user'
       })
     }
+  }, [user])
+
+  // 사용자 통계 데이터 가져오기
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!user) {
+        console.log('사용자 통계 조회 - 사용자가 없음')
+        return
+      }
+
+      try {
+        console.log('사용자 통계 조회 시작:', { userId: user.id, email: user.email })
+        setStatsLoading(true)
+        const response = await fetch('/api/users/stats')
+        
+        console.log('사용자 통계 API 응답:', { 
+          status: response.status, 
+          ok: response.ok 
+        })
+        
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('API 오류:', errorData)
+          
+          // 인증 오류인 경우 로그인 페이지로 리다이렉트
+          if (response.status === 401) {
+            alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.')
+            window.location.href = '/login'
+            return
+          }
+          
+          throw new Error(`HTTP ${response.status}: ${errorData.error || 'Unknown error'}`)
+        }
+        
+        const data = await response.json()
+        console.log('통계 데이터:', data)
+        
+        if (data.success && data.data) {
+          setStats(data.data)
+        } else {
+          console.error('통계 데이터 조회 실패:', data.error)
+        }
+      } catch (error) {
+        console.error('사용자 통계 조회 오류:', error)
+      } finally {
+        setStatsLoading(false)
+      }
+    }
+
+    fetchUserStats()
+  }, [user])
+
+  // 페이지가 포커스될 때 통계 새로고침
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        refreshStats()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
   }, [user])
 
   const roleLabels = {
@@ -85,6 +157,31 @@ export default function ProfilePage() {
         console.error('로그아웃 오류:', error)
         alert('로그아웃 중 오류가 발생했습니다.')
       }
+    }
+  }
+
+  const refreshStats = async () => {
+    if (!user) return
+
+    try {
+      setStatsLoading(true)
+      const response = await fetch('/api/users/stats')
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.success && data.data) {
+        setStats(data.data)
+      } else {
+        console.error('통계 데이터 조회 실패:', data.error)
+      }
+    } catch (error) {
+      console.error('사용자 통계 조회 오류:', error)
+    } finally {
+      setStatsLoading(false)
     }
   }
 
@@ -300,25 +397,77 @@ export default function ProfilePage() {
           </div>
 
           {/* 통계 카드 */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-autumn-coral mb-2">12</div>
-                <div className="text-sm text-gray-600">작성한 게시글</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-autumn-gold mb-2">45</div>
-                <div className="text-sm text-gray-600">받은 좋아요</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-autumn-rust mb-2">8</div>
-                <div className="text-sm text-gray-600">참여한 이벤트</div>
-              </CardContent>
-            </Card>
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">활동 통계</h2>
+              <Button
+                onClick={refreshStats}
+                disabled={statsLoading}
+                variant="outline"
+                size="sm"
+                className="flex items-center"
+              >
+                <svg 
+                  className={`w-4 h-4 mr-2 ${statsLoading ? 'animate-spin' : ''}`} 
+                  fill="none" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                  />
+                </svg>
+                {statsLoading ? '새로고침 중...' : '새로고침'}
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="flex items-center justify-center mb-3">
+                    <DocumentTextIcon className="w-8 h-8 text-autumn-coral" />
+                  </div>
+                  <div className="text-2xl font-bold text-autumn-coral mb-2">
+                    {statsLoading ? '...' : stats.postCount}
+                  </div>
+                  <div className="text-sm text-gray-600">작성한 게시글</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="flex items-center justify-center mb-3">
+                    <HeartIcon className="w-8 h-8 text-red-500" />
+                  </div>
+                  <div className="text-2xl font-bold text-red-500 mb-2">
+                    {statsLoading ? '...' : stats.totalLikes}
+                  </div>
+                  <div className="text-sm text-gray-600">받은 좋아요</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="flex items-center justify-center mb-3">
+                    <CalendarDaysIcon className="w-8 h-8 text-autumn-gold" />
+                  </div>
+                  <div className="text-2xl font-bold text-autumn-gold mb-2">
+                    {statsLoading ? '...' : stats.eventCount}
+                  </div>
+                  <div className="text-sm text-gray-600">참여한 이벤트</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="flex items-center justify-center mb-3">
+                    <ChatBubbleLeftIcon className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <div className="text-2xl font-bold text-blue-500 mb-2">
+                    {statsLoading ? '...' : stats.commentCount}
+                  </div>
+                  <div className="text-sm text-gray-600">작성한 댓글</div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </motion.div>
       </div>

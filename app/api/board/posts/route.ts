@@ -287,15 +287,21 @@ export async function GET(request: NextRequest) {
       query = query.or(`title.ilike.%${search.trim()}%,content.ilike.%${search.trim()}%`)
     }
     
-    // 정렬
+    // 정렬 - 공지사항을 항상 최상단에 고정
     switch (sortBy) {
       case 'latest':
+        // 1순위: 공지사항 여부 (공지사항이 먼저), 2순위: 최신순
+        query = query.order('category', { ascending: true })
         query = query.order('created_at', { ascending: false })
         break
       case 'popular':
+        // 1순위: 공지사항 여부 (공지사항이 먼저), 2순위: 인기순
+        query = query.order('category', { ascending: true })
         query = query.order('like_count', { ascending: false })
         break
       case 'views':
+        // 1순위: 공지사항 여부 (공지사항이 먼저), 2순위: 조회수순
+        query = query.order('category', { ascending: true })
         query = query.order('view_count', { ascending: false })
         break
     }
@@ -391,10 +397,34 @@ export async function GET(request: NextRequest) {
       }
     }))
     
+    // 공지사항을 최상단으로 정렬 (클라이언트 사이드 추가 정렬)
+    const sortedPosts = formattedPosts.sort((a, b) => {
+      // 공지사항이 아닌 경우는 1, 공지사항인 경우는 0으로 정렬
+      const aIsNotice = a.category === 'notice' ? 0 : 1
+      const bIsNotice = b.category === 'notice' ? 0 : 1
+      
+      // 공지사항 우선 정렬
+      if (aIsNotice !== bIsNotice) {
+        return aIsNotice - bIsNotice
+      }
+      
+      // 공지사항 내에서는 원래 정렬 기준 유지
+      switch (sortBy) {
+        case 'latest':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        case 'popular':
+          return (b.likeCount || 0) - (a.likeCount || 0)
+        case 'views':
+          return (b.viewCount || 0) - (a.viewCount || 0)
+        default:
+          return 0
+      }
+    })
+
     return NextResponse.json({
       success: true,
       data: {
-        posts: formattedPosts,
+        posts: sortedPosts,
         pagination: {
           currentPage: page,
           totalPages,

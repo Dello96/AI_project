@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
         .from('posts')
         .select('id')
         .eq('id', targetId)
-        .is('deleted_at', null)
         .single()
 
       if (postError || !post) {
@@ -56,7 +55,6 @@ export async function POST(request: NextRequest) {
         .from('comments')
         .select('id')
         .eq('id', targetId)
-        .is('deleted_at', null)
         .single()
 
       if (commentError || !comment) {
