@@ -116,14 +116,14 @@ class FileUploadService {
           console.error('파일 업로드 오류 상세:', {
             error,
             message: error.message,
-            statusCode: error.statusCode,
-            errorCode: error.error,
+            statusCode: (error as any).statusCode || 'unknown',
+            errorCode: (error as any).error || 'unknown',
             bucket: this.bucket,
             filePath
           })
           return {
             success: false,
-            error: `파일 ${file.name} 업로드 실패: ${error.message} (코드: ${error.error})`
+            error: `파일 ${file.name} 업로드 실패: ${error.message} (코드: ${(error as any).error || 'unknown'})`
           }
         }
 

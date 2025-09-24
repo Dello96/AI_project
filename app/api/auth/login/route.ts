@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       logAuthAction({
         email,
         action: 'login_failure',
-        ipAddress: request.ip || request.headers.get('x-forwarded-for') || 'unknown',
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
         details: { reason: 'rate_limited', blockedUntil: blockedUntil.toISOString() }
       })
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       logAuthAction({
         email,
         action: 'login_failure',
-        ipAddress: request.ip || request.headers.get('x-forwarded-for') || 'unknown',
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
         details: { reason: authError.message }
       })
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       logAuthAction({
         email,
         action: 'login_failure',
-        ipAddress: request.ip || request.headers.get('x-forwarded-for') || 'unknown',
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
         details: { reason: 'no_user_returned' }
       })
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       logAuthAction({
         email,
         action: 'login_failure',
-        ipAddress: request.ip || request.headers.get('x-forwarded-for') || 'unknown',
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
         details: { reason: 'not_approved' }
       })
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
     logAuthAction({
       email,
       action: 'login_success',
-      ipAddress: request.ip || request.headers.get('x-forwarded-for') || 'unknown',
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown',
       details: { userId: authData.user.id, role: userRole }
     })

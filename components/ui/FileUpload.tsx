@@ -237,7 +237,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      {React.createElement(getFileIcon(file), { className: 'w-12 h-12 text-gray-400' })}
+                      {React.createElement(getFileIcon(file.file), { className: 'w-12 h-12 text-gray-400' })}
                     </div>
                   )}
                 </div>

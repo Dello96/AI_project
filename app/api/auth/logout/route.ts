@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       logAuthAction({
         email: 'unknown',
         action: 'logout',
-        ipAddress: request.ip || request.headers.get('x-forwarded-for') || 'unknown',
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
         details: { reason: 'user_logout', tokenRevoked: true }
       })
