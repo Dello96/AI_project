@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import kakaoMapManager from '@/lib/kakaoMapManager'
 
 interface SimpleKakaoMapProps {
   className?: string
@@ -18,16 +19,22 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [debugInfo, setDebugInfo] = useState<string[]>([])
+  const [isMounted, setIsMounted] = useState(false)
 
   const addDebugInfo = (info: string) => {
     console.log('SimpleKakaoMap Debug:', info)
     setDebugInfo(prev => [...prev, `${new Date().toLocaleTimeString()}: ${info}`])
   }
 
+  // 하이드레이션 안전성을 위한 마운트 확인
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const apiKey = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY
 
   useEffect(() => {
-    addDebugInfo('컴포넌트 마운트됨')
+    addDebugInfo('SimpleKakaoMap: 컴포넌트 마운트됨')
     addDebugInfo(`API 키: ${apiKey ? `설정됨 (길이: ${apiKey.length})` : '설정되지 않음'}`)
     addDebugInfo(`API 키 앞 10자리: ${apiKey?.substring(0, 10)}...`)
     addDebugInfo(`환경: ${process.env.NODE_ENV}`)
@@ -39,52 +46,46 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
       return
     }
 
-    // 기존 스크립트 제거
-    const existingScript = document.querySelector('script[src*="dapi.kakao.com"]')
-    if (existingScript) {
-      existingScript.remove()
-      addDebugInfo('기존 카카오맵 스크립트 제거됨')
-    }
-
-    // 스크립트 동적 로드
-    const script = document.createElement('script')
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`
-    script.async = true
-    script.defer = true
-
-    script.onload = () => {
-      addDebugInfo('카카오맵 스크립트 로드 완료')
-      
-      if (window.kakao && window.kakao.maps) {
-        addDebugInfo('카카오맵 객체 확인됨')
+    const loadMap = () => {
+      try {
+        addDebugInfo('SimpleKakaoMap: 카카오맵 로드 시작')
+        addDebugInfo(`SimpleKakaoMap: window.kakao 상태 - ${!!window.kakao}`)
+        addDebugInfo(`SimpleKakaoMap: window.kakao.maps 상태 - ${!!(window.kakao && window.kakao.maps)}`)
         
-        window.kakao.maps.load(() => {
-          addDebugInfo('카카오맵 로드 콜백 실행')
-          createMap()
-        })
-      } else {
-        addDebugInfo('카카오맵 객체를 찾을 수 없음')
-        setError('카카오맵 객체를 찾을 수 없습니다.')
+        // 카카오맵이 로드되었는지 확인
+        if (window.kakao && window.kakao.maps) {
+          addDebugInfo('SimpleKakaoMap: 카카오맵 기본 로드 완료')
+          
+          // LatLng 생성자가 없으면 수동으로 로드
+          if (!window.kakao.maps.LatLng) {
+            addDebugInfo('SimpleKakaoMap: LatLng 생성자가 없어서 수동 로드 시도')
+            window.kakao.maps.load(() => {
+              addDebugInfo('SimpleKakaoMap: 수동 로드 완료')
+              addDebugInfo(`SimpleKakaoMap: LatLng 상태 - ${!!window.kakao.maps.LatLng}`)
+              createMap()
+            })
+          } else {
+            addDebugInfo('SimpleKakaoMap: LatLng 생성자 사용 가능')
+            createMap()
+          }
+        } else {
+          addDebugInfo('SimpleKakaoMap: 카카오맵이 로드되지 않음')
+          // 카카오맵이 로드되지 않았으면 잠시 후 다시 시도
+          setTimeout(() => {
+            addDebugInfo('SimpleKakaoMap: 재시도 중...')
+            loadMap()
+          }, 1000)
+        }
+      } catch (error) {
+        addDebugInfo(`SimpleKakaoMap: 카카오맵 로드 실패 - ${error}`)
+        addDebugInfo(`SimpleKakaoMap: window.kakao 상태 - ${!!window.kakao}`)
+        addDebugInfo(`SimpleKakaoMap: window.kakao.maps 상태 - ${!!(window.kakao && window.kakao.maps)}`)
+        addDebugInfo(`SimpleKakaoMap: window.kakao.maps.LatLng 상태 - ${!!(window.kakao && window.kakao.maps && window.kakao.maps.LatLng)}`)
+        setError(`카카오맵을 로드할 수 없습니다: ${error}`)
       }
     }
 
-    script.onerror = (e) => {
-      addDebugInfo(`스크립트 로드 실패: ${e}`)
-      addDebugInfo(`API 키: ${apiKey?.substring(0, 10)}...`)
-      addDebugInfo(`현재 도메인: ${window.location.hostname}`)
-      setError('카카오맵 스크립트를 로드할 수 없습니다. API 키 도메인 설정을 확인해주세요.')
-    }
-
-    addDebugInfo('스크립트 추가 중...')
-    document.head.appendChild(script)
-
-    return () => {
-      const script = document.querySelector('script[src*="dapi.kakao.com"]')
-      if (script) {
-        script.remove()
-        addDebugInfo('컴포넌트 언마운트 시 스크립트 제거됨')
-      }
-    }
+    loadMap()
   }, [apiKey])
 
   const createMap = () => {
@@ -94,56 +95,46 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
       return
     }
 
-    if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
-      addDebugInfo('카카오맵 API가 완전히 로드되지 않음')
-      setError('카카오맵 API가 완전히 로드되지 않았습니다.')
-      return
-    }
-
     try {
-      addDebugInfo('지도 생성 시작')
+      addDebugInfo('SimpleKakaoMap: 지도 생성 시작')
       
-      const { LatLng, Map, Marker } = window.kakao.maps
-      
-      if (typeof LatLng !== 'function' || typeof Map !== 'function' || typeof Marker !== 'function') {
-        throw new Error('카카오맵 핵심 생성자를 찾을 수 없습니다.')
+      // 지도 옵션 설정 (공식 코드 방식)
+      const mapOption = {
+        center: new window.kakao.maps.LatLng(37.5179242320345, 127.100823924714), // 지도의 중심좌표
+        level: 3 // 지도의 확대 레벨
       }
       
-      // 지도 생성
-      const map = new Map(mapRef.current, {
-        center: new LatLng(37.5179242320345, 127.100823924714),
-        level: 3
+      // 지도를 생성합니다 (공식 코드 방식)
+      const map = new window.kakao.maps.Map(mapRef.current, mapOption)
+      addDebugInfo('SimpleKakaoMap: 지도 생성 완료')
+      
+      // 마커를 클릭하면 장소명을 표출할 인포윈도우 입니다 (공식 코드 방식)
+      const infowindow = new window.kakao.maps.InfoWindow({ zIndex: 1 })
+      
+      // 마커를 생성하고 지도에 표시합니다 (공식 코드 방식)
+      const marker = new window.kakao.maps.Marker({
+        map: map,
+        position: new window.kakao.maps.LatLng(37.5179242320345, 127.100823924714)
       })
       
-      addDebugInfo('지도 생성 완료')
+      addDebugInfo('SimpleKakaoMap: 마커 생성 완료')
       
-      // 마커 생성
-      const marker = new Marker({
-        position: new LatLng(37.5179242320345, 127.100823924714)
-      })
-      
-      marker.setMap(map)
-      addDebugInfo('마커 생성 완료')
-      
-      // 인포윈도우 생성
-      const infowindow = new window.kakao.maps.InfoWindow({
-        content: `
-          <div style="padding: 10px; min-width: 200px;">
-            <h3 style="margin: 0 0 5px 0; font-size: 16px; font-weight: bold; color: #333;">
+      // 마커에 클릭이벤트를 등록합니다 (공식 코드 방식)
+      window.kakao.maps.event.addListener(marker, 'click', function() {
+        // 마커를 클릭하면 장소명이 인포윈도우에 표출됩니다 (공식 코드 방식)
+        infowindow.setContent(`
+          <div style="padding:5px;font-size:12px;">
+            <h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: bold; color: #333;">
               잠실중앙교회
             </h3>
-            <p style="margin: 0 0 5px 0; font-size: 14px; color: #666;">
+            <p style="margin: 0 0 3px 0; font-size: 12px; color: #666;">
               서울특별시 송파구 올림픽로35길 118
             </p>
-            <p style="margin: 0; font-size: 14px; color: #666;">
+            <p style="margin: 0; font-size: 12px; color: #666;">
               📞 02-423-5303
             </p>
           </div>
-        `
-      })
-
-      // 마커 클릭 시 인포윈도우 표시
-      window.kakao.maps.event.addListener(marker, 'click', () => {
+        `)
         infowindow.open(map, marker)
       })
 
@@ -155,6 +146,20 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
       addDebugInfo(`지도 생성 오류: ${err.message || err}`)
       setError(`지도 생성 오류: ${err.message || '알 수 없는 오류'}`)
     }
+  }
+
+  // 하이드레이션 안전성을 위한 조건부 렌더링
+  if (!isMounted) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="w-full h-80 rounded-lg shadow-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-2"></div>
+            <div className="text-sm text-gray-500">지도를 로딩 중...</div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

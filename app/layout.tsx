@@ -6,6 +6,7 @@ import Footer from '@/components/navigation/Footer'
 import ChatBot from '@/components/chat/ChatBot'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { AlertProvider } from '@/contexts/AlertContext'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'PrayGround - 교회 청년부를 위한 올인원 플랫폼',
@@ -41,6 +42,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={inter.className}>
+        <Script
+          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services&autoload=false`}
+          strategy="beforeInteractive"
+        />
         <AuthProvider>
           <AlertProvider>
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex flex-col">

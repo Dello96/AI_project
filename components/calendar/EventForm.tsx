@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { eventService } from '@/lib/database'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import LocationSearch from './LocationSearch'
 
 interface EventFormProps {
   isOpen: boolean
@@ -42,6 +43,13 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showLocationSearch, setShowLocationSearch] = useState(false)
+  const [selectedLocation, setSelectedLocation] = useState<{
+    name: string
+    address: string
+    lat: number
+    lng: number
+  } | null>(null)
 
   useEffect(() => {
             if (initialData) {
@@ -226,6 +234,26 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
     return `${hours}:${minutes}`
   }
 
+  // 위치 선택 핸들러
+  const handleLocationSelect = (location: {
+    name: string
+    address: string
+    lat: number
+    lng: number
+  }) => {
+    setSelectedLocation(location)
+    setFormData(prev => ({
+      ...prev,
+      location: location.name
+    }))
+    setShowLocationSearch(false)
+  }
+
+  // 위치 검색 토글
+  const toggleLocationSearch = () => {
+    setShowLocationSearch(!showLocationSearch)
+  }
+
   if (!isOpen) return null
 
   return (
@@ -387,19 +415,67 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
 
             {/* 위치 */}
             <div className="space-y-2">
-              <label htmlFor="location" className="text-sm font-medium text-secondary-700">
-                위치
-              </label>
-              <div className="relative">
-                <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  placeholder="장소를 입력하세요"
-                  className="pl-10"
-                />
+              <div className="flex items-center justify-between">
+                <label htmlFor="location" className="text-sm font-medium text-secondary-700">
+                  위치
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleLocationSearch}
+                  className="text-xs"
+                >
+                  {showLocationSearch ? '직접 입력' : '지도에서 검색'}
+                </Button>
               </div>
+              
+              {showLocationSearch ? (
+                <LocationSearch
+                  onLocationSelect={handleLocationSelect}
+                  initialValue={formData.location}
+                  placeholder="장소를 검색하세요"
+                />
+              ) : (
+                <div className="relative">
+                  <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    placeholder="장소를 입력하세요"
+                    className="pl-10"
+                  />
+                </div>
+              )}
+              
+              {selectedLocation && (
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-start gap-2">
+                    <MapPinIcon className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm text-blue-900">
+                        {selectedLocation.name}
+                      </div>
+                      <div className="text-xs text-blue-700 mt-1">
+                        {selectedLocation.address}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedLocation(null)
+                        setFormData(prev => ({ ...prev, location: '' }))
+                      }}
+                      className="text-blue-500 hover:text-blue-700 p-1 h-auto"
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 참석 인원 설정 */}
