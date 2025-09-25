@@ -119,7 +119,7 @@ export const eventCategories = [
 export const postCategories = [
   { value: 'notice', label: '공지사항', color: 'bg-red-500' },
   { value: 'free', label: '자유게시판', color: 'bg-blue-500' },
-  { value: 'qna', label: 'Q&A', color: 'bg-green-500' },
+  { value: 'qna', label: 'Q&A', color: 'bg-green-500' }
 ];
 
 // 사용자 역할 타입

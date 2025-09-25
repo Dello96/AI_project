@@ -28,7 +28,7 @@ interface BoardListProps {
 const categoryIcons = {
   notice: DocumentTextIcon,
   free: ChatBubbleLeftRightIcon,
-  qa: QuestionMarkCircleIcon
+  qna: QuestionMarkCircleIcon
 }
 
 const categoryLabels = {

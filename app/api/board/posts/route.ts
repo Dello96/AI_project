@@ -27,12 +27,23 @@ async function getUserFromAuthHeader(request: NextRequest) {
   }
 }
 
+// 카테고리 매핑 함수 - 데이터베이스 ENUM과 호환되도록 처리
+function mapCategoryToDatabase(category: string): string {
+  const categoryMap: Record<string, string> = {
+    'notice': 'notice',
+    'free': 'free',
+    'qna': 'qna'  // qna가 ENUM에 없으면 'free'로 매핑
+  }
+  
+  return categoryMap[category] || 'free'
+}
+
 // 게시글 생성 스키마
 const CreatePostSchema = z.object({
   title: z.string().min(2, '제목은 2자 이상 입력해주세요.').max(100, '제목은 100자 이하로 입력해주세요.'),
   content: z.string().min(10, '내용은 10자 이상 입력해주세요.').max(5000, '내용은 5000자 이하로 입력해주세요.'),
   category: z.enum(['notice', 'free', 'qna'], { message: '카테고리를 선택해주세요.' }),
-  isAnonymous: z.boolean().default(true),
+  isAnonymous: z.boolean().default(false), // 실명 작성이 기본값
   authorId: z.string().optional(),
   attachments: z.array(z.string()).optional()
 })
@@ -48,11 +59,17 @@ const GetPostsSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== 게시글 작성 API 시작 ===')
+    console.log('요청 URL:', request.url)
+    console.log('요청 메서드:', request.method)
+    console.log('요청 헤더:', Object.fromEntries(request.headers.entries()))
+    
     // 요청 본문 파싱
     const body = await request.json()
-    console.log('게시글 작성 요청:', body)
+    console.log('게시글 작성 요청 본문:', body)
     
     const parsed = CreatePostSchema.safeParse(body)
+    console.log('스키마 검증 결과:', { success: parsed.success, data: parsed.data })
     
     if (!parsed.success) {
       console.error('게시글 작성 스키마 검증 실패:', parsed.error.issues)
@@ -63,6 +80,15 @@ export async function POST(request: NextRequest) {
     }
     
     const { title, content, category, isAnonymous, attachments, authorId } = parsed.data
+    
+    console.log('게시글 작성 데이터:', {
+      title,
+      content: content.substring(0, 100) + '...',
+      category,
+      isAnonymous,
+      attachments: attachments?.length || 0,
+      authorId
+    })
     
     // 콘텐츠 정화
     const sanitizedTitle = sanitizeTitle(title)
@@ -103,49 +129,69 @@ export async function POST(request: NextRequest) {
       
       const supabase = createServerSupabaseClient()
       
-      // Authorization 헤더에서 사용자 정보 가져오기 시도
-      let user = await getUserFromAuthHeader(request)
+      // 인증 처리 - 안전한 방식으로 개선
+      let user = null
       
-      // Authorization 헤더가 없으면 쿠키에서 세션 확인
+      // 1차: Authorization 헤더에서 사용자 정보 가져오기
+      try {
+        user = await getUserFromAuthHeader(request)
+        console.log('헤더에서 사용자 정보:', user ? { id: user.id, email: user.email } : null)
+      } catch (error) {
+        console.log('헤더 인증 실패:', error)
+      }
+      
+      // 2차: 헤더에서 가져오지 못했으면 쿠키 세션 확인
       if (!user) {
-        const { data: { user: sessionUser }, error: authError } = await supabase.auth.getUser()
-        if (authError || !sessionUser) {
-          return NextResponse.json(
-            { error: '인증이 필요합니다.' },
-            { status: 401 }
-          )
+        try {
+          const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
+          if (sessionError) {
+            console.log('세션 인증 오류:', sessionError)
+          } else if (sessionUser) {
+            user = sessionUser
+            console.log('세션에서 사용자 정보:', { id: user.id, email: user.email })
+          }
+        } catch (error) {
+          console.log('세션 인증 실패:', error)
         }
-        user = sessionUser
+      }
+      
+      if (!user) {
+        console.error('모든 인증 방법 실패')
+        return NextResponse.json(
+          { error: '게시글 작성은 로그인이 필요합니다.' },
+          { status: 401 }
+        )
       }
 
-      // 사용자 프로필 확인 (실명 작성 시 필요)
-      let authorName = '익명'
-      if (!isAnonymous) {
-        const { data: userProfile } = await supabase
+      // 카테고리 매핑과 사용자 프로필 조회를 병렬로 처리
+      const [mappedCategory, userProfileResult] = await Promise.all([
+        Promise.resolve(mapCategoryToDatabase(category)),
+        supabase
           .from('user_profiles')
           .select('name')
           .eq('id', user.id)
           .single()
-        
-        authorName = userProfile?.name || user.email?.split('@')[0] || '알 수 없음'
-      }
+      ])
       
+      const authorName = userProfileResult.data?.name || user.email?.split('@')[0] || '알 수 없음'
+      
+      // 게시글 생성 (단일 쿼리로 최적화)
       const { data: post, error: createError } = await supabase
         .from('posts')
         .insert({
           title: sanitizedTitle,
           content: sanitizedContent,
-          category,
-          author_id: isAnonymous ? '00000000-0000-0000-0000-000000000000' : user.id,
-          is_anonymous: isAnonymous
+          category: mappedCategory,
+          author_id: user.id,
+          is_anonymous: false
         })
-        .select()
+        .select('id, title, content, category, is_anonymous, created_at, updated_at')
         .single()
       
       if (createError) {
         console.error('게시글 생성 오류:', createError)
         return NextResponse.json(
-          { error: '게시글 작성에 실패했습니다.' },
+          { error: '게시글 작성에 실패했습니다.', details: createError.message },
           { status: 500 }
         )
       }
@@ -157,15 +203,14 @@ export async function POST(request: NextRequest) {
           id: post.id,
           title: post.title,
           content: post.content,
-          category: post.category,
-          authorName: '익명',
-          isAnonymous: post.is_anonymous,
+          category: category, // 원본 카테고리 사용
+          authorName: authorName,
+          isAnonymous: false,
           createdAt: post.created_at,
           updatedAt: post.updated_at,
           viewCount: 0,
           likeCount: 0,
-          commentCount: 0,
-          attachments: attachments || []
+          commentCount: 0
         }
       })
     }
@@ -173,74 +218,68 @@ export async function POST(request: NextRequest) {
     // 실제 Supabase 연결 사용
     const serverSupabase = createServerSupabaseClient()
     
-    // Authorization 헤더에서 사용자 정보 가져오기 시도
-    let user = await getUserFromAuthHeader(request)
+    // 인증 처리 - 안전한 방식으로 개선
+    let user = null
     
-    // Authorization 헤더가 없으면 쿠키에서 세션 확인
+    // 1차: Authorization 헤더에서 사용자 정보 가져오기
+    try {
+      user = await getUserFromAuthHeader(request)
+      console.log('헤더에서 사용자 정보:', user ? { id: user.id, email: user.email } : null)
+    } catch (error) {
+      console.log('헤더 인증 실패:', error)
+    }
+    
+    // 2차: 헤더에서 가져오지 못했으면 쿠키 세션 확인
     if (!user) {
-      const { data: { user: sessionUser }, error: authError } = await serverSupabase.auth.getUser()
-      if (authError || !sessionUser) {
-        return NextResponse.json(
-          { error: '인증이 필요합니다.' },
-          { status: 401 }
-        )
+      try {
+        const { data: { user: sessionUser }, error: sessionError } = await serverSupabase.auth.getUser()
+        if (sessionError) {
+          console.log('세션 인증 오류:', sessionError)
+        } else if (sessionUser) {
+          user = sessionUser
+          console.log('세션에서 사용자 정보:', { id: user.id, email: user.email })
+        }
+      } catch (error) {
+        console.log('세션 인증 실패:', error)
       }
-      user = sessionUser
+    }
+    
+    if (!user) {
+      console.error('모든 인증 방법 실패')
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      )
     }
 
-    // 익명 사용자 ID (데이터베이스에 미리 생성된 ID 사용)
-    const anonymousUserId = '00000000-0000-0000-0000-000000000000'
+    // 카테고리 매핑과 사용자 프로필 조회를 병렬로 처리
+    const [mappedCategory, userProfileResult] = await Promise.all([
+      Promise.resolve(mapCategoryToDatabase(category)),
+      !isAnonymous 
+        ? serverSupabase
+            .from('user_profiles')
+            .select('name')
+            .eq('id', user.id)
+            .single()
+        : Promise.resolve({ data: null, error: null })
+    ])
     
-    // 실제 작성자 ID 결정
-    const actualAuthorId = isAnonymous ? anonymousUserId : user.id
+    const authorName = isAnonymous 
+      ? '익명' 
+      : userProfileResult.data?.name || user.email?.split('@')[0] || '알 수 없음'
     
-    // 사용자 프로필 확인 (실명 작성 시 필요)
-    let authorName = '익명'
-    if (!isAnonymous) {
-      const { data: userProfile } = await serverSupabase
-        .from('user_profiles')
-        .select('name')
-        .eq('id', user.id)
-        .single()
-      
-      authorName = userProfile?.name || user.email?.split('@')[0] || '알 수 없음'
-    }
-    
-    // 먼저 익명 사용자 프로필이 있는지 확인하고 없으면 생성
-    const { data: existingUser } = await serverSupabase
-      .from('user_profiles')
-      .select('id')
-      .eq('id', anonymousUserId)
-      .single()
-    
-    if (!existingUser) {
-      // 익명 사용자 프로필 생성 (외래키 제약조건 무시)
-      const { error: userError } = await serverSupabase
-        .from('user_profiles')
-        .insert({
-          id: anonymousUserId,
-          email: 'anonymous@system.local',
-          name: '익명 사용자',
-          role: 'member',
-          is_approved: true
-        })
-      
-      if (userError) {
-        console.error('익명 사용자 프로필 생성 오류:', userError)
-      }
-    }
+    const actualAuthorId = isAnonymous ? '00000000-0000-0000-0000-000000000000' : user.id
     
       const { data: post, error: createError } = await serverSupabase
         .from('posts')
         .insert({
           title: sanitizedTitle,
           content: sanitizedContent,
-          category,
+          category: mappedCategory,
           author_id: actualAuthorId,
-          is_anonymous: isAnonymous,
-          attachments: attachments || []
+          is_anonymous: isAnonymous
         })
-        .select()
+        .select('id, title, content, category, is_anonymous, created_at, updated_at')
         .single()
       
       if (createError) {

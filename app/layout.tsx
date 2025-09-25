@@ -5,6 +5,7 @@ import Header from '@/components/navigation/Header'
 import Footer from '@/components/navigation/Footer'
 import ChatBot from '@/components/chat/ChatBot'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { AlertProvider } from '@/contexts/AlertContext'
 
 export const metadata: Metadata = {
   title: 'PrayGround - 교회 청년부를 위한 올인원 플랫폼',
@@ -41,14 +42,16 @@ export default function RootLayout({
     <html lang="ko">
       <body className={inter.className}>
         <AuthProvider>
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex flex-col">
-            <Header />
-            <main className="pt-16 lg:pt-20 flex-1">
-              {children}
-            </main>
-            <Footer />
-            <ChatBot />
-          </div>
+          <AlertProvider>
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex flex-col">
+              <Header />
+              <main className="pt-16 lg:pt-20 flex-1">
+                {children}
+              </main>
+              <Footer />
+              <ChatBot />
+            </div>
+          </AlertProvider>
         </AuthProvider>
       </body>
     </html>

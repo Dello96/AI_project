@@ -92,7 +92,19 @@ class FileUploadService {
           lastModified: file.lastModified
         })
         
-        const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${file.name}`
+        // 파일 확장자 추출
+        const fileExtension = file.name.split('.').pop() || ''
+        const baseName = file.name.replace(/\.[^/.]+$/, '') // 확장자 제거
+        
+        // 안전한 파일명 생성 (한글을 제거하고 영문/숫자만 사용)
+        const safeBaseName = baseName
+          .replace(/[^a-zA-Z0-9]/g, '_') // 영문, 숫자만 허용
+          .replace(/_{2,}/g, '_') // 연속된 언더스코어를 하나로
+          .replace(/^_|_$/g, '') // 시작과 끝의 언더스코어 제거
+          .substring(0, 50) // 길이 제한
+        
+        // 최종 파일명 생성
+        const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${safeBaseName || 'file'}.${fileExtension}`
         const filePath = `${folder}/${fileName}`
         
         console.log('업로드 경로:', filePath)
@@ -119,11 +131,25 @@ class FileUploadService {
             statusCode: (error as any).statusCode || 'unknown',
             errorCode: (error as any).error || 'unknown',
             bucket: this.bucket,
-            filePath
+            filePath,
+            originalFileName: file.name,
+            safeFileName: fileName
           })
+          
+          // 특정 오류에 대한 구체적인 메시지 제공
+          let errorMessage = `파일 업로드 실패: ${error.message}`
+          
+          if (error.message.includes('Invalid key')) {
+            errorMessage = `파일명에 사용할 수 없는 문자가 포함되어 있습니다. 파일명을 영문과 숫자로만 구성해주세요.`
+          } else if (error.message.includes('File too large')) {
+            errorMessage = `파일 크기가 너무 큽니다. 50MB 이하의 파일을 업로드해주세요.`
+          } else if (error.message.includes('Invalid file type')) {
+            errorMessage = `지원하지 않는 파일 형식입니다. 이미지, PDF, 문서 파일만 업로드 가능합니다.`
+          }
+          
           return {
             success: false,
-            error: `파일 ${file.name} 업로드 실패: ${error.message} (코드: ${(error as any).error || 'unknown'})`
+            error: errorMessage
           }
         }
 

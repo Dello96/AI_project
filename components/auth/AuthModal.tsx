@@ -205,9 +205,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
             onSuccess={() => {
               onClose()
             }}
-            onError={(error) => {
-              setError(error)
-            }}
             className="mb-4"
           />
 

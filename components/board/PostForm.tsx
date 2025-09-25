@@ -12,6 +12,7 @@ import { FileUpload, FileWithPreview } from '@/components/ui/FileUpload'
 import { postService } from '@/lib/database'
 import { fileUploadService } from '@/lib/fileUpload'
 import { useAuth } from '@/contexts/AuthContext'
+import { useAlert } from '@/contexts/AlertContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { 
   postFormSchema, 
@@ -29,7 +30,9 @@ interface PostFormProps {
 
 export default function PostForm({ isOpen, onClose, onSuccess, initialData }: PostFormProps) {
   const [attachedFiles, setAttachedFiles] = useState<FileWithPreview[]>([])
-  const { user, isLoading: authLoading, refreshToken, signOut } = useAuth()
+  const [isUploading, setIsUploading] = useState(false)
+  const { user, isLoading: authLoading, refreshToken, signOut, getAccessToken } = useAuth()
+  const { showAlert } = useAlert()
   const supabase = createClientComponentClient()
   
   // React Hook Form 설정
@@ -61,29 +64,60 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
         userInfo: user ? { id: user.id, email: user.email } : null
       })
       
-      // 인증 상태 확인
+      // 인증 상태 확인 - 로그인 필수
       if (authLoading) {
         console.log('인증 로딩 중...')
-        alert('인증 상태를 확인하는 중입니다. 잠시만 기다려주세요.')
+        showAlert({
+          title: '인증 확인 중',
+          message: '인증 상태를 확인하는 중입니다. 잠시만 기다려주세요.',
+          type: 'info',
+          duration: 3000
+        })
         return
       }
       
       if (!user) {
         console.log('사용자가 인증되지 않음')
-        alert('로그인이 필요합니다. 먼저 로그인해주세요.')
+        showAlert({
+          title: '로그인 필요',
+          message: '게시글 작성은 로그인이 필요합니다. 먼저 로그인해주세요.',
+          type: 'warning',
+          duration: 4000
+        })
         return
       }
       
       console.log('사용자 인증 상태 확인됨:', { 
         userId: user.id, 
         userEmail: user.email,
+        userName: user.name,
         isAuthenticated: !!user 
       })
+
+      // 업로드 시작
+      setIsUploading(true)
 
       // 토큰 갱신 시도
       const tokenRefreshed = await refreshToken()
       if (!tokenRefreshed) {
         console.warn('토큰 갱신 실패, 기존 토큰으로 진행')
+      } else {
+        console.log('토큰 갱신 성공, 세션 새로고침 시도...')
+        
+        // 토큰 갱신 후 세션을 강제로 새로고침
+        try {
+          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+          if (refreshError) {
+            console.error('세션 새로고침 오류:', refreshError)
+          } else if (refreshedSession) {
+            console.log('세션 새로고침 성공:', !!refreshedSession.access_token)
+          }
+        } catch (error) {
+          console.error('세션 새로고침 중 오류:', error)
+        }
+        
+        // 상태 업데이트를 위한 대기
+        await new Promise(resolve => setTimeout(resolve, 200))
       }
       
       // 파일 업로드 처리
@@ -104,28 +138,65 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
           console.log('업로드된 파일 URL들:', fileUrls)
         } else {
           console.error('파일 업로드 실패:', uploadResult.error)
-          alert(`파일 업로드에 실패했습니다: ${uploadResult.error}`)
+          showAlert({
+            title: '파일 업로드 실패',
+            message: `파일 업로드에 실패했습니다: ${uploadResult.error}`,
+            type: 'error',
+            duration: 5000
+          })
           return
         }
       }
 
-      // 익명 작성자 ID 생성 (임시)
-      const anonymousAuthorId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-      // 최신 세션에서 토큰 가져오기
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      // 세션 확인 - 안전한 방식으로 개선
+      let session = null
       
-      if (sessionError) {
-        console.error('세션 확인 오류:', sessionError)
-        alert('인증 세션을 확인할 수 없습니다. 다시 로그인해주세요.')
-        return
-      }
-
+      // 1차: 현재 세션 확인
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      session = sessionData.session
+      
+      // 2차: 세션이 없으면 토큰 갱신 시도
       if (!session?.access_token) {
-        console.error('액세스 토큰이 없습니다.')
-        alert('인증 토큰이 없습니다. 다시 로그인해주세요.')
+        console.log('세션이 없어서 토큰 갱신 시도...')
+        try {
+          await refreshToken()
+          const { data: refreshedSession } = await supabase.auth.getSession()
+          session = refreshedSession.session
+        } catch (error) {
+          console.error('토큰 갱신 실패:', error)
+        }
+      }
+      
+      // 3차: 여전히 세션이 없으면 AuthContext에서 직접 가져오기
+      if (!session?.access_token) {
+        console.log('AuthContext에서 토큰 가져오기 시도...')
+        const accessToken = await getAccessToken()
+        if (accessToken) {
+          session = {
+            access_token: accessToken,
+            refresh_token: '',
+            expires_in: 3600,
+            token_type: 'bearer',
+            user: user
+          }
+        }
+      }
+      
+      if (!session?.access_token) {
+        console.error('모든 방법으로 토큰을 가져올 수 없습니다.')
+        showAlert({
+          title: '인증 실패',
+          message: '인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.',
+          type: 'error',
+          duration: 5000
+        })
         return
       }
+      
+      console.log('세션 확인 완료:', {
+        hasToken: !!session.access_token,
+        tokenLength: session.access_token?.length
+      })
 
       const authHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -134,9 +205,10 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
 
       console.log('게시글 작성 API 호출 시작...')
       console.log('사용자 ID:', user.id)
+      console.log('사용자 이름:', user.name)
       console.log('토큰 존재:', !!session.access_token)
 
-      // API 라우트 호출
+      // API 라우트 호출 - 실명 작성
       const response = await fetch('/api/board/posts', {
         method: 'POST',
         headers: authHeaders,
@@ -144,8 +216,8 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
           title: data.title,
           content: data.content,
           category: data.category,
-          authorId: anonymousAuthorId,
-          isAnonymous: true,
+          authorId: user.id,
+          isAnonymous: false,
           attachments: fileUrls
         })
       })
@@ -155,31 +227,124 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
 
       if (response.ok && result.success) {
         console.log('게시글 작성 성공')
-        onSuccess()
-        onClose()
+        
+        // 사용자 통계 업데이트
+        try {
+          const statsResponse = await fetch('/api/users/stats', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              type: 'post'
+            })
+          })
+          
+          if (statsResponse.ok) {
+            console.log('사용자 통계 업데이트 성공')
+          } else {
+            console.warn('사용자 통계 업데이트 실패')
+          }
+        } catch (error) {
+          console.error('사용자 통계 업데이트 오류:', error)
+        }
+        
+        // 성공 메시지 표시
+        showAlert({
+          title: '게시글 작성 완료!',
+          message: '게시글이 성공적으로 작성되었습니다.',
+          type: 'success',
+          duration: 3000
+        })
+        
+        // 폼 리셋
         reset()
         setAttachedFiles([])
+        
+        // 모달 닫기
+        onClose()
+        
+        // 콜백 호출 (부모 컴포넌트에 알림)
+        onSuccess()
+        
+        // 게시판으로 이동 (부드러운 방식)
+        setTimeout(() => {
+          window.location.href = '/board'
+        }, 100)
       } else {
         console.error('게시글 작성 실패:', result.error)
         
         // 401 오류인 경우 특별 처리
         if (response.status === 401) {
-          alert('인증이 만료되었습니다. 다시 로그인해주세요.')
+          showAlert({
+            title: '인증 만료',
+            message: '인증이 만료되었습니다. 다시 로그인해주세요.',
+            type: 'error',
+            duration: 5000
+          })
           // 로그아웃 처리
           await signOut()
         } else {
-          alert(result.error || '게시글 작성에 실패했습니다.')
+          showAlert({
+            title: '게시글 작성 실패',
+            message: result.error || '게시글 작성에 실패했습니다.',
+            type: 'error',
+            duration: 5000
+          })
         }
       }
     } catch (error) {
       console.error('게시글 작성 오류:', error)
-      alert('게시글 작성 중 오류가 발생했습니다.')
+      showAlert({
+        title: '오류 발생',
+        message: '게시글 작성 중 오류가 발생했습니다.',
+        type: 'error',
+        duration: 5000
+      })
+    } finally {
+      // 업로드 완료 (성공/실패 관계없이)
+      setIsUploading(false)
     }
   }
 
 
 
   if (!isOpen) return null
+
+  // 업로드 중일 때 로딩 화면 표시
+  if (isUploading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* 로딩 애니메이션 */}
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+          </div>
+          
+          {/* 로딩 메시지 */}
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            게시글을 업로드하고 있습니다
+          </h3>
+          <p className="text-gray-600">
+            잠시만 기다려주세요...
+          </p>
+        </motion.div>
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div

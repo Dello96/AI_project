@@ -71,9 +71,6 @@ function LoginContent() {
               {/* 카카오 로그인 */}
               <KakaoLoginButton
                 onSuccess={handleKakaoSuccess}
-                onError={(error) => {
-                  console.error('카카오 로그인 오류:', error)
-                }}
               />
 
               {/* 구분선 */}

@@ -51,11 +51,8 @@ function BoardContent() {
     setView('list')
     setEditingPost(null)
     
-    // 게시글 작성 성공 후 내정보 페이지로 이동하는 옵션
-    const shouldGoToProfile = confirm('게시글이 성공적으로 작성되었습니다!\n내정보 페이지에서 활동 통계를 확인하시겠습니까?')
-    if (shouldGoToProfile) {
-      router.push('/profile')
-    }
+    // 게시글 작성 성공 - 단순히 목록으로 돌아가기만 함
+    // PostForm에서 이미 성공 메시지와 게시판 이동을 처리함
   }
 
   // URL 파라미터에서 게시글 ID 확인

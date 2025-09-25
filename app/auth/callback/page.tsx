@@ -14,6 +14,7 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        // URL에서 인증 코드 처리
         const { data, error } = await supabase.auth.getSession()
         
         if (error) {
@@ -24,6 +25,45 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
+          const user = data.session.user
+          console.log('OAuth 로그인 성공:', { 
+            id: user.id, 
+            email: user.email, 
+            provider: user.app_metadata?.provider 
+          })
+          
+          // 사용자 프로필이 있는지 확인
+          const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single()
+
+          if (profileError && profileError.code === 'PGRST116') {
+            // 프로필이 없으면 새로 생성 (카카오 로그인 시)
+            console.log('새 사용자 프로필 생성 중...')
+            
+            const { error: createError } = await supabase
+              .from('user_profiles')
+              .insert({
+                id: user.id,
+                email: user.email || '',
+                name: user.user_metadata?.full_name || user.email?.split('@')[0] || '사용자',
+                role: 'member',
+                is_approved: true, // 소셜 로그인은 자동 승인
+                provider: user.app_metadata?.provider || 'kakao'
+              })
+
+            if (createError) {
+              console.error('사용자 프로필 생성 오류:', createError)
+              setStatus('error')
+              setMessage('사용자 프로필 생성에 실패했습니다.')
+              return
+            }
+            
+            console.log('새 사용자 프로필 생성 완료')
+          }
+
           setStatus('success')
           setMessage('로그인에 성공했습니다!')
           

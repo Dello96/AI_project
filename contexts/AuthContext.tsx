@@ -10,6 +10,7 @@ interface AuthContextType extends AuthState {
   signOut: () => Promise<void>
   checkUser: () => Promise<boolean>
   refreshToken: () => Promise<boolean>
+  getAccessToken: () => Promise<string | null>
   isValidChurchDomain: (email: string) => boolean
 }
 
@@ -37,7 +38,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       if (session?.user) {
-        console.log('토큰 갱신 성공')
+        console.log('토큰 갱신 성공, 사용자 상태 업데이트')
+        
+        // 사용자 프로필 정보 가져오기
+        const { data: userProfile } = await supabase
+          .from('user_profiles')
+          .select('name, email, role, is_approved')
+          .eq('id', session.user.id)
+          .single()
+        
+        // 상태 업데이트
+        setAuthState(prev => ({
+          ...prev,
+          user: {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: userProfile?.name || session.user.email?.split('@')[0] || '사용자',
+            role: userProfile?.role || 'member',
+            isApproved: userProfile?.is_approved || false,
+            provider: session.user.app_metadata?.provider || 'email',
+            createdAt: new Date(session.user.created_at),
+            updatedAt: new Date()
+          },
+          isLoading: false,
+          error: null
+        }))
+        
         return true
       }
       
@@ -45,6 +71,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('토큰 갱신 오류:', error)
       return false
+    }
+  }, [])
+
+  // 액세스 토큰 직접 가져오기
+  const getAccessToken = useCallback(async (): Promise<string | null> => {
+    try {
+      console.log('액세스 토큰 직접 가져오기 시도...')
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error) {
+        console.error('세션 확인 오류:', error)
+        return null
+      }
+      
+      if (session?.access_token) {
+        console.log('액세스 토큰 획득 성공')
+        return session.access_token
+      }
+      
+      console.log('세션에 액세스 토큰이 없음')
+      return null
+    } catch (error) {
+      console.error('액세스 토큰 가져오기 오류:', error)
+      return null
     }
   }, [])
 
@@ -381,6 +431,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     checkUser,
     refreshToken,
+    getAccessToken,
     isValidChurchDomain
   }
 

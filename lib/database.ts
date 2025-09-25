@@ -174,8 +174,9 @@ export const postService = {
           content: data.content,
           author_id: data.authorId,
           category: data.category,
-          is_anonymous: data.isAnonymous,
-          attachments: data.attachments || []
+          is_anonymous: data.isAnonymous
+          // attachments 컬럼이 없으므로 임시로 제거
+          // attachments: data.attachments || []
         })
         .select()
         .single()
@@ -369,15 +370,30 @@ export const commentService = {
       // 사용자 프로필 존재 확인 및 생성
       const { data: existingProfile } = await serverSupabase
         .from('user_profiles')
-        .select('id')
+        .select('id, name, email')
         .eq('id', data.authorId)
         .single()
 
       if (!existingProfile) {
-        console.log('사용자 프로필이 없어서 익명 사용자로 대체:', data.authorId)
-        // 익명 사용자로 대체
-        data.authorId = '00000000-0000-0000-0000-000000000000'
-        data.isAnonymous = true
+        console.log('사용자 프로필이 없어서 생성 시도:', data.authorId)
+        
+        // 실제 사용자 프로필 생성 시도
+        const { error: profileError } = await serverSupabase
+          .from('user_profiles')
+          .insert({
+            id: data.authorId,
+            email: `user_${data.authorId}@temp.local`, // 임시 이메일
+            name: '사용자',
+            role: 'member',
+            is_approved: true
+          })
+        
+        if (profileError) {
+          console.error('사용자 프로필 생성 실패:', profileError)
+          throw new Error('사용자 프로필을 생성할 수 없습니다.')
+        }
+        
+        console.log('사용자 프로필 생성 완료:', data.authorId)
       }
 
       const { data: comment, error } = await serverSupabase

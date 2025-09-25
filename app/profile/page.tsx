@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { 
   UserCircleIcon,
@@ -64,7 +64,7 @@ export default function ProfilePage() {
       try {
         console.log('사용자 통계 조회 시작:', { userId: user.id, email: user.email })
         setStatsLoading(true)
-        const response = await fetch('/api/users/stats')
+        const response = await fetch(`/api/users/stats?userId=${user.id}`)
         
         console.log('사용자 통계 API 응답:', { 
           status: response.status, 
@@ -103,18 +103,6 @@ export default function ProfilePage() {
     fetchUserStats()
   }, [user])
 
-  // 페이지가 포커스될 때 통계 새로고침
-  useEffect(() => {
-    const handleFocus = () => {
-      if (user) {
-        refreshStats()
-      }
-    }
-
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [user])
-
   const roleLabels = {
     user: '일반 사용자',
     leader: '리더',
@@ -147,25 +135,12 @@ export default function ProfilePage() {
     }))
   }
 
-  const handleLogout = async () => {
-    if (confirm('정말 로그아웃하시겠습니까?')) {
-      try {
-        await signOut()
-        // 로그아웃 후 홈페이지로 리다이렉트
-        window.location.href = '/'
-      } catch (error) {
-        console.error('로그아웃 오류:', error)
-        alert('로그아웃 중 오류가 발생했습니다.')
-      }
-    }
-  }
-
-  const refreshStats = async () => {
+  const refreshStats = useCallback(async () => {
     if (!user) return
 
     try {
       setStatsLoading(true)
-      const response = await fetch('/api/users/stats')
+      const response = await fetch(`/api/users/stats?userId=${user.id}`)
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -177,11 +152,38 @@ export default function ProfilePage() {
         setStats(data.data)
       } else {
         console.error('통계 데이터 조회 실패:', data.error)
+        // 에러가 발생해도 기존 통계는 유지
       }
     } catch (error) {
       console.error('사용자 통계 조회 오류:', error)
+      // 네트워크 오류나 기타 오류 시에도 기존 통계는 유지
     } finally {
       setStatsLoading(false)
+    }
+  }, [user])
+
+  // 페이지가 포커스될 때 통계 새로고침
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        refreshStats()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [user, refreshStats])
+
+  const handleLogout = async () => {
+    if (confirm('정말 로그아웃하시겠습니까?')) {
+      try {
+        await signOut()
+        // 로그아웃 후 홈페이지로 리다이렉트
+        window.location.href = '/'
+      } catch (error) {
+        console.error('로그아웃 오류:', error)
+        alert('로그아웃 중 오류가 발생했습니다.')
+      }
     }
   }
 
