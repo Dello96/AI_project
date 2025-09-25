@@ -12,6 +12,7 @@ import { FileUpload, FileWithPreview } from '@/components/ui/FileUpload'
 import { postService } from '@/lib/database'
 import { fileUploadService } from '@/lib/fileUpload'
 import { useAuth } from '@/hooks/useAuth'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { 
   postFormSchema, 
   defaultPostFormData, 
@@ -29,6 +30,7 @@ interface PostFormProps {
 export default function PostForm({ isOpen, onClose, onSuccess, initialData }: PostFormProps) {
   const [attachedFiles, setAttachedFiles] = useState<FileWithPreview[]>([])
   const { user, isLoading: authLoading } = useAuth()
+  const supabase = createClientComponentClient()
   
   // React Hook Form 설정
   const {
@@ -102,12 +104,20 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       // 익명 작성자 ID 생성 (임시)
       const anonymousAuthorId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
+      // 인증 토큰 가져오기
+      const { data: { session } } = await supabase.auth.getSession()
+      const authHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      
+      if (session?.access_token) {
+        authHeaders['Authorization'] = `Bearer ${session.access_token}`
+      }
+
       // API 라우트 호출
       const response = await fetch('/api/board/posts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: authHeaders,
         body: JSON.stringify({
           title: data.title,
           content: data.content,

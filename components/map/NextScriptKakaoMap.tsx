@@ -124,14 +124,17 @@ export default function NextScriptKakaoMap({ className = '' }: NextScriptKakaoMa
     }
   }
 
-  const handleScriptError = () => {
-    addDebugInfo('카카오맵 스크립트 로드 실패')
-    setError('카카오맵 스크립트를 로드할 수 없습니다.')
+  const handleScriptError = (error?: any) => {
+    addDebugInfo(`카카오맵 스크립트 로드 실패: ${error?.message || '알 수 없는 오류'}`)
+    console.error('카카오맵 스크립트 로드 실패:', error)
+    setError(`카카오맵 스크립트를 로드할 수 없습니다. ${error?.message || ''}`)
   }
 
   const apiKey = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY
 
-  if (!apiKey) {
+  // API 키 검증 강화
+  if (!apiKey || apiKey === 'YOUR_KAKAO_MAP_JAVASCRIPT_KEY_HERE' || apiKey.length < 10) {
+    addDebugInfo(`API 키 문제: ${apiKey ? `길이: ${apiKey.length}` : '없음'}`)
     return (
       <div className={`bg-gray-100 rounded-lg p-8 text-center ${className}`}>
         <div className="text-red-500 mb-2">
@@ -141,6 +144,10 @@ export default function NextScriptKakaoMap({ className = '' }: NextScriptKakaoMa
         </div>
         <h3 className="text-lg font-semibold text-gray-800 mb-2">API 키가 설정되지 않았습니다</h3>
         <p className="text-gray-600">카카오맵 API 키를 설정해주세요.</p>
+        <div className="mt-4 text-sm text-gray-500">
+          <p>현재 환경: {process.env.NODE_ENV}</p>
+          <p>API 키 길이: {apiKey?.length || 0}</p>
+        </div>
       </div>
     )
   }
@@ -153,6 +160,9 @@ export default function NextScriptKakaoMap({ className = '' }: NextScriptKakaoMa
         strategy="afterInteractive"
         onLoad={handleScriptLoad}
         onError={handleScriptError}
+        onReady={() => {
+          addDebugInfo('Script onReady 호출됨')
+        }}
       />
       
       <motion.div

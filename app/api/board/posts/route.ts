@@ -4,6 +4,29 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import { sanitizeContent, sanitizeTitle } from '@/lib/sanitize'
 import { requireAuth, canCreatePost, canCreateNotice } from '@/lib/post-auth'
 
+// Authorization 헤더에서 사용자 정보 가져오기
+async function getUserFromAuthHeader(request: NextRequest) {
+  const authHeader = request.headers.get('authorization')
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null
+  }
+  
+  const token = authHeader.substring(7)
+  const supabase = createServerSupabaseClient()
+  
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+    if (error || !user) {
+      return null
+    }
+    return user
+  } catch (error) {
+    console.error('토큰 검증 오류:', error)
+    return null
+  }
+}
+
 // 게시글 생성 스키마
 const CreatePostSchema = z.object({
   title: z.string().min(2, '제목은 2자 이상 입력해주세요.').max(100, '제목은 100자 이하로 입력해주세요.'),
@@ -80,13 +103,19 @@ export async function POST(request: NextRequest) {
       
       const supabase = createServerSupabaseClient()
       
-      // 인증된 사용자 정보 가져오기
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        return NextResponse.json(
-          { error: '인증이 필요합니다.' },
-          { status: 401 }
-        )
+      // Authorization 헤더에서 사용자 정보 가져오기 시도
+      let user = await getUserFromAuthHeader(request)
+      
+      // Authorization 헤더가 없으면 쿠키에서 세션 확인
+      if (!user) {
+        const { data: { user: sessionUser }, error: authError } = await supabase.auth.getUser()
+        if (authError || !sessionUser) {
+          return NextResponse.json(
+            { error: '인증이 필요합니다.' },
+            { status: 401 }
+          )
+        }
+        user = sessionUser
       }
 
       // 사용자 프로필 확인 (실명 작성 시 필요)
@@ -144,13 +173,19 @@ export async function POST(request: NextRequest) {
     // 실제 Supabase 연결 사용
     const serverSupabase = createServerSupabaseClient()
     
-    // 인증된 사용자 정보 가져오기
-    const { data: { user }, error: authError } = await serverSupabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      )
+    // Authorization 헤더에서 사용자 정보 가져오기 시도
+    let user = await getUserFromAuthHeader(request)
+    
+    // Authorization 헤더가 없으면 쿠키에서 세션 확인
+    if (!user) {
+      const { data: { user: sessionUser }, error: authError } = await serverSupabase.auth.getUser()
+      if (authError || !sessionUser) {
+        return NextResponse.json(
+          { error: '인증이 필요합니다.' },
+          { status: 401 }
+        )
+      }
+      user = sessionUser
     }
 
     // 익명 사용자 ID (데이터베이스에 미리 생성된 ID 사용)

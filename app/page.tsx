@@ -8,7 +8,8 @@ import { GlobalSearch } from '@/components/search/GlobalSearch'
 import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import MissionarySupport from '@/components/payments/MissionarySupport'
 import PosterCarousel from '@/components/home/PosterCarousel'
-import NextScriptKakaoMap from '@/components/map/NextScriptKakaoMap'
+import SimpleKakaoMap from '@/components/map/SimpleKakaoMap'
+import ChurchLocationCard from '@/components/map/ChurchLocationCard'
 import { Post } from '@/types'
 
 export default function Home() {
@@ -142,7 +143,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 1.0 }}
             className="max-w-4xl mx-auto"
           >
-            <NextScriptKakaoMap className="w-full" />
+            <SimpleKakaoMap className="w-full" />
           </motion.div>
         </div>
       </section>
