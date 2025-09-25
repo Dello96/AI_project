@@ -29,7 +29,7 @@ interface PostFormProps {
 
 export default function PostForm({ isOpen, onClose, onSuccess, initialData }: PostFormProps) {
   const [attachedFiles, setAttachedFiles] = useState<FileWithPreview[]>([])
-  const { user, isLoading: authLoading } = useAuth()
+  const { user, isLoading: authLoading, refreshToken, signOut } = useAuth()
   const supabase = createClientComponentClient()
   
   // React Hook Form 설정

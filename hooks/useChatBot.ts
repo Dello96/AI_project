@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { ChatMessage, ChatBotConfig, ChatAttachment } from '@/types'
 import { getGeminiService } from '@/lib/gemini'
-import { useAuth } from './useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 
 export function useChatBot() {

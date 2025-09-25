@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import AuthModal from '@/components/auth/AuthModal'
 import KakaoLoginButton from '@/components/auth/KakaoLoginButton'
 import Logo from '@/components/ui/Logo'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 function LoginContent() {

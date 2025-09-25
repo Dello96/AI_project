@@ -13,7 +13,7 @@ import {
 import { Notification } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { notificationService } from '@/lib/database'
 
 interface NotificationListProps {

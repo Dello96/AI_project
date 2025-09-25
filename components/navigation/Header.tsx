@@ -18,7 +18,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import Logo from '@/components/ui/Logo'
 import { usePWA } from '@/hooks/usePWA'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import AuthModal from '@/components/auth/AuthModal'
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuth } from './useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { UserRole } from '@/types'
 import { permissionManager, ResourceType, ActionType } from '@/lib/permissions'
 import { permissionAuditManager } from '@/lib/permission-audit'

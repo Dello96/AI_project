@@ -16,7 +16,7 @@ import {
   File
 } from 'lucide-react'
 import { useChatBot } from '@/hooks/useChatBot'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
