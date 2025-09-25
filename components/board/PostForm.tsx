@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/Input'
 import { FileUpload, FileWithPreview } from '@/components/ui/FileUpload'
 import { postService } from '@/lib/database'
 import { fileUploadService } from '@/lib/fileUpload'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { 
   postFormSchema, 
@@ -52,6 +52,8 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
   const watchedValues = watch()
 
   const onSubmit = async (data: PostFormData) => {
+    if (isSubmitting) return
+
     try {
       console.log('PostForm 제출 시도:', { 
         authLoading, 
@@ -77,6 +79,12 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
         userEmail: user.email,
         isAuthenticated: !!user 
       })
+
+      // 토큰 갱신 시도
+      const tokenRefreshed = await refreshToken()
+      if (!tokenRefreshed) {
+        console.warn('토큰 갱신 실패, 기존 토큰으로 진행')
+      }
       
       // 파일 업로드 처리
       let fileUrls: string[] = []
@@ -104,15 +112,29 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       // 익명 작성자 ID 생성 (임시)
       const anonymousAuthorId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-      // 인증 토큰 가져오기
-      const { data: { session } } = await supabase.auth.getSession()
+      // 최신 세션에서 토큰 가져오기
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('세션 확인 오류:', sessionError)
+        alert('인증 세션을 확인할 수 없습니다. 다시 로그인해주세요.')
+        return
+      }
+
+      if (!session?.access_token) {
+        console.error('액세스 토큰이 없습니다.')
+        alert('인증 토큰이 없습니다. 다시 로그인해주세요.')
+        return
+      }
+
       const authHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
       }
-      
-      if (session?.access_token) {
-        authHeaders['Authorization'] = `Bearer ${session.access_token}`
-      }
+
+      console.log('게시글 작성 API 호출 시작...')
+      console.log('사용자 ID:', user.id)
+      console.log('토큰 존재:', !!session.access_token)
 
       // API 라우트 호출
       const response = await fetch('/api/board/posts', {
@@ -124,20 +146,30 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
           category: data.category,
           authorId: anonymousAuthorId,
           isAnonymous: true,
-          attachments: fileUrls // 첨부파일 URL 배열 추가
+          attachments: fileUrls
         })
       })
 
       const result = await response.json()
+      console.log('API 응답:', { status: response.status, result })
 
       if (response.ok && result.success) {
+        console.log('게시글 작성 성공')
         onSuccess()
         onClose()
         reset()
         setAttachedFiles([])
       } else {
         console.error('게시글 작성 실패:', result.error)
-        alert(result.error || '게시글 작성에 실패했습니다.')
+        
+        // 401 오류인 경우 특별 처리
+        if (response.status === 401) {
+          alert('인증이 만료되었습니다. 다시 로그인해주세요.')
+          // 로그아웃 처리
+          await signOut()
+        } else {
+          alert(result.error || '게시글 작성에 실패했습니다.')
+        }
       }
     } catch (error) {
       console.error('게시글 작성 오류:', error)
