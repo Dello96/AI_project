@@ -123,7 +123,7 @@ export default function Home() {
               📍 <span className="text-orange-500">교회 위치</span>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              함께 예배하고 교제하는 <span className="text-orange-400 font-semibold">샬롬교회</span>를 찾아보세요
+              떨림과 설렘의 갱신공동체 <span className="text-orange-400 font-semibold">잠실중앙교회</span>를 찾아보세요
             </p>
             
             {/* 장식적 요소 */}
