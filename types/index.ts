@@ -57,6 +57,10 @@ export interface Event {
   isAllDay: boolean;
   authorId: string;
   author?: User;
+  maxAttendees?: number; // 최대 참석 인원
+  currentAttendees: number; // 현재 참석 인원
+  attendees: string[]; // 참석자 ID 목록
+  userAttending?: boolean; // 현재 사용자가 참석 중인지 여부
   // churchDomain 제거됨 (단순화)
   createdAt: Date;
   updatedAt: Date;
@@ -217,6 +221,7 @@ export interface EventForm {
   location?: string;
   category: string;
   isAllDay: boolean;
+  maxAttendees?: number; // 최대 참석 인원
 }
 
 export interface CommentForm {

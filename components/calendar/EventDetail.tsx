@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   XMarkIcon, 
@@ -22,27 +22,47 @@ interface EventDetailProps {
   onClose: () => void
   onEdit: (event: Event) => void
   onDelete: (eventId: string) => void
+  onRefresh?: () => void
 }
 
-export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }: EventDetailProps) {
+export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, onRefresh }: EventDetailProps) {
   const { user } = useAuth()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [isAttending, setIsAttending] = useState(event.userAttending || false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [currentAttendees, setCurrentAttendees] = useState(event.currentAttendees || 0)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // 작성자 권한 확인
   const canEditOrDelete = user && event.authorId === user.id
   
-  // 디버깅을 위한 로그
-  console.log('EventDetail 디버깅:', {
-    user: user ? { id: user.id, email: user.email } : null,
-    event: {
-      id: event.id,
-      title: event.title,
-      authorId: event.authorId,
-      author: event.author
-    },
-    canEditOrDelete
-  })
+  // 초기 참석 상태 확인
+  useEffect(() => {
+    const checkAttendanceStatus = async () => {
+      if (!user || !isOpen || isInitialized) return
+      
+      try {
+        const response = await fetch(`/api/events/${event.id}/attendance?userId=${user.id}`)
+        const data = await response.json()
+        
+        if (response.ok) {
+          setIsAttending(data.attending || false)
+          // API에서 받은 실제 참석 인원 수로 업데이트
+          if (data.currentAttendees !== undefined) {
+            setCurrentAttendees(data.currentAttendees)
+          }
+        }
+      } catch (error) {
+        // 참석 상태 확인 실패 시 기본값 유지
+      } finally {
+        setIsInitialized(true)
+      }
+    }
+    
+    checkAttendanceStatus()
+  }, [user, event.id, isOpen, isInitialized])
+  
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -62,15 +82,21 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }
 
     try {
       setIsDeleting(true)
+      
+      // 먼저 UI에서 즉시 제거 (사용자 경험 향상)
+      onDelete(event.id)
+      onClose()
+      
+      // 백그라운드에서 실제 삭제 처리
       const result = await eventService.deleteEvent(event.id)
-      if (result) {
-        onDelete(event.id)
-        onClose()
+      if (!result) {
+        // 삭제 실패 시 다시 추가 (롤백)
+        alert('일정 삭제에 실패했습니다. 다시 시도해주세요.')
+      } else {
         // 성공 메시지 표시
         alert('일정이 성공적으로 삭제되었습니다.')
       }
     } catch (error) {
-      console.error('이벤트 삭제 오류:', error)
       alert('일정 삭제에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setIsDeleting(false)
@@ -86,6 +112,60 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  // 참석/취소 처리
+  const handleAttendance = async () => {
+    if (!user) {
+      alert('로그인이 필요합니다.')
+      return
+    }
+
+    // 중복 클릭 방지
+    if (isLoading) {
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/events/${event.id}/attendance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        const wasAttending = isAttending
+        const newAttending = data.attending
+        
+        setIsAttending(newAttending)
+        
+        // API에서 받은 실제 참석 인원 수로 업데이트
+        if (data.currentAttendees !== undefined) {
+          setCurrentAttendees(data.currentAttendees)
+        } else {
+          // 참석 상태가 변경된 경우에만 인원 수 조정 (폴백)
+          if (wasAttending !== newAttending) {
+            setCurrentAttendees(prev => newAttending ? prev + 1 : prev - 1)
+          }
+        }
+        
+        // 이벤트 데이터 새로고침
+        onRefresh?.()
+        
+        alert(data.message)
+      } else {
+        alert(data.error || '참석 처리에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('참석 처리 중 오류가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (!isOpen) return null
@@ -165,6 +245,42 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }
                 </div>
               )}
 
+              {/* 참석 정보 - 모임, 행사, 소그룹, 차량이용 카테고리에서만 표시 */}
+              {(['meeting', 'event', 'smallgroup', 'vehicle'].includes(event.category)) && (
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-secondary-600">참석 인원</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-secondary-900 font-medium">
+                        {event.maxAttendees 
+                          ? `${currentAttendees}명 / ${event.maxAttendees}명`
+                          : `${currentAttendees}명`
+                        }
+                      </p>
+                      {event.maxAttendees && (
+                        <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-24">
+                          <div 
+                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            style={{ 
+                              width: `${Math.min((currentAttendees / event.maxAttendees) * 100, 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+                    {event.maxAttendees && (
+                      <p className="text-xs text-secondary-500 mt-1">
+                        {currentAttendees >= event.maxAttendees 
+                          ? '참석 인원이 가득 찼습니다' 
+                          : `${event.maxAttendees - currentAttendees}명 더 참석 가능`
+                        }
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* 작성자 */}
               <div className="flex items-start gap-3">
                 <div className="w-5 h-5 mt-0.5" />
@@ -174,6 +290,36 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete }
                 </div>
               </div>
             </div>
+
+            {/* 참석 버튼 - 모임, 행사, 소그룹, 차량이용 카테고리에서만 표시 */}
+            {(['meeting', 'event', 'smallgroup', 'vehicle'].includes(event.category)) && user && isInitialized && (
+              <div className="pt-4 border-t border-secondary-200">
+                <Button
+                  onClick={handleAttendance}
+                  loading={isLoading}
+                  disabled={isLoading || (!!event.maxAttendees && currentAttendees >= event.maxAttendees && !isAttending)}
+                  className={`w-full ${
+                    isAttending 
+                      ? 'bg-red-500 hover:bg-red-600 text-white' 
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  {isLoading 
+                    ? '처리 중...' 
+                    : isAttending 
+                      ? '참석 취소' 
+                      : !!event.maxAttendees && currentAttendees >= event.maxAttendees
+                        ? '참석 마감'
+                        : '참석하기'
+                  }
+                </Button>
+                {!!event.maxAttendees && currentAttendees >= event.maxAttendees && !isAttending && (
+                  <p className="text-sm text-red-500 text-center mt-2">
+                    참석 인원이 가득 찼습니다.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* 액션 버튼 */}
             {user && (user.id === event.authorId || user.role === 'admin') ? (

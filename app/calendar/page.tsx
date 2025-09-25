@@ -39,6 +39,8 @@ export default function CalendarPage() {
         setView('calendar')
         setSelectedEvent(null)
         setEditingEvent(null)
+        // 성공 메시지 표시
+        alert('일정이 성공적으로 삭제되었습니다.')
       }
     } catch (error) {
       console.error('이벤트 삭제 오류:', error)
@@ -61,6 +63,10 @@ export default function CalendarPage() {
 
   const handleCloseEventDetail = () => {
     setSelectedEvent(null)
+  }
+
+  const handleRefresh = () => {
+    // 이벤트 데이터 새로고침 (실시간 구독으로 자동 처리됨)
   }
 
 
@@ -104,6 +110,8 @@ export default function CalendarPage() {
               onAddEvent={handleAddEvent}
               onSelectEvent={handleSelectEvent}
               onSelectDate={handleSelectDate}
+              onDeleteEvent={handleDeleteEvent}
+              onRefresh={handleRefresh}
             />
           </motion.div>
 
@@ -151,6 +159,7 @@ export default function CalendarPage() {
             onClose={handleCloseEventDetail}
             onEdit={handleEditEvent}
             onDelete={handleDeleteEvent}
+            onRefresh={handleRefresh}
           />
         )}
       </div>

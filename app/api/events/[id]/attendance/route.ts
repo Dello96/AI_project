@@ -1,12 +1,182 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
-// 참석 상태 업데이트 스키마
-const UpdateAttendanceSchema = z.object({
-  status: z.enum(['attending', 'not_attending', 'maybe']),
-  userId: z.string().optional()
-})
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+// 참석/취소 토글
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const eventId = params.id
+    const { userId } = await request.json()
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: '사용자 ID가 필요합니다.' },
+        { status: 400 }
+      )
+    }
+
+    // 이벤트 정보 조회
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', eventId)
+      .single()
+
+    if (eventError || !event) {
+      return NextResponse.json(
+        { error: '이벤트를 찾을 수 없습니다.' },
+        { status: 404 }
+      )
+    }
+
+    // 현재 참석자 목록 조회
+    const { data: attendance, error: attendanceError } = await supabase
+      .from('event_attendance')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('user_id', userId)
+      .single()
+
+    if (attendanceError && attendanceError.code !== 'PGRST116') {
+      console.error('참석 정보 조회 오류:', attendanceError)
+      return NextResponse.json(
+        { error: '참석 정보를 조회할 수 없습니다.' },
+        { status: 500 }
+      )
+    }
+
+    const isCurrentlyAttending = !!attendance
+
+    if (isCurrentlyAttending) {
+      // 참석 취소
+      const { error: deleteError } = await supabase
+        .from('event_attendance')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+
+      if (deleteError) {
+        console.error('참석 취소 오류:', deleteError)
+        return NextResponse.json(
+          { error: '참석 취소에 실패했습니다.' },
+          { status: 500 }
+        )
+      }
+
+      // 수동으로 참석자 수 감소 (트리거 대신)
+      const { error: updateError } = await supabase
+        .from('events')
+        .update({ 
+          current_attendees: Math.max(0, (event.current_attendees || 0) - 1)
+        })
+        .eq('id', eventId)
+
+      if (updateError) {
+        console.error('참석자 수 업데이트 오류:', updateError)
+      }
+
+      // 업데이트된 참석자 수 조회
+      const { data: updatedEvent } = await supabase
+        .from('events')
+        .select('current_attendees')
+        .eq('id', eventId)
+        .single()
+
+      return NextResponse.json({
+        success: true,
+        attending: false,
+        currentAttendees: updatedEvent?.current_attendees || 0,
+        message: '참석이 취소되었습니다.'
+      })
+    } else {
+      // 참석 등록
+      // 최대 참석 인원 확인
+      if (event.max_attendees && event.current_attendees >= event.max_attendees) {
+        return NextResponse.json(
+          { error: '참석 인원이 가득 찼습니다.' },
+          { status: 400 }
+        )
+      }
+
+      // 중복 참석 방지를 위한 추가 확인
+      const { data: existingAttendance, error: checkError } = await supabase
+        .from('event_attendance')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .single()
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('중복 참석 확인 오류:', checkError)
+        return NextResponse.json(
+          { error: '참석 상태를 확인할 수 없습니다.' },
+          { status: 500 }
+        )
+      }
+
+      if (existingAttendance) {
+        return NextResponse.json(
+          { error: '이미 참석 등록되어 있습니다.' },
+          { status: 400 }
+        )
+      }
+
+      const { error: insertError } = await supabase
+        .from('event_attendance')
+        .insert({
+          event_id: eventId,
+          user_id: userId
+        })
+
+      if (insertError) {
+        console.error('참석 등록 오류:', insertError)
+        return NextResponse.json(
+          { error: '참석 등록에 실패했습니다.' },
+          { status: 500 }
+        )
+      }
+
+      // 수동으로 참석자 수 증가 (트리거 대신)
+      const { error: updateError } = await supabase
+        .from('events')
+        .update({ 
+          current_attendees: (event.current_attendees || 0) + 1
+        })
+        .eq('id', eventId)
+
+      if (updateError) {
+        console.error('참석자 수 업데이트 오류:', updateError)
+      }
+
+      // 업데이트된 참석자 수 조회
+      const { data: updatedEvent } = await supabase
+        .from('events')
+        .select('current_attendees')
+        .eq('id', eventId)
+        .single()
+
+      return NextResponse.json({
+        success: true,
+        attending: true,
+        currentAttendees: updatedEvent?.current_attendees || 0,
+        message: '참석이 등록되었습니다.'
+      })
+    }
+  } catch (error) {
+    console.error('참석 처리 오류:', error)
+    return NextResponse.json(
+      { error: '참석 처리 중 오류가 발생했습니다.' },
+      { status: 500 }
+    )
+  }
+}
 
 // 참석 상태 조회
 export async function GET(
@@ -14,156 +184,49 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id: eventId } = params
-    const serverSupabase = createServerSupabaseClient()
+    const eventId = params.id
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
 
-    // 이벤트 참석자 목록 조회
-    const { data: attendances, error } = await serverSupabase
-      .from('event_attendance')
-      .select(`
-        id,
-        user_id,
-        status,
-        created_at,
-        user:user_id(id, name, email)
-      `)
-      .eq('event_id', eventId)
-
-    if (error) {
-      console.error('참석자 조회 오류:', error)
+    if (!userId) {
       return NextResponse.json(
-        { error: '참석자 목록을 불러오는데 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    // 참석자 수 계산
-    const attendingCount = attendances?.filter(a => a.status === 'attending').length || 0
-    const maybeCount = attendances?.filter(a => a.status === 'maybe').length || 0
-    const notAttendingCount = attendances?.filter(a => a.status === 'not_attending').length || 0
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        attendances: attendances || [],
-        counts: {
-          attending: attendingCount,
-          maybe: maybeCount,
-          notAttending: notAttendingCount,
-          total: attendances?.length || 0
-        }
-      }
-    })
-
-  } catch (error) {
-    console.error('참석자 조회 중 예외 발생:', error)
-    return NextResponse.json(
-      { error: '서버 내부 오류가 발생했습니다.' },
-      { status: 500 }
-    )
-  }
-}
-
-// 참석 상태 업데이트
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { id: eventId } = params
-    const body = await request.json()
-    
-    const parsed = UpdateAttendanceSchema.safeParse(body)
-    
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: '잘못된 요청 데이터입니다.', details: parsed.error.issues },
+        { error: '사용자 ID가 필요합니다.' },
         { status: 400 }
       )
     }
 
-    const { status, userId } = parsed.data
-    const serverSupabase = createServerSupabaseClient()
-
-    // 익명 사용자 ID (기본값)
-    const anonymousUserId = userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId) 
-      ? userId 
-      : '00000000-0000-0000-0000-000000000000'
-
-    // 기존 참석 기록 확인
-    const { data: existingAttendance } = await serverSupabase
+    // 사용자의 참석 상태 조회
+    const { data: attendance, error } = await supabase
       .from('event_attendance')
-      .select('id')
+      .select('*')
       .eq('event_id', eventId)
-      .eq('user_id', anonymousUserId)
+      .eq('user_id', userId)
       .single()
 
-    let result
-    if (existingAttendance) {
-      // 기존 기록 업데이트
-      const { data, error } = await serverSupabase
-        .from('event_attendance')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', existingAttendance.id)
-        .select()
-        .single()
-
-      if (error) {
-        console.error('참석 상태 업데이트 오류:', error)
-        return NextResponse.json(
-          { error: '참석 상태 업데이트에 실패했습니다.' },
-          { status: 500 }
-        )
-      }
-      result = data
-    } else {
-      // 새 참석 기록 생성
-      const { data, error } = await serverSupabase
-        .from('event_attendance')
-        .insert({
-          event_id: eventId,
-          user_id: anonymousUserId,
-          status,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single()
-
-      if (error) {
-        console.error('참석 상태 생성 오류:', error)
-        return NextResponse.json(
-          { error: '참석 상태 생성에 실패했습니다.' },
-          { status: 500 }
-        )
-      }
-      result = data
+    if (error && error.code !== 'PGRST116') {
+      console.error('참석 상태 조회 오류:', error)
+      return NextResponse.json(
+        { error: '참석 상태를 조회할 수 없습니다.' },
+        { status: 500 }
+      )
     }
 
-    // 이벤트의 참석자 수 업데이트
-    const { data: attendances } = await serverSupabase
-      .from('event_attendance')
-      .select('status')
-      .eq('event_id', eventId)
-      .eq('status', 'attending')
-
-    const attendingCount = attendances?.length || 0
-
-    await serverSupabase
+    // 이벤트의 현재 참석자 수 조회
+    const { data: event } = await supabase
       .from('events')
-      .update({ attendee_count: attendingCount })
+      .select('current_attendees')
       .eq('id', eventId)
+      .single()
 
     return NextResponse.json({
       success: true,
-      message: '참석 상태가 업데이트되었습니다.',
-      data: result
+      attending: !!attendance,
+      currentAttendees: event?.current_attendees || 0
     })
-
   } catch (error) {
-    console.error('참석 상태 업데이트 중 예외 발생:', error)
+    console.error('참석 상태 조회 오류:', error)
     return NextResponse.json(
-      { error: '서버 내부 오류가 발생했습니다.' },
+      { error: '참석 상태 조회 중 오류가 발생했습니다.' },
       { status: 500 }
     )
   }

@@ -30,6 +30,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
     location: string;
     category: 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle';
     isAllDay: boolean;
+    maxAttendees?: number | undefined;
   }>({
     title: '',
     description: '',
@@ -51,12 +52,17 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
             endDate: initialData.endDate || new Date(),
             location: initialData.location || '',
             category: (initialData.category as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle') || 'worship',
-            isAllDay: initialData.isAllDay || false
+            isAllDay: initialData.isAllDay || false,
+            ...(initialData.maxAttendees && { maxAttendees: initialData.maxAttendees })
           })
     } else if (selectedDate) {
-      const startDate = new Date(selectedDate)
-      const endDate = new Date(selectedDate)
-      endDate.setHours(endDate.getHours() + 1)
+      // 시간대 문제를 방지하기 위해 로컬 시간으로 날짜 생성
+      const year = selectedDate.getFullYear()
+      const month = selectedDate.getMonth()
+      const date = selectedDate.getDate()
+      
+      const startDate = new Date(year, month, date, 9, 0, 0) // 오전 9시로 설정
+      const endDate = new Date(year, month, date, 10, 0, 0) // 오전 10시로 설정
       
       setFormData(prev => ({
         ...prev,
@@ -69,17 +75,12 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // 사용자 ID 확인
-    console.log('EventForm - 사용자 상태:', { user: user ? { id: user.id, email: user.email } : null })
-    
     if (!user) {
-      console.error('EventForm - 사용자가 로그인되지 않음')
       setError('로그인이 필요합니다.')
       return
     }
     
     const authorId = user.id
-    console.log('EventForm - 사용할 authorId:', authorId)
 
     try {
       setIsLoading(true)
@@ -121,18 +122,9 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           authorId: authorId
         }
         
-        console.log('=== EventForm에서 API 호출 ===')
-        console.log('보내는 데이터:', JSON.stringify(requestData, null, 2))
-        console.log('각 필드 타입:')
-        Object.keys(requestData).forEach(key => {
-          console.log(`${key}: ${typeof (requestData as any)[key]} = ${JSON.stringify((requestData as any)[key])}`)
-        })
-        
-        console.log('API 호출 시작: /api/events')
         
         // Supabase에서 현재 세션 가져오기
         const { data: { session } } = await supabase.auth.getSession()
-        console.log('클라이언트 세션 상태:', { session: session ? '존재' : '없음' })
         
         const headers: HeadersInit = {
           'Content-Type': 'application/json',
@@ -141,9 +133,6 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
         // 세션이 있으면 Authorization 헤더 추가
         if (session?.access_token) {
           headers['Authorization'] = `Bearer ${session.access_token}`
-          console.log('Authorization 헤더 추가됨')
-        } else {
-          console.warn('세션이 없어서 Authorization 헤더를 추가할 수 없음')
         }
         
         const response = await fetch('/api/events', {
@@ -152,18 +141,14 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           body: JSON.stringify(requestData)
         })
         
-        console.log('API 응답 상태:', response.status, response.statusText)
         const data = await response.json()
-        console.log('응답 데이터:', data)
         
         if (!response.ok) {
-          console.error('이벤트 생성 API 오류:', data)
           throw new Error(data.error || `서버 오류 (${response.status})`)
         }
         
         if (data.success) {
           result = data.event as Event
-          console.log('이벤트 생성 성공:', result)
           
           // 이벤트 목록 새로고침을 위한 이벤트 발생
           window.dispatchEvent(new CustomEvent('eventCreated', { detail: result }))
@@ -178,13 +163,10 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
         }
       }
 
-      console.log('최종 result 값:', result)
       if (!result) {
-        console.log('result가 null이므로 에러 표시')
         setError('일정 저장에 실패했습니다.')
       }
     } catch (error) {
-      console.error('일정 저장 오류:', error)
       setError('일정 저장 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
@@ -192,15 +174,24 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
   }
 
   const handleDateChange = (field: 'startDate' | 'endDate', value: string) => {
-    const date = new Date(value)
+    // 시간대 문제를 방지하기 위해 로컬 시간으로 날짜 생성
+    const parts = value.split('-')
+    if (parts.length !== 3) return
+    
+    const year = parseInt(parts[0] || '0', 10)
+    const month = parseInt(parts[1] || '1', 10)
+    const day = parseInt(parts[2] || '1', 10)
+    const existingDate = formData[field]
+    const newDate = new Date(year, month - 1, day, existingDate.getHours(), existingDate.getMinutes(), 0, 0)
+    
     setFormData(prev => ({
       ...prev,
-      [field]: date
+      [field]: newDate
     }))
 
     // 시작 시간이 종료 시간보다 늦으면 종료 시간 자동 조정
-    if (field === 'startDate' && date > formData.endDate) {
-      const newEndDate = new Date(date)
+    if (field === 'startDate' && newDate > formData.endDate) {
+      const newEndDate = new Date(newDate)
       newEndDate.setHours(newEndDate.getHours() + 1)
       setFormData(prev => ({
         ...prev,
@@ -221,11 +212,18 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
   }
 
   const formatDateForInput = (date: Date) => {
-    return date.toISOString().split('T')[0]
+    // 로컬 시간대 기준으로 날짜 포맷팅
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const formatTimeForInput = (date: Date) => {
-    return date.toTimeString().slice(0, 5)
+    // 로컬 시간대 기준으로 시간 포맷팅
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${hours}:${minutes}`
   }
 
   if (!isOpen) return null
@@ -402,6 +400,30 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
                   className="pl-10"
                 />
               </div>
+            </div>
+
+            {/* 참석 인원 설정 */}
+            <div className="space-y-2">
+              <label htmlFor="maxAttendees" className="text-sm font-medium text-secondary-700">
+                최대 참석 인원 (선택사항)
+              </label>
+              <Input
+                id="maxAttendees"
+                type="number"
+                min="1"
+                value={formData.maxAttendees || ''}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    maxAttendees: value ? parseInt(value) : undefined 
+                  }))
+                }}
+                placeholder="참석 가능한 최대 인원을 입력하세요"
+              />
+              <p className="text-xs text-secondary-500">
+                참석 인원을 설정하면 사용자들이 참석 신청을 할 수 있습니다.
+              </p>
             </div>
 
             {/* 설명 */}

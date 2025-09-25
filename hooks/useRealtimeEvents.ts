@@ -9,7 +9,6 @@ export function useRealtimeEvents() {
   // 이벤트 목록을 다시 가져오는 함수
   const fetchEvents = async () => {
     try {
-      console.log('이벤트 목록 새로고침 중...')
       const response = await fetch('/api/events?limit=100')
       const data = await response.json()
 
@@ -22,12 +21,9 @@ export function useRealtimeEvents() {
           updatedAt: new Date(event.updatedAt)
         }))
         setEvents(formattedEvents)
-        console.log('이벤트 목록 업데이트 완료:', formattedEvents.length, '개')
-      } else {
-        console.error('이벤트 조회 실패:', data.error)
       }
     } catch (error) {
-      console.error('이벤트 조회 중 오류:', error)
+      // 이벤트 조회 실패 시 기존 데이터 유지
     } finally {
       setIsLoading(false)
     }
@@ -39,7 +35,6 @@ export function useRealtimeEvents() {
 
     // 커스텀 이벤트 리스너 (이벤트 생성 시 목록 새로고침)
     const handleEventCreated = () => {
-      console.log('이벤트 생성 감지 - 목록 새로고침')
       fetchEvents()
     }
 
@@ -56,15 +51,11 @@ export function useRealtimeEvents() {
           table: 'events'
         },
         (payload) => {
-          console.log('이벤트 변경 감지:', payload)
-          
           // 실시간 구독이 작동하지 않을 경우를 대비해 전체 목록을 다시 가져옴
           fetchEvents()
         }
       )
-      .subscribe((status) => {
-        console.log('실시간 구독 상태:', status)
-      })
+      .subscribe()
 
     // 클린업 함수
     return () => {
@@ -73,6 +64,33 @@ export function useRealtimeEvents() {
     }
   }, [])
 
-  return { events, setEvents, fetchEvents, isLoading }
+  // 이벤트 즉시 삭제 함수 (UI 반응성 향상)
+  const deleteEvent = (eventId: string) => {
+    setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId))
+  }
+
+  // 이벤트 즉시 추가 함수 (UI 반응성 향상)
+  const addEvent = (newEvent: Event) => {
+    setEvents(prevEvents => [...prevEvents, newEvent])
+  }
+
+  // 이벤트 즉시 업데이트 함수 (UI 반응성 향상)
+  const updateEvent = (updatedEvent: Event) => {
+    setEvents(prevEvents => 
+      prevEvents.map(event => 
+        event.id === updatedEvent.id ? updatedEvent : event
+      )
+    )
+  }
+
+  return { 
+    events, 
+    setEvents, 
+    fetchEvents, 
+    deleteEvent,
+    addEvent,
+    updateEvent,
+    isLoading 
+  }
 }
 

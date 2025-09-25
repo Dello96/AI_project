@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import AuthModal from '@/components/auth/AuthModal'
 import KakaoLoginButton from '@/components/auth/KakaoLoginButton'
+import LoginSuccessModal from '@/components/auth/LoginSuccessModal'
 import Logo from '@/components/ui/Logo'
 import { useAuth } from '@/contexts/AuthContext'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -17,21 +18,27 @@ function LoginContent() {
   const redirect = searchParams.get('redirect') || '/'
   const { user, isLoading } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   // 이미 로그인된 사용자는 리다이렉트
   useEffect(() => {
     if (!isLoading && user) {
-      router.push(redirect)
+      setShowSuccessModal(true)
     }
-  }, [user, isLoading, router, redirect])
+  }, [user, isLoading])
 
   const handleKakaoSuccess = () => {
-    // 카카오 로그인 성공 시 리다이렉트
-    router.push(redirect)
+    // 카카오 로그인 성공 시 성공 모달 표시
+    setShowSuccessModal(true)
   }
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false)
+    setShowSuccessModal(true)
+  }
+
+  const handleSuccessComplete = () => {
+    setShowSuccessModal(false)
     router.push(redirect)
   }
 
@@ -107,6 +114,13 @@ function LoginContent() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         defaultMode="signin"
+        onSuccess={handleAuthSuccess}
+      />
+      
+      {/* 로그인 성공 모달 */}
+      <LoginSuccessModal 
+        isOpen={showSuccessModal}
+        onComplete={handleSuccessComplete}
       />
     </div>
   )

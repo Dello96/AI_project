@@ -557,11 +557,22 @@ export const eventService = {
   // 이벤트 삭제
   async deleteEvent(eventId: string): Promise<boolean> {
     try {
+      // 현재 세션에서 액세스 토큰 가져오기
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+
+      // 액세스 토큰이 있으면 Authorization 헤더에 추가
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`
+      }
+
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {

@@ -14,9 +14,10 @@ interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
   defaultMode?: 'signin' | 'signup'
+  onSuccess?: () => void
 }
 
-export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<'signin' | 'signup'>(defaultMode)
   const [showPassword, setShowPassword] = useState(false)
   const [signUpData, setSignUpData] = useState<SignupForm>({
@@ -46,6 +47,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
       const result = await signIn(signInData)
       if (result.success) {
         onClose()
+        onSuccess?.()
       } else {
         setError(result.message || '로그인에 실패했습니다.')
       }

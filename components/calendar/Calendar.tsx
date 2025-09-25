@@ -29,13 +29,15 @@ interface CalendarProps {
   onAddEvent: () => void
   onSelectEvent: (event: Event) => void
   onSelectDate: (date: Date) => void
+  onDeleteEvent?: (eventId: string) => void
+  onRefresh?: () => void
 }
 
 type CalendarViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'
 
-export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: CalendarProps) {
+export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDeleteEvent, onRefresh }: CalendarProps) {
   const [view, setView] = useState<CalendarViewType>('dayGridMonth')
-  const { events, setEvents, isLoading } = useRealtimeEvents()
+  const { events, setEvents, isLoading, deleteEvent, addEvent, updateEvent } = useRealtimeEvents()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showMonthPicker, setShowMonthPicker] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['worship', 'meeting', 'event', 'smallgroup', 'vehicle'])
@@ -119,7 +121,6 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
         }
       }
     } catch (error) {
-      console.error('이벤트 업데이트 오류:', error)
       // 드롭 취소
       dropInfo.revert()
     }
@@ -151,7 +152,6 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate }: Ca
         }
       }
     } catch (error) {
-      console.error('이벤트 업데이트 오류:', error)
       // 리사이즈 취소
       resizeInfo.revert()
     }

@@ -126,6 +126,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
         category: 'event', // 기본값
         isAllDay: false,
         authorId: 'anonymous',
+        currentAttendees: 0,
+        attendees: [],
         createdAt: item.createdAt,
         updatedAt: item.createdAt
       }
