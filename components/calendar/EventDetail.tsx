@@ -266,45 +266,29 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    const directionsUrl = generateKakaoMapDirectionsUrl(event.locationData!, {
-                      transportType: 'car'
+                    startKakaoNavi(event.locationData!, {
+                      vehicleType: '1', // 자동차
+                      rpOption: '1',    // 추천 경로
+                      routeInfo: true   // 경로 정보 표시
                     });
-                    window.open(directionsUrl, '_blank');
                   }}
-                  className="flex items-center gap-1 text-xs"
+                  className="flex items-center gap-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
                 >
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                   길찾기
                 </Button>
                 {isValidLocationData(event.locationData) && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        startKakaoNavi(event.locationData!, {
-                          vehicleType: '1', // 자동차
-                          rpOption: '1',    // 추천 경로
-                          routeInfo: true   // 경로 정보 표시
-                        });
-                      }}
-                      className="flex items-center gap-1 text-xs bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
-                    >
-                      <MapPinIcon className="w-3 h-3" />
-                      내비 길안내
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        shareKakaoNavi(event.locationData!);
-                      }}
-                      className="flex items-center gap-1 text-xs bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
-                    >
-                      <ArrowTopRightOnSquareIcon className="w-3 h-3" />
-                      목적지 공유
-                    </Button>
-                  </>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      shareKakaoNavi(event.locationData!);
+                    }}
+                    className="flex items-center gap-1 text-xs bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
+                  >
+                    <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                    목적지 공유
+                  </Button>
                 )}
               </>
             ) : (
@@ -330,11 +314,12 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                   variant="outline"
                   onClick={() => {
                     if (event.location) {
+                      // 장소명으로 카카오내비 길찾기 (웹 폴백)
                       const directionsUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
-                      window.open(directionsUrl, '_blank');
+                      window.location.href = directionsUrl;
                     }
                   }}
-                  className="flex items-center gap-1 text-xs"
+                  className="flex items-center gap-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
                   disabled={!event.location}
                 >
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
