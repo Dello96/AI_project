@@ -266,9 +266,21 @@ export function startKakaoNavi(
     console.log('🔍 카카오맵 길찾기 URL (폴백):', fallbackUrl);
     console.log('📍 목적지 정보:', destination);
     
-    // 카카오맵 앱 우선 사용 (더 안정적)
-    console.log('🚗 카카오맵 앱으로 길찾기 시작');
-    window.location.href = fallbackUrl;
+    // 카카오내비 앱 우선 사용 (정확한 길안내)
+    console.log('🚗 카카오내비 앱으로 길안내 시작');
+    
+    // 카카오내비 앱 URL 시도 (좌표 포함)
+    const naviUrl = `kakaonavi://navigate?destination=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
+    console.log('🔍 카카오내비 앱 URL:', naviUrl);
+    
+    // 카카오내비 앱으로 이동 시도
+    window.location.href = naviUrl;
+    
+    // 2초 후 카카오맵으로 폴백 (앱이 없을 경우)
+    setTimeout(() => {
+      console.log('⏰ 카카오내비 앱 타임아웃, 카카오맵으로 폴백');
+      window.location.href = fallbackUrl;
+    }, 2000);
     
   } catch (error) {
     console.error('카카오맵 길 안내 시작 오류:', error);
@@ -397,9 +409,21 @@ export function shareKakaoNavi(locationData: LocationData): void {
     console.log('🔍 카카오맵 공유 URL (폴백):', fallbackUrl);
     console.log('📍 목적지 정보:', destination);
     
-    // 카카오맵 앱 우선 사용 (더 안정적)
-    console.log('📍 카카오맵 앱으로 목적지 공유');
-    window.location.href = fallbackUrl;
+    // 카카오내비 앱 우선 사용 (정확한 목적지 공유)
+    console.log('📍 카카오내비 앱으로 목적지 공유');
+    
+    // 카카오내비 앱 URL 시도 (좌표 포함)
+    const naviUrl = `kakaonavi://share?destination=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
+    console.log('🔍 카카오내비 공유 URL:', naviUrl);
+    
+    // 카카오내비 앱으로 이동 시도
+    window.location.href = naviUrl;
+    
+    // 2초 후 카카오맵으로 폴백 (앱이 없을 경우)
+    setTimeout(() => {
+      console.log('⏰ 카카오내비 앱 타임아웃, 카카오맵으로 폴백');
+      window.location.href = fallbackUrl;
+    }, 2000);
     
   } catch (error) {
     console.error('카카오맵 목적지 공유 오류:', error);
@@ -588,9 +612,22 @@ export async function startKakaoNaviWithSearch(
     const locationData = await searchPlaceCoordinates(placeName);
     
     if (locationData) {
-      // 2. 검색된 좌표로 길찾기
-      console.log('✅ 좌표 검색 성공, 길찾기 시작');
-      startKakaoNavi(locationData, options);
+      // 2. 검색된 좌표로 카카오내비 앱 길안내
+      console.log('✅ 좌표 검색 성공, 카카오내비 앱으로 길안내 시작');
+      
+      // 카카오내비 앱 URL 생성 (좌표 포함)
+      const naviUrl = `kakaonavi://navigate?destination=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
+      console.log('🔍 실시간 검색 후 카카오내비 앱 URL:', naviUrl);
+      
+      // 카카오내비 앱으로 이동 시도
+      window.location.href = naviUrl;
+      
+      // 2초 후 카카오맵으로 폴백
+      setTimeout(() => {
+        console.log('⏰ 카카오내비 앱 타임아웃, 카카오맵으로 폴백');
+        const fallbackUrl = `kakaomap://route?sp=&ep=${locationData.lng},${locationData.lat}&by=CAR&rp=RECOMMEND`;
+        window.location.href = fallbackUrl;
+      }, 2000);
     } else {
       // 3. 좌표 검색 실패 시 장소명으로 폴백
       console.log('⚠️ 좌표 검색 실패, 장소명으로 폴백');

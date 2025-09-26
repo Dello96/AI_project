@@ -254,15 +254,24 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
                   });
                   
                   if (!success) {
-                    // SDK 실패 시 카카오맵 앱으로 폴백 (더 안정적)
-                    const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
-                    console.log('🔍 메인 페이지 - 카카오맵 길찾기 URL:', appUrl);
+                    // SDK 실패 시 카카오내비 앱으로 폴백 (정확한 길안내)
+                    const naviUrl = `kakaonavi://navigate?destination=127.100823924714,37.5179242320345&name=${encodeURIComponent(churchLocation)}`;
+                    console.log('🔍 메인 페이지 - 카카오내비 앱 URL:', naviUrl);
                     console.log('📍 교회 위치 정보:', {
                       name: churchLocation,
                       x: 127.100823924714,
                       y: 37.5179242320345
                     });
-                    window.location.href = appUrl;
+                    
+                    // 카카오내비 앱으로 이동 시도
+                    window.location.href = naviUrl;
+                    
+                    // 2초 후 카카오맵으로 폴백
+                    setTimeout(() => {
+                      console.log('⏰ 카카오내비 앱 타임아웃, 카카오맵으로 폴백');
+                      const fallbackUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
+                      window.location.href = fallbackUrl;
+                    }, 2000);
                   }
                 } catch (error) {
                   console.error('카카오맵 길찾기 오류:', error);
