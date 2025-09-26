@@ -254,20 +254,15 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
                   });
                   
                   if (!success) {
-                    // SDK 실패 시 기존 방식으로 폴백
+                    // SDK 실패 시 앱으로만 폴백 (웹 폴백 없음)
                     const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
-                    const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(churchLocation)}`;
-                    
                     window.location.href = appUrl;
-                    setTimeout(() => {
-                      window.location.href = webUrl;
-                    }, 2000);
                   }
                 } catch (error) {
                   console.error('카카오 내비 길찾기 오류:', error);
-                  // 오류 발생 시 웹으로 폴백
-                  const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent("잠실중앙교회")}`;
-                  window.location.href = webUrl;
+                  // 오류 발생 시에도 앱으로만 시도
+                  const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent("잠실중앙교회")}&by=CAR&rp=RECOMMEND`;
+                  window.location.href = appUrl;
                 }
               }}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"

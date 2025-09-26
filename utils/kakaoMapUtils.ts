@@ -108,14 +108,8 @@ export function generateKakaoMapDirectionsUrl(
   const { name, address, lat, lng } = locationData;
   const { startAddress, transportType = 'car' } = options;
 
-  // 카카오내비 앱 URL 생성 (카카오맵 대신)
-  let url = `kakaomap://route?sp=&ep=${encodeURIComponent(name)}&by=CAR&rp=RECOMMEND`;
-  
-  // 웹 폴백 URL
-  const webUrl = `https://map.kakao.com/link/navi?name=${encodeURIComponent(name)}&x=${lng}&y=${lat}&coordType=wgs84&vehicleType=1&rpOption=1&routeInfo=true`;
-  
-  // 앱이 설치되지 않은 경우 웹으로 폴백하기 위해 웹 URL 반환
-  return webUrl;
+  // 카카오내비 앱 URL만 반환 (웹 폴백 없음)
+  return `kakaomap://route?sp=&ep=${encodeURIComponent(name)}&by=CAR&rp=RECOMMEND`;
 }
 
 /**
@@ -227,22 +221,14 @@ export function startKakaoNavi(
     // 카카오내비 앱 직접 연결 URL 생성
     const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(locationData.name)}&by=CAR&rp=RECOMMEND`;
     
-    // 카카오내비 웹 폴백 URL 생성
-    const webUrl = `https://map.kakao.com/link/navi?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coordType=wgs84&vehicleType=1&rpOption=1&routeInfo=true`;
-    
-    // 카카오내비 앱으로 직접 이동 시도
+    // 카카오내비 앱으로만 직접 이동 (웹 폴백 없음)
     window.location.href = appUrl;
-    
-    // 앱이 열리지 않으면 웹으로 폴백
-    setTimeout(() => {
-      window.location.href = webUrl;
-    }, 2000);
     
   } catch (error) {
     console.error('카카오 내비 길 안내 시작 오류:', error);
-    // 오류 발생 시 웹으로 폴백
-    const webUrl = `https://map.kakao.com/link/navi?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coordType=wgs84&vehicleType=1&rpOption=1&routeInfo=true`;
-    window.location.href = webUrl;
+    // 오류 발생 시에도 앱으로만 시도
+    const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(locationData.name)}&by=CAR&rp=RECOMMEND`;
+    window.location.href = appUrl;
   }
 }
 
@@ -340,22 +326,14 @@ export function shareKakaoNavi(locationData: LocationData): void {
     // 카카오내비 앱 직접 연결 URL 생성
     const appUrl = `kakaomap://place?id=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}&address=${encodeURIComponent(locationData.address)}`;
     
-    // 카카오내비 웹 폴백 URL 생성
-    const webUrl = `https://map.kakao.com/link/share?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coordType=wgs84`;
-    
-    // 카카오내비 앱으로 직접 이동 시도
+    // 카카오내비 앱으로만 직접 이동 (웹 폴백 없음)
     window.location.href = appUrl;
-    
-    // 앱이 열리지 않으면 웹으로 폴백
-    setTimeout(() => {
-      window.location.href = webUrl;
-    }, 2000);
     
   } catch (error) {
     console.error('카카오 내비 목적지 공유 오류:', error);
-    // 오류 발생 시 웹으로 폴백
-    const webUrl = `https://map.kakao.com/link/share?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coordType=wgs84`;
-    window.location.href = webUrl;
+    // 오류 발생 시에도 앱으로만 시도
+    const appUrl = `kakaomap://place?id=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}&address=${encodeURIComponent(locationData.address)}`;
+    window.location.href = appUrl;
   }
 }
 
