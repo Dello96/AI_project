@@ -1,73 +1,72 @@
-const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 
-async function generatePDF() {
+// 마크다운을 HTML로 변환하는 함수
+function markdownToHtml(markdown) {
+  let html = markdown;
+  
+  // 코드 블록 처리 (```로 시작하는 블록)
+  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+  
+  // 인라인 코드 처리
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  
+  // 제목 처리
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+  
+  // 강조 처리
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // 목록 처리
+  html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
+  html = html.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
+  
+  // 목록을 ul/ol로 감싸기
+  html = html.replace(/(<li>.*<\/li>)/gs, (match) => {
+    const lines = match.split('\n');
+    let result = '<ul>\n';
+    lines.forEach(line => {
+      if (line.trim().startsWith('<li>')) {
+        result += line + '\n';
+      }
+    });
+    result += '</ul>';
+    return result;
+  });
+  
+  // 구분선 처리
+  html = html.replace(/^---$/gim, '<hr>');
+  
+  // 단락 처리
+  html = html.replace(/\n\n/g, '</p><p>');
+  html = html.replace(/^(?!<[h|l|p|d|t|u|o])/gm, '<p>');
+  
+  // 빈 태그 정리
+  html = html.replace(/<p><\/p>/g, '');
+  html = html.replace(/<p>(<h[1-6])/g, '$1');
+  html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
+  html = html.replace(/<p>(<ul)/g, '$1');
+  html = html.replace(/(<\/ul>)<\/p>/g, '$1');
+  html = html.replace(/<p>(<pre)/g, '$1');
+  html = html.replace(/(<\/pre>)<\/p>/g, '$1');
+  html = html.replace(/<p>(<hr)/g, '$1');
+  html = html.replace(/(<\/hr>)<\/p>/g, '$1');
+  
+  return html;
+}
+
+async function generatePreview() {
   try {
-    console.log('PDF 생성 시작...');
+    console.log('HTML 미리보기 생성 시작...');
     
     // 마크다운 파일 읽기
     const markdownPath = path.join(__dirname, '../docs/kakao-map-implementation-guide.md');
     const markdownContent = fs.readFileSync(markdownPath, 'utf8');
     
-    // 마크다운을 HTML로 변환하는 함수
-    function markdownToHtml(markdown) {
-      let html = markdown;
-      
-      // 코드 블록 처리 (```로 시작하는 블록)
-      html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-      
-      // 인라인 코드 처리
-      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-      
-      // 제목 처리
-      html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-      html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-      html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-      html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
-      
-      // 강조 처리
-      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      
-      // 목록 처리
-      html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
-      html = html.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
-      
-      // 목록을 ul/ol로 감싸기
-      html = html.replace(/(<li>.*<\/li>)/gs, (match) => {
-        const lines = match.split('\n');
-        let result = '<ul>\n';
-        lines.forEach(line => {
-          if (line.trim().startsWith('<li>')) {
-            result += line + '\n';
-          }
-        });
-        result += '</ul>';
-        return result;
-      });
-      
-      // 구분선 처리
-      html = html.replace(/^---$/gim, '<hr>');
-      
-      // 단락 처리
-      html = html.replace(/\n\n/g, '</p><p>');
-      html = html.replace(/^(?!<[h|l|p|d|t|u|o])/gm, '<p>');
-      
-      // 빈 태그 정리
-      html = html.replace(/<p><\/p>/g, '');
-      html = html.replace(/<p>(<h[1-6])/g, '$1');
-      html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
-      html = html.replace(/<p>(<ul)/g, '$1');
-      html = html.replace(/(<\/ul>)<\/p>/g, '$1');
-      html = html.replace(/<p>(<pre)/g, '$1');
-      html = html.replace(/(<\/pre>)<\/p>/g, '$1');
-      html = html.replace(/<p>(<hr)/g, '$1');
-      html = html.replace(/(<\/hr>)<\/p>/g, '$1');
-      
-      return html;
-    }
-
     // HTML 변환
     const htmlContent = `
 <!DOCTYPE html>
@@ -205,25 +204,6 @@ async function generatePDF() {
             padding: 15px;
             margin: 15px 0;
         }
-        
-        .page-break {
-            page-break-before: always;
-        }
-        
-        @media print {
-            body {
-                margin: 0;
-                padding: 20px;
-            }
-            
-            h1, h2, h3, h4 {
-                page-break-after: avoid;
-            }
-            
-            pre, blockquote {
-                page-break-inside: avoid;
-            }
-        }
     </style>
 </head>
 <body>
@@ -231,39 +211,16 @@ async function generatePDF() {
 </body>
 </html>`;
 
-    // 브라우저 실행
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    // HTML 파일 저장
+    const htmlPath = path.join(__dirname, '../docs/kakao-map-implementation-guide.html');
+    fs.writeFileSync(htmlPath, htmlContent);
     
-    const page = await browser.newPage();
-    
-    // HTML 설정
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    
-    // PDF 생성
-    const pdfPath = path.join(__dirname, '../docs/kakao-map-implementation-guide.pdf');
-    await page.pdf({
-        path: pdfPath,
-        format: 'A4',
-        printBackground: true,
-        margin: {
-            top: '20mm',
-            right: '20mm',
-            bottom: '20mm',
-            left: '20mm'
-        }
-    });
-    
-    await browser.close();
-    
-    console.log(`PDF 생성 완료: ${pdfPath}`);
-    console.log('파일 크기:', fs.statSync(pdfPath).size, 'bytes');
+    console.log(`HTML 미리보기 생성 완료: ${htmlPath}`);
+    console.log('브라우저에서 확인하세요!');
     
   } catch (error) {
-    console.error('PDF 생성 중 오류 발생:', error);
+    console.error('HTML 미리보기 생성 중 오류 발생:', error);
   }
 }
 
-generatePDF();
+generatePreview();

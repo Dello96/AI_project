@@ -53,6 +53,12 @@ export interface Event {
   startDate: Date;
   endDate: Date;
   location?: string;
+  locationData?: {
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+  };
   category: 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle';
   isAllDay: boolean;
   authorId: string;

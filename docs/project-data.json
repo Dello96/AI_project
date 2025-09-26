@@ -1,0 +1,168 @@
+{
+  "projects": [
+    {
+      "id": "church-community-platform",
+      "title": "교회 청년부 커뮤니티 플랫폼",
+      "period": "2024.09 - 2024.12",
+      "duration": "3개월",
+      "role": "풀스택 개발자",
+      "teamSize": "1명 (개인 프로젝트)",
+      "description": "분산된 커뮤니케이션 채널을 통합한 올인원 플랫폼으로, 게시판, 캘린더, 실시간 채팅, 결제 시스템을 통합한 PWA를 개발했습니다.",
+      "achievements": [
+        "Lighthouse PWA 점수 90점 이상 달성",
+        "100명 규모 트래픽 안정적 처리",
+        "실시간 데이터 동기화 구현",
+        "카카오맵 API 통합으로 위치 검색 기능 제공",
+        "PWA 구현으로 네이티브 앱 수준의 UX 제공"
+      ],
+      "techStack": {
+        "frontend": ["Next.js 14", "TypeScript", "TailwindCSS", "Shadcn UI", "Framer Motion"],
+        "backend": ["Supabase", "PostgreSQL", "Row Level Security"],
+        "apis": ["카카오맵 API", "카카오 OAuth", "Toss Payments", "Google Gemini API"],
+        "devops": ["Vercel", "PWA", "환경 변수 관리"]
+      },
+      "challenges": [
+        "카카오맵 API 통합 시 발생한 다양한 에러 해결",
+        "실시간 데이터 동기화 구현",
+        "PWA 최적화를 통한 성능 개선",
+        "반응형 디자인 구현"
+      ],
+      "learnings": [
+        "Next.js 14 App Router의 최신 기능 활용",
+        "Supabase를 활용한 빠른 백엔드 구축",
+        "PWA 구현을 통한 웹 앱의 네이티브 앱 수준 경험 제공",
+        "실시간 통신 구현을 통한 WebSocket 이해도 향상"
+      ],
+      "metrics": {
+        "performance": "Lighthouse PWA 90점+",
+        "users": "100명 규모 트래픽 처리",
+        "development": "3개월 내 MVP 완성",
+        "codeQuality": "TypeScript 100% 적용"
+      },
+      "links": {
+        "github": "https://github.com/yourusername/church-community",
+        "demo": "https://your-demo-url.vercel.app",
+        "documentation": "https://your-docs-url.com"
+      }
+    },
+    {
+      "id": "e-commerce-platform",
+      "title": "이커머스 플랫폼",
+      "period": "2024.01 - 2024.08",
+      "duration": "8개월",
+      "role": "프론트엔드 개발자",
+      "teamSize": "5명 (프론트엔드 2명, 백엔드 2명, 디자이너 1명)",
+      "description": "대규모 이커머스 플랫폼의 프론트엔드 개발을 담당하며, 사용자 경험 최적화와 성능 개선에 집중했습니다.",
+      "achievements": [
+        "페이지 로딩 속도 40% 개선",
+        "모바일 사용자 전환율 25% 증가",
+        "접근성 WCAG AA 준수 달성",
+        "컴포넌트 재사용성 80% 향상"
+      ],
+      "techStack": {
+        "frontend": ["React", "Redux Toolkit", "Styled Components", "React Query"],
+        "backend": ["Node.js", "Express", "MongoDB"],
+        "apis": ["REST API", "GraphQL"],
+        "devops": ["AWS", "Docker", "Jenkins"]
+      },
+      "challenges": [
+        "대용량 데이터 처리 최적화",
+        "복잡한 상태 관리 구현",
+        "크로스 브라우저 호환성 확보",
+        "SEO 최적화"
+      ],
+      "learnings": [
+        "React 성능 최적화 기법",
+        "Redux Toolkit을 활용한 상태 관리",
+        "React Query를 통한 서버 상태 관리",
+        "접근성 구현 방법론"
+      ],
+      "metrics": {
+        "performance": "페이지 로딩 속도 40% 개선",
+        "conversion": "모바일 전환율 25% 증가",
+        "accessibility": "WCAG AA 준수",
+        "reusability": "컴포넌트 재사용성 80% 향상"
+      },
+      "links": {
+        "github": "https://github.com/yourusername/ecommerce-platform",
+        "demo": "https://your-ecommerce-demo.com"
+      }
+    },
+    {
+      "id": "data-visualization-dashboard",
+      "title": "데이터 시각화 대시보드",
+      "period": "2023.06 - 2023.12",
+      "duration": "6개월",
+      "role": "프론트엔드 개발자",
+      "teamSize": "3명 (프론트엔드 2명, 백엔드 1명)",
+      "description": "실시간 데이터를 시각화하는 대시보드를 개발하여, 복잡한 데이터를 직관적으로 표현했습니다.",
+      "achievements": [
+        "실시간 데이터 업데이트 구현",
+        "인터랙티브 차트 15개 이상 개발",
+        "사용자 커스터마이징 기능 제공",
+        "데이터 로딩 시간 60% 단축"
+      ],
+      "techStack": {
+        "frontend": ["Vue.js", "D3.js", "Chart.js", "WebSocket"],
+        "backend": ["Python", "FastAPI", "WebSocket"],
+        "apis": ["WebSocket", "REST API"],
+        "devops": ["Docker", "Kubernetes"]
+      },
+      "challenges": [
+        "대용량 실시간 데이터 처리",
+        "복잡한 차트 구현",
+        "사용자 인터랙션 최적화",
+        "데이터 성능 최적화"
+      ],
+      "learnings": [
+        "D3.js를 활용한 커스텀 차트 개발",
+        "WebSocket을 통한 실시간 통신",
+        "Vue.js 컴포넌트 설계",
+        "데이터 시각화 UX/UI 설계"
+      ],
+      "metrics": {
+        "performance": "데이터 로딩 시간 60% 단축",
+        "features": "인터랙티브 차트 15개+ 개발",
+        "customization": "사용자 커스터마이징 기능 제공",
+        "realtime": "실시간 데이터 업데이트 구현"
+      },
+      "links": {
+        "github": "https://github.com/yourusername/data-dashboard",
+        "demo": "https://your-dashboard-demo.com"
+      }
+    }
+  ],
+  "skills": {
+    "frontend": [
+      "React", "Next.js", "Vue.js", "TypeScript", "JavaScript",
+      "TailwindCSS", "Styled Components", "CSS3", "HTML5",
+      "Framer Motion", "D3.js", "Chart.js"
+    ],
+    "backend": [
+      "Node.js", "Express", "Python", "FastAPI", "Supabase",
+      "PostgreSQL", "MongoDB", "Redis"
+    ],
+    "devops": [
+      "Docker", "Kubernetes", "AWS", "Vercel", "Jenkins",
+      "CI/CD", "PWA", "환경 변수 관리"
+    ],
+    "tools": [
+      "Git", "GitHub", "VS Code", "Figma", "Postman",
+      "Chrome DevTools", "Lighthouse"
+    ]
+  },
+  "experience": [
+    {
+      "period": "2024.01 - 현재",
+      "title": "풀스택 개발자",
+      "company": "[현재 회사명]",
+      "description": "웹 애플리케이션 개발 및 유지보수를 담당하며, 사용자 경험 개선과 성능 최적화에 집중했습니다."
+    },
+    {
+      "period": "2023.06 - 2023.12",
+      "title": "프론트엔드 개발자",
+      "company": "[이전 회사명]",
+      "description": "React 기반 웹 애플리케이션 개발을 담당하며, 컴포넌트 설계와 상태 관리에 전문성을 쌓았습니다."
+    }
+  ]
+}

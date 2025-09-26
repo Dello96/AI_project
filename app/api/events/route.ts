@@ -11,6 +11,12 @@ const CreateEventSchema = z.object({
   startDate: z.string().min(1, '시작 날짜를 입력해주세요.'),
   endDate: z.string().min(1, '종료 날짜를 입력해주세요.'),
   location: z.string().optional().or(z.literal('')).transform(val => val === '' ? undefined : val),
+  locationData: z.object({
+    name: z.string(),
+    address: z.string(),
+    lat: z.number(),
+    lng: z.number()
+  }).optional(),
   category: z.enum(['worship', 'meeting', 'event', 'smallgroup', 'vehicle'], { 
     message: '올바른 카테고리를 선택해주세요.' 
   }),
@@ -75,7 +81,7 @@ export async function POST(request: NextRequest) {
     
     console.log('유효성 검사 통과! 파싱된 데이터:', parsed.data)
     
-    const { title, description, startDate, endDate, location, category, isAllDay, authorId } = parsed.data
+    const { title, description, startDate, endDate, location, locationData, category, isAllDay, authorId } = parsed.data
     
     // Authorization 헤더에서 토큰 확인
     const authHeader = request.headers.get('Authorization')
@@ -171,6 +177,7 @@ export async function POST(request: NextRequest) {
       end_date: endDate,
       all_day: Boolean(isAllDay),
       location: location && location.trim() !== '' ? location.trim() : null,
+      location_data: locationData || null,
       category,
       created_by: actualAuthorId
     }

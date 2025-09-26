@@ -539,6 +539,7 @@ export const eventService = {
       if (data.endDate) updateData.end_date = data.endDate.toISOString()
       if (data.isAllDay !== undefined) updateData.all_day = data.isAllDay
       if (data.location) updateData.location = data.location
+      if (data.locationData) updateData.location_data = data.locationData
       if (data.category) updateData.category = data.category
 
       const { error } = await supabase

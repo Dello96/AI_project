@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카카오맵 API 구현 및 에러 해결 가이드</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+        }
+        
+        h1 {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #1e40af;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 8px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        
+        h3 {
+            color: #374151;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            color: #4b5563;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #e5e7eb;
+            margin: 30px 0;
+        }
+        
+        blockquote {
+            border-left: 4px solid #3b82f6;
+            margin: 20px 0;
+            padding: 10px 20px;
+            background: #f8fafc;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+        
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .error-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .success-box {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>카카오맵 API 구현 및 에러 해결 가이드</h1><h2>📋 목차</h2>
+<ul>
+<li>[프로젝트 개요](#프로젝트-개요)</li>
+<li>[구현된 기능](#구현된-기능)</li>
+<li>[기술 스택](#기술-스택)</li>
+<li>[구현 과정](#구현-과정)</li>
+<li>[발생한 에러와 해결 과정](#발생한-에러와-해결-과정)</li>
+<li>[최종 코드 구조](#최종-코드-구조)</li>
+<li>[사용법](#사용법)</li>
+<li>[주의사항](#주의사항)</li>
+<li>메인 페이지에 교회 위치 표시</li>
+<li>캘린더 페이지에서 이벤트 등록 시 장소 검색 기능</li>
+<li>사용자 친화적인 인터페이스 제공</li>
+<li><strong>교회 위치 표시</strong>: 잠실중앙교회 위치를 마커로 표시</li>
+<li><strong>인포윈도우</strong>: 마커 클릭 시 교회 정보 표시</li>
+<li><strong>반응형 디자인</strong>: 모바일과 데스크톱에서 최적화된 표시</li>
+<li><strong>키워드 검색</strong>: 장소명으로 검색 가능</li>
+<li><strong>실시간 검색 결과</strong>: 검색 결과를 지도에 마커로 표시</li>
+<li><strong>장소 선택</strong>: 검색 결과에서 장소 선택하여 이벤트에 연결</li>
+<li><strong>지도 범위 자동 조정</strong>: 검색 결과에 맞춰 지도 범위 자동 조정</li>
+<li><strong>Frontend</strong>: Next.js 14, TypeScript, React</li>
+<li><strong>UI Library</strong>: TailwindCSS, Shadcn UI</li>
+<li><strong>Map API</strong>: 카카오맵 API v2</li>
+<li><strong>State Management</strong>: React Context API</li>
+<li><strong>Build Tool</strong>: Next.js with PWA</li>
+<li>카카오맵 API 키는 환경 변수로 관리</li>
+<li>도메인 설정을 올바르게 해야 함</li>
+<li><code>libraries=services</code> 파라미터 필수</li>
+<li><code>isMounted</code> 상태로 클라이언트 전용 렌더링</li>
+<li>서버와 클라이언트 렌더링 결과 일치 필요</li>
+<li>카카오맵 API 로딩 상태 확인</li>
+<li>Places 서비스 사용 가능 여부 확인</li>
+<li>사용자에게 적절한 에러 메시지 제공</li>
+<li>불필요한 리렌더링 방지</li>
+<li>마커 정리 로직 구현</li>
+<li>메모리 누수 방지</li>
+<li><strong>지도 로딩 시간</strong>: 평균 2-3초</li>
+<li><strong>검색 응답 시간</strong>: 평균 1-2초</li>
+<li><strong>메모리 사용량</strong>: 최적화됨</li>
+<li><strong>직관적인 검색</strong>: 키워드 입력으로 간편한 검색</li>
+<li><strong>시각적 피드백</strong>: 검색 결과를 지도에 마커로 표시</li>
+<li><strong>반응형 디자인</strong>: 모든 디바이스에서 최적화된 경험</li>
+<li><strong>검색 결과 캐싱</strong>: 자주 검색되는 장소 캐싱</li>
+<li><strong>사용자 위치 기반 검색</strong>: GPS를 활용한 근처 장소 검색</li>
+<li><strong>검색 히스토리</strong>: 사용자별 검색 기록 관리</li>
+<li><strong>즐겨찾기 기능</strong>: 자주 사용하는 장소 저장</li>
+<p></ul><hr></p><h2>📞 문의 및 지원</h2><p>구현 과정에서 궁금한 점이나 추가 기능이 필요하시면 언제든 문의해주세요!</p><p><strong>개발팀</strong>: 잠실중앙교회 개발팀  
+<p><strong>문서 작성일</strong>: 2024년 12월  
+<p><strong>버전</strong>: 1.0.0
+<p>
+</body>
+</html>

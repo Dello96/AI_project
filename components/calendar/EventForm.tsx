@@ -104,6 +104,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           startDate: formData.startDate,
           endDate: formData.endDate,
           location: formData.location?.trim() || '',
+          locationData: selectedLocation || undefined,
           category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle',
           isAllDay: formData.isAllDay
         })
@@ -125,6 +126,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
           location: formData.location?.trim() || undefined,
+          locationData: selectedLocation || undefined,
           category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle',
           isAllDay: Boolean(formData.isAllDay),
           authorId: authorId

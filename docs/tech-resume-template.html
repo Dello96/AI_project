@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기술 경력서 - [이름]</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* 헤더 섹션 */
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            padding: 48px 0;
+            margin-bottom: 48px;
+        }
+
+        .header-content {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            object-fit: cover;
+        }
+
+        .header-info h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header-info .title {
+            font-size: 20px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .header-info .description {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 24px;
+        }
+
+        .contact-info {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .contact-item a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .contact-item a:hover {
+            opacity: 0.8;
+        }
+
+        /* 핵심 역량 섹션 */
+        .skills-section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 24px;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 8px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .skill-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .skill-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 16px;
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-tag {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* 프로젝트 섹션 */
+        .projects-section {
+            margin-bottom: 48px;
+        }
+
+        .project-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s;
+        }
+
+        .project-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .project-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        .project-period {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .project-description {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 24px;
+        }
+
+        .project-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 24px;
+        }
+
+        .project-detail h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .project-detail ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .project-detail li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .project-detail li::before {
+            content: "•";
+            color: #3b82f6;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .tech-tag {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .project-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .project-link:hover {
+            background: #2563eb;
+        }
+
+        /* 경력 섹션 */
+        .experience-section {
+            margin-bottom: 48px;
+        }
+
+        .experience-item {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .experience-item:last-child {
+            border-bottom: none;
+        }
+
+        .experience-period {
+            min-width: 120px;
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .experience-content h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+
+        .experience-content .company {
+            font-size: 16px;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .experience-content .description {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .header-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .project-details {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                justify-content: center;
+            }
+
+            .container {
+                padding: 0 16px;
+            }
+        }
+
+        /* 인쇄 스타일 */
+        @media print {
+            body {
+                font-size: 12px;
+            }
+            
+            .header {
+                background: #2563eb !important;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .project-card {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 섹션 -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <img src="profile-image.jpg" alt="프로필 사진" class="profile-image">
+                <div class="header-info">
+                    <h1>[이름]</h1>
+                    <div class="title">풀스택 개발자 / 프론트엔드 개발자</div>
+                    <div class="description">
+                        사용자 중심의 웹 애플리케이션을 개발하며, 
+                        최신 기술 트렌드를 활용한 혁신적인 솔루션을 제공합니다.
+                    </div>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span>📧</span>
+                            <a href="mailto:your.email@example.com">your.email@example.com</a>
+                        </div>
+                        <div class="contact-item">
+                            <span>📱</span>
+                            <a href="tel:+82-10-1234-5678">010-1234-5678</a>
+                        </div>
+                        <div class="contact-item">
+                            <span>🔗</span>
+                            <a href="https://github.com/yourusername" target="_blank">GitHub</a>
+                        </div>
+                        <div class="contact-item">
+                            <span>💼</span>
+                            <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 핵심 역량 섹션 -->
+        <section class="skills-section">
+            <h2 class="section-title">핵심 역량</h2>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <h3>프론트엔드</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">React</span>
+                        <span class="skill-tag">Next.js</span>
+                        <span class="skill-tag">TypeScript</span>
+                        <span class="skill-tag">TailwindCSS</span>
+                        <span class="skill-tag">Framer Motion</span>
+                    </div>
+                </div>
+                <div class="skill-card">
+                    <h3>백엔드 & 데이터베이스</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Node.js</span>
+                        <span class="skill-tag">Supabase</span>
+                        <span class="skill-tag">PostgreSQL</span>
+                        <span class="skill-tag">API Design</span>
+                    </div>
+                </div>
+                <div class="skill-card">
+                    <h3>DevOps & 배포</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Vercel</span>
+                        <span class="skill-tag">Docker</span>
+                        <span class="skill-tag">CI/CD</span>
+                        <span class="skill-tag">PWA</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 프로젝트 섹션 -->
+        <section class="projects-section">
+            <h2 class="section-title">주요 프로젝트</h2>
+            
+            <!-- 프로젝트 1 -->
+            <div class="project-card">
+                <div class="project-header">
+                    <div>
+                        <h3 class="project-title">교회 청년부 커뮤니티 플랫폼</h3>
+                        <p class="project-description">
+                            분산된 커뮤니케이션 채널을 통합한 올인원 플랫폼으로, 
+                            게시판, 캘린더, 실시간 채팅, 결제 시스템을 통합한 PWA를 개발했습니다.
+                        </p>
+                    </div>
+                    <span class="project-period">2024.09 - 2024.12</span>
+                </div>
+                
+                <div class="project-details">
+                    <div class="project-detail">
+                        <h4>주요 성과</h4>
+                        <ul>
+                            <li>Lighthouse PWA 점수 90점 이상 달성</li>
+                            <li>100명 규모 트래픽 안정적 처리</li>
+                            <li>실시간 데이터 동기화 구현</li>
+                            <li>카카오맵 API 통합</li>
+                        </ul>
+                    </div>
+                    <div class="project-detail">
+                        <h4>기술 스택</h4>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Next.js 14</span>
+                            <span class="tech-tag">TypeScript</span>
+                            <span class="tech-tag">Supabase</span>
+                            <span class="tech-tag">TailwindCSS</span>
+                            <span class="tech-tag">카카오맵 API</span>
+                            <span class="tech-tag">Toss Payments</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="project-links">
+                    <a href="#" class="project-link">🔗 GitHub</a>
+                    <a href="#" class="project-link">🌐 Live Demo</a>
+                    <a href="#" class="project-link">📄 문서</a>
+                </div>
+            </div>
+
+            <!-- 프로젝트 2 -->
+            <div class="project-card">
+                <div class="project-header">
+                    <div>
+                        <h3 class="project-title">[다음 프로젝트명]</h3>
+                        <p class="project-description">
+                            [프로젝트 설명]
+                        </p>
+                    </div>
+                    <span class="project-period">[기간]</span>
+                </div>
+                
+                <div class="project-details">
+                    <div class="project-detail">
+                        <h4>주요 성과</h4>
+                        <ul>
+                            <li>[성과 1]</li>
+                            <li>[성과 2]</li>
+                            <li>[성과 3]</li>
+                        </ul>
+                    </div>
+                    <div class="project-detail">
+                        <h4>기술 스택</h4>
+                        <div class="tech-stack">
+                            <span class="tech-tag">[기술 1]</span>
+                            <span class="tech-tag">[기술 2]</span>
+                            <span class="tech-tag">[기술 3]</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="project-links">
+                    <a href="#" class="project-link">🔗 GitHub</a>
+                    <a href="#" class="project-link">🌐 Live Demo</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 경력 섹션 -->
+        <section class="experience-section">
+            <h2 class="section-title">경력 사항</h2>
+            
+            <div class="experience-item">
+                <div class="experience-period">2024.01 - 현재</div>
+                <div class="experience-content">
+                    <h3>풀스택 개발자</h3>
+                    <div class="company">[회사명]</div>
+                    <div class="description">
+                        웹 애플리케이션 개발 및 유지보수를 담당하며, 
+                        사용자 경험 개선과 성능 최적화에 집중했습니다.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="experience-item">
+                <div class="experience-period">2023.06 - 2023.12</div>
+                <div class="experience-content">
+                    <h3>프론트엔드 개발자</h3>
+                    <div class="company">[이전 회사명]</div>
+                    <div class="description">
+                        React 기반 웹 애플리케이션 개발을 담당하며, 
+                        컴포넌트 설계와 상태 관리에 전문성을 쌓았습니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

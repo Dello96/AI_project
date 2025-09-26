@@ -8,13 +8,15 @@ import {
   TrashIcon,
   CalendarIcon,
   MapPinIcon,
-  ClockIcon
+  ClockIcon,
+  ArrowTopRightOnSquareIcon
 } from '@heroicons/react/24/outline'
 import { Event, eventCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { eventService } from '@/lib/database'
+import { generateKakaoMapUrl, generateKakaoMapDirectionsUrl, isValidLocationData } from '@/utils/kakaoMapUtils'
 
 interface EventDetailProps {
   event: Event
@@ -227,9 +229,85 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
               {event.location && (
                 <div className="flex items-start gap-3">
                   <MapPinIcon className="w-5 h-5 text-secondary-400 mt-0.5" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm text-secondary-600">장소</p>
                     <p className="text-secondary-900">{event.location}</p>
+                    
+                    {/* 디버깅 정보 */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        locationData: {JSON.stringify(event.locationData)}
+                        <br />
+                        isValid: {isValidLocationData(event.locationData) ? 'true' : 'false'}
+                      </div>
+                    )}
+                    
+                    {/* 카카오맵 연결 버튼들 */}
+                    <div className="flex gap-2 mt-2">
+                      {isValidLocationData(event.locationData) ? (
+                        // locationData가 있는 경우 - 정확한 위치로 연결
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const mapUrl = generateKakaoMapUrl(event.locationData!, {
+                                zoom: 3,
+                                showMarker: true,
+                                showLabel: true
+                              });
+                              window.open(mapUrl, '_blank');
+                            }}
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            <MapPinIcon className="w-3 h-3" />
+                            지도 보기
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const directionsUrl = generateKakaoMapDirectionsUrl(event.locationData!, {
+                                transportType: 'car'
+                              });
+                              window.open(directionsUrl, '_blank');
+                            }}
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                            길찾기
+                          </Button>
+                        </>
+                      ) : (
+                        // locationData가 없는 경우 - 장소명으로 검색
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
+                              window.open(searchUrl, '_blank');
+                            }}
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            <MapPinIcon className="w-3 h-3" />
+                            지도에서 검색
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const directionsUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
+                              window.open(directionsUrl, '_blank');
+                            }}
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                            길찾기
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
