@@ -6,11 +6,21 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient()
     
+    // 환경별 리다이렉트 URL 설정
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                   (process.env.NODE_ENV === 'production' 
+                     ? 'https://your-app-name.vercel.app' 
+                     : 'http://localhost:3000')
+    
+    const redirectUrl = `${baseUrl}/auth/callback`
+    
+    console.log('카카오 로그인 리다이렉트 URL:', redirectUrl)
+    
     // Supabase Auth의 카카오 소셜 로그인 URL 생성
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
+        redirectTo: redirectUrl
       }
     })
 
@@ -38,11 +48,21 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient()
     
+    // 환경별 리다이렉트 URL 설정
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                   (process.env.NODE_ENV === 'production' 
+                     ? 'https://your-app-name.vercel.app' 
+                     : 'http://localhost:3000')
+    
+    const redirectUrl = `${baseUrl}/auth/callback`
+    
+    console.log('카카오 로그인 리다이렉트 URL:', redirectUrl)
+    
     // Supabase Auth의 카카오 소셜 로그인 URL 생성
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
+        redirectTo: redirectUrl
       }
     })
 
