@@ -2,6 +2,18 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* 모바일 가로 스크롤 방지 */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* 모든 요소가 뷰포트를 벗어나지 않도록 설정 */
+* {
+  box-sizing: border-box;
+}
+
 /* Line clamp utilities */
 .line-clamp-1 {
   overflow: hidden;

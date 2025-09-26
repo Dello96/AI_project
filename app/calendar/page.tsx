@@ -71,7 +71,7 @@ export default function CalendarPage() {
 
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black overflow-x-hidden">
       {/* Hero Section - 인터파크 극장 스타일 */}
       <section className="relative overflow-hidden">
         {/* 배경 그라데이션 */}

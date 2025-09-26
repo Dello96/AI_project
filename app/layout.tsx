@@ -40,8 +40,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ko">
-      <body className={inter.className}>
+    <html lang="ko" className="overflow-x-hidden">
+      <body className={`${inter.className} overflow-x-hidden`}>
             <Script
               src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services&autoload=false`}
               strategy="beforeInteractive"
@@ -52,7 +52,7 @@ export default function RootLayout({
             />
         <AuthProvider>
           <AlertProvider>
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex flex-col">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex flex-col overflow-x-hidden">
               <Header />
               <main className="pt-16 lg:pt-20 flex-1">
                 {children}

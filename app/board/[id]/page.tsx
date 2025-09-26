@@ -81,7 +81,7 @@ function PostDetailContent() {
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center overflow-x-hidden">
         <div className="text-center space-y-6">
           <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center mx-auto">
             <ArrowLeftIcon className="w-12 h-12 text-gray-400" />
@@ -105,7 +105,7 @@ function PostDetailContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black overflow-x-hidden">
       {/* Hero Section - 인터파크 극장 스타일 */}
       <section className="relative overflow-hidden">
         {/* 배경 그라데이션 */}
@@ -162,7 +162,7 @@ function PostDetailContent() {
 export default function PostDetailPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center overflow-x-hidden">
         <div className="text-center space-y-6">
           {/* 로딩 메시지 - 상단으로 이동 */}
           <div className="space-y-3">
