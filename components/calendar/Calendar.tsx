@@ -273,17 +273,17 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
       </div>
 
       {/* 캘린더 네비게이션 - 극장 스타일 */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-6">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-orange-500/20 shadow-2xl p-4 sm:p-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 sm:gap-6">
           {/* 네비게이션 화살표 및 월 선택 */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-center sm:justify-start">
             <Button
               onClick={() => navigateCalendar('prev')}
               variant="ghost"
-              size="lg"
-              className="bg-gray-700 hover:bg-gray-600 text-gray-300 p-3"
+              size="sm"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 p-2 sm:p-3"
             >
-              <ChevronLeftIcon className="w-6 h-6" />
+              <ChevronLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
             </Button>
             
             {/* 월 선택 버튼 */}
@@ -291,8 +291,8 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
               <Button
                 onClick={() => setShowMonthPicker(!showMonthPicker)}
                 variant="outline"
-                size="lg"
-                className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3 min-w-[120px]"
+                size="sm"
+                className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-3 sm:px-6 py-2 sm:py-3 min-w-[100px] sm:min-w-[120px] text-sm sm:text-base"
               >
                 {getCurrentYearMonth().year}년 {getCurrentYearMonth().month + 1}월
               </Button>
@@ -342,10 +342,10 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
             <Button
               onClick={() => navigateCalendar('next')}
               variant="ghost"
-              size="lg"
-              className="bg-gray-700 hover:bg-gray-600 text-gray-300 p-3"
+              size="sm"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 p-2 sm:p-3"
             >
-              <ChevronRightIcon className="w-6 h-6" />
+              <ChevronRightIcon className="w-5 h-5 sm:w-6 sm:h-6" />
             </Button>
           </div>
           
@@ -380,14 +380,14 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
                 {filteredEvents.length}개 이벤트 표시 중
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {eventCategories.map((category) => {
                 const isSelected = selectedCategories.includes(category.value)
                 return (
                   <button
                     key={category.value}
                     onClick={() => toggleCategory(category.value)}
-                    className={`text-xs px-3 py-2 rounded-md border transition-all duration-200 flex items-center font-medium ${
+                    className={`text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 rounded-md border transition-all duration-200 flex items-center font-medium ${
                       isSelected
                         ? 'text-white border-orange-500 shadow-lg transform scale-105'
                         : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600 hover:border-gray-500 hover:scale-105'
@@ -399,20 +399,20 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
                     }}
                   >
                     <div 
-                      className={`w-2 h-2 rounded-full mr-2 transition-all duration-200 ${
+                      className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-1.5 sm:mr-2 transition-all duration-200 ${
                         isSelected ? 'ring-2 ring-white ring-opacity-50' : ''
                       }`}
                       style={{ backgroundColor: category.color }}
                     />
-                    {category.label}
+                    <span className="whitespace-nowrap">{category.label}</span>
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* 뷰 선택 버튼 */}
-          <div className="flex gap-3">
+          {/* 뷰 선택 버튼 - 모바일 반응형 */}
+          <div className="flex flex-wrap gap-2 sm:gap-3 justify-center sm:justify-end">
             <Button
               onClick={() => {
                 setView('dayGridMonth')
@@ -422,14 +422,15 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
                 }
               }}
               variant={view === 'dayGridMonth' ? 'default' : 'outline'}
-              size="lg"
-              className={view === 'dayGridMonth' 
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-3' 
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3'
-              }
+              size="sm"
+              className={`flex-1 sm:flex-none min-w-0 sm:min-w-[80px] ${
+                view === 'dayGridMonth' 
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-3 py-2 sm:px-6 sm:py-3' 
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-3 py-2 sm:px-6 sm:py-3'
+              }`}
             >
-              <CalendarIcon className="w-5 h-5 mr-2" />
-              월
+              <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">월</span>
             </Button>
             <Button
               onClick={() => {
@@ -440,14 +441,15 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
                 }
               }}
               variant={view === 'timeGridWeek' ? 'default' : 'outline'}
-              size="lg"
-              className={view === 'timeGridWeek' 
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-3' 
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3'
-              }
+              size="sm"
+              className={`flex-1 sm:flex-none min-w-0 sm:min-w-[80px] ${
+                view === 'timeGridWeek' 
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-3 py-2 sm:px-6 sm:py-3' 
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-3 py-2 sm:px-6 sm:py-3'
+              }`}
             >
-              <ViewColumnsIcon className="w-5 h-5 mr-2" />
-              주
+              <ViewColumnsIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">주</span>
             </Button>
             <Button
               onClick={() => {
@@ -458,14 +460,15 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
                 }
               }}
               variant={view === 'timeGridDay' ? 'default' : 'outline'}
-              size="lg"
-              className={view === 'timeGridDay' 
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-3' 
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3'
-              }
+              size="sm"
+              className={`flex-1 sm:flex-none min-w-0 sm:min-w-[80px] ${
+                view === 'timeGridDay' 
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-3 py-2 sm:px-6 sm:py-3' 
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-3 py-2 sm:px-6 sm:py-3'
+              }`}
             >
-              <CalendarDaysIcon className="w-5 h-5 mr-2" />
-              일
+              <CalendarDaysIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">일</span>
             </Button>
             <Button
               onClick={() => {
@@ -476,14 +479,15 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
                 }
               }}
               variant={view === 'listWeek' ? 'default' : 'outline'}
-              size="lg"
-              className={view === 'listWeek' 
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-3' 
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-6 py-3'
-              }
+              size="sm"
+              className={`flex-1 sm:flex-none min-w-0 sm:min-w-[80px] ${
+                view === 'listWeek' 
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-3 py-2 sm:px-6 sm:py-3' 
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 px-3 py-2 sm:px-6 sm:py-3'
+              }`}
             >
-              <ListBulletIcon className="w-5 h-5 mr-2" />
-              목록
+              <ListBulletIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">목록</span>
             </Button>
           </div>
           
