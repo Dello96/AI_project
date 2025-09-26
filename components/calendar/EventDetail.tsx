@@ -21,7 +21,9 @@ import {
   generateKakaoMapDirectionsUrl, 
   isValidLocationData,
   startKakaoNavi,
-  shareKakaoNavi
+  shareKakaoNavi,
+  startKakaoNaviWithSearch,
+  searchPlaceCoordinates
 } from '@/utils/kakaoMapUtils'
 import { 
   startKakaoNaviWithSDK, 
@@ -363,30 +365,17 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                   onClick={async () => {
                     if (event.location) {
                       try {
-                        // 장소명으로 카카오내비 SDK 시도
-                        const success = await startKakaoNaviByPlaceName(event.location, {
-                          vehicleType: 1, // 승용차
-                          rpOption: 100,  // 추천 경로
-                          routeInfo: false
+                        // 실시간 좌표 검색을 통한 길찾기
+                        await startKakaoNaviWithSearch(event.location, {
+                          vehicleType: '1',
+                          rpOption: '1',
+                          routeInfo: true
                         });
-                        
-                        if (!success) {
-                          // SDK 실패 시 카카오내비 앱으로만 폴백 (가장 기본적인 형식)
-                          const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(event.location)}&x=127.100823924714&y=37.5179242320345`;
-                          console.log('🔍 이벤트 상세 - 카카오내비 길찾기 URL:', appUrl);
-                          console.log('📍 이벤트 위치 정보:', {
-                            location: event.location,
-                            x: 127.100823924714,
-                            y: 37.5179242320345
-                          });
-                          window.location.href = appUrl;
-                        }
                       } catch (error) {
-                        console.error('카카오 내비 길찾기 오류:', error);
-                        // 오류 발생 시에도 카카오내비 앱으로만 시도 (가장 기본적인 형식)
-                        const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(event.location)}&x=127.100823924714&y=37.5179242320345`;
-                        console.log('🔍 이벤트 상세 - 오류 시 카카오내비 길찾기 URL:', appUrl);
-                        window.location.href = appUrl;
+                        console.error('실시간 길찾기 오류:', error);
+                        // 오류 발생 시 웹 폴백
+                        const webUrl = `https://map.kakao.com/link/navi/${encodeURIComponent(event.location)}`;
+                        window.open(webUrl, '_blank');
                       }
                     }
                   }}

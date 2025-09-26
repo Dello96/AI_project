@@ -255,8 +255,8 @@ export function startKakaoNavi(
     // 형식 4: 간단한 형식
     const appUrl4 = `kakaonavi://navigate?dest=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
     
-    // 형식 5: 카카오맵 앱으로 폴백 (더 안정적)
-    const fallbackUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(locationData.name)}&by=CAR&rp=RECOMMEND`;
+    // 형식 5: 카카오맵 앱으로 폴백 (좌표 포함)
+    const fallbackUrl = `kakaomap://route?sp=&ep=${locationData.lng},${locationData.lat}&by=CAR&rp=RECOMMEND`;
     
     // 디버깅: 생성된 URL들 출력
     console.log('🔍 카카오내비 길찾기 URL (형식1 - JSON):', appUrl1);
@@ -387,7 +387,7 @@ export function shareKakaoNavi(locationData: LocationData): void {
     // 형식 3: 간단한 형식
     const appUrl3 = `kakaonavi://share?dest=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
     
-    // 형식 4: 카카오맵 앱으로 폴백 (더 안정적)
+    // 형식 4: 카카오맵 앱으로 폴백 (좌표 포함)
     const fallbackUrl = `kakaomap://place?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
     
     // 디버깅: 생성된 URL들 출력
@@ -516,4 +516,91 @@ export function calculateDistance(
     Math.sin(dLng / 2) * Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+/**
+ * 장소명으로 실시간 좌표를 검색합니다
+ * @param placeName 장소명
+ * @returns Promise<LocationData | null>
+ */
+export async function searchPlaceCoordinates(placeName: string): Promise<LocationData | null> {
+  if (typeof window === 'undefined') {
+    console.error('브라우저 환경이 아닙니다.');
+    return null;
+  }
+
+  try {
+    // 카카오맵 API가 로드되었는지 확인
+    if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
+      console.error('카카오맵 API가 로드되지 않았습니다.');
+      return null;
+    }
+
+    const places = new window.kakao.maps.services.Places();
+    
+    return new Promise((resolve) => {
+      places.keywordSearch(placeName, (data: any[], status: any) => {
+        if (status === window.kakao.maps.services.Status.OK && data.length > 0) {
+          const place = data[0];
+          const locationData: LocationData = {
+            name: place.place_name || placeName,
+            address: place.road_address_name || place.address_name || '',
+            lat: parseFloat(place.y),
+            lng: parseFloat(place.x)
+          };
+          
+          console.log('🔍 실시간 좌표 검색 성공:', locationData);
+          resolve(locationData);
+        } else {
+          console.error('장소 검색 실패:', status);
+          resolve(null);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('좌표 검색 오류:', error);
+    return null;
+  }
+}
+
+/**
+ * 실시간 좌표 검색을 통한 길찾기
+ * @param placeName 장소명
+ * @param options 길 안내 옵션
+ */
+export async function startKakaoNaviWithSearch(
+  placeName: string,
+  options: {
+    vehicleType?: '1' | '2' | '3' | '4';
+    rpOption?: '1' | '2' | '3' | '4' | '5';
+    routeInfo?: boolean;
+  } = {}
+): Promise<void> {
+  if (typeof window === 'undefined') {
+    console.error('브라우저 환경이 아닙니다.');
+    return;
+  }
+
+  try {
+    console.log('🔍 실시간 좌표 검색 시작:', placeName);
+    
+    // 1. 실시간 좌표 검색
+    const locationData = await searchPlaceCoordinates(placeName);
+    
+    if (locationData) {
+      // 2. 검색된 좌표로 길찾기
+      console.log('✅ 좌표 검색 성공, 길찾기 시작');
+      startKakaoNavi(locationData, options);
+    } else {
+      // 3. 좌표 검색 실패 시 장소명으로 폴백
+      console.log('⚠️ 좌표 검색 실패, 장소명으로 폴백');
+      const fallbackUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(placeName)}&by=CAR&rp=RECOMMEND`;
+      window.location.href = fallbackUrl;
+    }
+  } catch (error) {
+    console.error('실시간 길찾기 오류:', error);
+    // 오류 발생 시 웹 폴백
+    const webUrl = `https://map.kakao.com/link/navi/${encodeURIComponent(placeName)}`;
+    window.open(webUrl, '_blank');
+  }
 }
