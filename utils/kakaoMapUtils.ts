@@ -218,25 +218,34 @@ export function startKakaoNavi(
   const { vehicleType = '1', rpOption = '1', routeInfo = true } = options;
 
   try {
-    // 카카오내비 앱 직접 연결 URL 생성 (가장 기본적인 형식)
-    const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
+    // 카카오내비 앱 직접 연결 URL 생성 (올바른 형식 시도)
+    // 형식 1: destination 파라미터 사용
+    const appUrl1 = `kakaonavi://navigate?destination=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
     
-    // 디버깅: 생성된 URL 출력
-    console.log('🔍 카카오내비 길찾기 URL:', appUrl);
+    // 형식 2: route 액션 사용
+    const appUrl2 = `kakaonavi://route?destination=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
+    
+    // 형식 3: 카카오맵 앱으로 폴백 (더 안정적)
+    const appUrl3 = `kakaomap://route?sp=&ep=${encodeURIComponent(locationData.name)}&by=CAR&rp=RECOMMEND`;
+    
+    // 디버깅: 생성된 URL들 출력
+    console.log('🔍 카카오내비 길찾기 URL (형식1):', appUrl1);
+    console.log('🔍 카카오내비 길찾기 URL (형식2):', appUrl2);
+    console.log('🔍 카카오맵 길찾기 URL (폴백):', appUrl3);
     console.log('📍 목적지 정보:', {
       name: locationData.name,
       lng: locationData.lng,
       lat: locationData.lat
     });
     
-    // 카카오내비 앱으로만 직접 이동 (웹 폴백 없음)
-    window.location.href = appUrl;
+    // 첫 번째 형식 시도
+    window.location.href = appUrl1;
     
   } catch (error) {
     console.error('카카오 내비 길 안내 시작 오류:', error);
-    // 오류 발생 시에도 앱으로만 시도
-    const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
-    console.log('🔍 오류 시 카카오내비 길찾기 URL:', appUrl);
+    // 오류 발생 시 카카오맵으로 폴백
+    const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(locationData.name)}&by=CAR&rp=RECOMMEND`;
+    console.log('🔍 오류 시 카카오맵 길찾기 URL:', appUrl);
     window.location.href = appUrl;
   }
 }
