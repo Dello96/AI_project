@@ -254,14 +254,14 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
                   });
                   
                   if (!success) {
-                    // SDK 실패 시 앱으로만 폴백 (웹 폴백 없음)
-                    const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
+                    // SDK 실패 시 카카오내비 앱으로만 폴백 (kakaonavi:// 스키마 사용)
+                    const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(churchLocation)}&x=127.100823924714&y=37.5179242320345&coordType=wgs84&vehicleType=1&rpOption=1&routeInfo=true`;
                     window.location.href = appUrl;
                   }
                 } catch (error) {
                   console.error('카카오 내비 길찾기 오류:', error);
-                  // 오류 발생 시에도 앱으로만 시도
-                  const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent("잠실중앙교회")}&by=CAR&rp=RECOMMEND`;
+                  // 오류 발생 시에도 카카오내비 앱으로만 시도 (kakaonavi:// 스키마 사용)
+                  const appUrl = `kakaonavi://navigate?name=${encodeURIComponent("잠실중앙교회")}&x=127.100823924714&y=37.5179242320345&coordType=wgs84&vehicleType=1&rpOption=1&routeInfo=true`;
                   window.location.href = appUrl;
                 }
               }}
