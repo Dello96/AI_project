@@ -254,9 +254,9 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
                   });
                   
                   if (!success) {
-                    // SDK 실패 시 카카오내비 앱으로만 폴백 (가장 기본적인 형식)
-                    const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(churchLocation)}&x=127.100823924714&y=37.5179242320345`;
-                    console.log('🔍 메인 페이지 - 카카오내비 길찾기 URL:', appUrl);
+                    // SDK 실패 시 카카오맵 앱으로 폴백 (더 안정적)
+                    const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
+                    console.log('🔍 메인 페이지 - 카카오맵 길찾기 URL:', appUrl);
                     console.log('📍 교회 위치 정보:', {
                       name: churchLocation,
                       x: 127.100823924714,
@@ -265,11 +265,11 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
                     window.location.href = appUrl;
                   }
                 } catch (error) {
-                  console.error('카카오 내비 길찾기 오류:', error);
-                  // 오류 발생 시에도 카카오내비 앱으로만 시도 (가장 기본적인 형식)
-                  const appUrl = `kakaonavi://navigate?name=${encodeURIComponent("잠실중앙교회")}&x=127.100823924714&y=37.5179242320345`;
-                  console.log('🔍 메인 페이지 - 오류 시 카카오내비 길찾기 URL:', appUrl);
-                  window.location.href = appUrl;
+                  console.error('카카오맵 길찾기 오류:', error);
+                  // 오류 발생 시 웹 카카오맵으로 폴백
+                  const webUrl = `https://map.kakao.com/link/navi/${encodeURIComponent("잠실중앙교회")}`;
+                  console.log('🔍 메인 페이지 - 오류 시 웹 카카오맵 URL:', webUrl);
+                  window.open(webUrl, '_blank');
                 }
               }}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
