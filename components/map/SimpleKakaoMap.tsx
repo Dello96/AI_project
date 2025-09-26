@@ -237,7 +237,46 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-800 mb-1">잠실중앙교회</h3>
             <p className="text-gray-600 text-sm mb-2">서울특별시 송파구 올림픽로35길 118</p>
-            <p className="text-gray-500 text-sm">📞 02-423-5303</p>
+            <p className="text-gray-500 text-sm mb-3">📞 02-423-5303</p>
+            
+            {/* 길찾기 버튼 */}
+            <button
+              onClick={() => {
+                // 교회 위치로 카카오내비 길찾기 시도
+                try {
+                  const churchLocation = "잠실중앙교회";
+                  const churchAddress = "서울특별시 송파구 올림픽로35길 118";
+                  
+                  // 카카오내비 앱 직접 연결 시도
+                  const appUrl = `kakaomap://route?sp=&ep=&by=CAR&rp=RECOMMEND&name=${encodeURIComponent(churchLocation)}`;
+                  const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(churchLocation)}`;
+                  
+                  // 앱 설치 여부 확인을 위한 iframe 사용
+                  const iframe = document.createElement('iframe');
+                  iframe.style.display = 'none';
+                  iframe.src = appUrl;
+                  document.body.appendChild(iframe);
+                  
+                  // 앱이 설치되지 않은 경우 웹으로 폴백
+                  setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    window.location.href = webUrl;
+                  }, 1000);
+                  
+                } catch (error) {
+                  console.error('카카오 내비 길찾기 오류:', error);
+                  // 오류 발생 시 웹으로 폴백
+                  const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent("잠실중앙교회")}`;
+                  window.location.href = webUrl;
+                }
+              }}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              길찾기
+            </button>
           </div>
         </div>
       </motion.div>

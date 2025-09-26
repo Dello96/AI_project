@@ -314,9 +314,30 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                   variant="outline"
                   onClick={() => {
                     if (event.location) {
-                      // 장소명으로 카카오내비 길찾기 (웹 폴백)
-                      const directionsUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
-                      window.location.href = directionsUrl;
+                      // 장소명으로 카카오내비 앱 길찾기 시도
+                      try {
+                        // 카카오내비 앱 직접 연결 시도
+                        const appUrl = `kakaomap://route?sp=&ep=&by=CAR&rp=RECOMMEND&name=${encodeURIComponent(event.location)}`;
+                        const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
+                        
+                        // 앱 설치 여부 확인을 위한 iframe 사용
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = appUrl;
+                        document.body.appendChild(iframe);
+                        
+                        // 앱이 설치되지 않은 경우 웹으로 폴백
+                        setTimeout(() => {
+                          document.body.removeChild(iframe);
+                          window.location.href = webUrl;
+                        }, 1000);
+                        
+                      } catch (error) {
+                        console.error('카카오 내비 길찾기 오류:', error);
+                        // 오류 발생 시 웹으로 폴백
+                        const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
+                        window.location.href = webUrl;
+                      }
                     }
                   }}
                   className="flex items-center gap-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
