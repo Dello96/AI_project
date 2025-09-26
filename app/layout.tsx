@@ -46,6 +46,10 @@ export default function RootLayout({
           src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services&autoload=false`}
           strategy="beforeInteractive"
         />
+        <Script
+          src="//developers.kakao.com/sdk/js/kakao.js"
+          strategy="beforeInteractive"
+        />
         <AuthProvider>
           <AlertProvider>
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex flex-col">

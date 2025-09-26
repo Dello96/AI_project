@@ -1,5 +1,5 @@
 /**
- * 카카오맵 관련 유틸리티 함수들
+ * 카카오맵 및 카카오 내비 관련 유틸리티 함수들
  */
 
 export interface LocationData {
@@ -7,6 +7,31 @@ export interface LocationData {
   address: string;
   lat: number;
   lng: number;
+}
+
+// 카카오 내비 API 타입 정의
+declare global {
+  interface Window {
+    Kakao: {
+      Navi: {
+        start: (options: {
+          name: string;
+          x: number;
+          y: number;
+          coordType?: 'wgs84' | 'katec';
+          vehicleType?: '1' | '2' | '3' | '4';
+          rpOption?: '1' | '2' | '3' | '4' | '5';
+          routeInfo?: boolean;
+        }) => void;
+        share: (options: {
+          name: string;
+          x: number;
+          y: number;
+          coordType?: 'wgs84' | 'katec';
+        }) => void;
+      };
+    };
+  }
 }
 
 /**
@@ -185,6 +210,99 @@ export function isValidLocationData(locationData: any): locationData is Location
  */
 export function formatLocationString(locationData: LocationData): string {
   return `${locationData.name} (${locationData.address})`;
+}
+
+/**
+ * 카카오 내비로 길 안내를 시작합니다
+ * @param locationData 목적지 장소 정보
+ * @param options 길 안내 옵션
+ */
+export function startKakaoNavi(
+  locationData: LocationData,
+  options: {
+    vehicleType?: '1' | '2' | '3' | '4'; // 1:자동차, 2:승용차, 3:화물차, 4:대형차
+    rpOption?: '1' | '2' | '3' | '4' | '5'; // 1:추천, 2:최단, 3:무료, 4:고속, 5:일반
+    routeInfo?: boolean; // 경로 정보 표시 여부
+  } = {}
+): void {
+  if (typeof window === 'undefined' || !window.Kakao || !window.Kakao.Navi) {
+    console.error('카카오 내비 API가 로드되지 않았습니다.');
+    return;
+  }
+
+  const { vehicleType = '1', rpOption = '1', routeInfo = true } = options;
+
+  try {
+    window.Kakao.Navi.start({
+      name: locationData.name,
+      x: locationData.lng, // 경도 (longitude)
+      y: locationData.lat,  // 위도 (latitude)
+      coordType: 'wgs84',
+      vehicleType,
+      rpOption,
+      routeInfo
+    });
+  } catch (error) {
+    console.error('카카오 내비 길 안내 시작 오류:', error);
+  }
+}
+
+/**
+ * 카카오 내비로 목적지를 공유합니다
+ * @param locationData 목적지 장소 정보
+ */
+export function shareKakaoNavi(locationData: LocationData): void {
+  if (typeof window === 'undefined' || !window.Kakao || !window.Kakao.Navi) {
+    console.error('카카오 내비 API가 로드되지 않았습니다.');
+    return;
+  }
+
+  try {
+    window.Kakao.Navi.share({
+      name: locationData.name,
+      x: locationData.lng, // 경도 (longitude)
+      y: locationData.lat,  // 위도 (latitude)
+      coordType: 'wgs84'
+    });
+  } catch (error) {
+    console.error('카카오 내비 목적지 공유 오류:', error);
+  }
+}
+
+/**
+ * 카카오 내비 API가 로드되었는지 확인합니다
+ * @returns API 로드 여부
+ */
+export function isKakaoNaviLoaded(): boolean {
+  return typeof window !== 'undefined' && 
+         window.Kakao && 
+         window.Kakao.Navi && 
+         typeof window.Kakao.Navi.start === 'function';
+}
+
+/**
+ * 카카오 내비 API 로드를 기다립니다
+ * @param timeout 타임아웃 (밀리초)
+ * @returns Promise<boolean>
+ */
+export function waitForKakaoNavi(timeout: number = 5000): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (isKakaoNaviLoaded()) {
+      resolve(true);
+      return;
+    }
+
+    const startTime = Date.now();
+    const checkInterval = setInterval(() => {
+      if (isKakaoNaviLoaded()) {
+        clearInterval(checkInterval);
+        resolve(true);
+      } else if (Date.now() - startTime > timeout) {
+        clearInterval(checkInterval);
+        resolve(false);
+      }
+    }, 100);
+  });
 }
 
 /**
