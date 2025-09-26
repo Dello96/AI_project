@@ -21,11 +21,8 @@ import {
   generateKakaoMapDirectionsUrl, 
   isValidLocationData,
   startKakaoNavi,
-  shareKakaoNavi,
-  isKakaoNaviLoaded,
-  waitForKakaoNavi
+  shareKakaoNavi
 } from '@/utils/kakaoMapUtils'
-import { initKakaoNavi, waitForKakaoNaviInit } from '@/utils/kakaoNaviInit'
 
 interface EventDetailProps {
   event: Event
@@ -44,7 +41,6 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
   const [isLoading, setIsLoading] = useState(false)
   const [currentAttendees, setCurrentAttendees] = useState(event.currentAttendees || 0)
   const [isInitialized, setIsInitialized] = useState(false)
-  const [isKakaoNaviReady, setIsKakaoNaviReady] = useState(false)
 
   // 작성자 권한 확인
   const canEditOrDelete = user && event.authorId === user.id
@@ -75,21 +71,7 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
     checkAttendanceStatus()
   }, [user, event.id, isOpen, isInitialized])
 
-  // 카카오 내비 API 로드 확인
-  useEffect(() => {
-    const checkKakaoNavi = async () => {
-      if (!isOpen) return
-      
-      // 카카오 내비 초기화
-      initKakaoNavi()
-      
-      // API 로드 대기
-      const isLoaded = await waitForKakaoNaviInit(5000)
-      setIsKakaoNaviReady(isLoaded)
-    }
-    
-    checkKakaoNavi()
-  }, [isOpen])
+  // 웹 기반 카카오 내비 기능은 즉시 사용 가능하므로 별도 로드 확인 불필요
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -294,7 +276,7 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                   길찾기
                 </Button>
-                {isKakaoNaviReady && (
+                {isValidLocationData(event.locationData) && (
                   <>
                     <Button
                       size="sm"
@@ -358,7 +340,7 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                   길찾기
                 </Button>
-                {isKakaoNaviReady && event.location && (
+                {event.location && (
                   <div className="text-xs text-gray-500 mt-1">
                     카카오 내비 기능을 사용하려면 정확한 위치 정보가 필요합니다.
                   </div>
