@@ -123,82 +123,158 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
         <p className="text-sm sm:text-base text-gray-600">가장 많은 좋아요를 받은 게시글들을 확인해보세요</p>
       </div>
       
-      <Carousel
-        autoPlay={true}
-        autoPlayInterval={4000}
-        showDots={true}
-        showArrows={true}
-        className="max-w-4xl mx-auto"
-      >
-        {posts.map((post) => (
-          <Card 
-            key={post.id}
-            className="cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300"
-            onClick={() => {
-              // 게시글 클릭 시 바로 게시판 페이지로 이동
-              console.log('인기 게시글 클릭:', post.id)
-              // URL 파라미터와 함께 게시판 페이지로 이동
-              const url = `/board?postId=${post.id}`
-              console.log('이동할 URL:', url)
-              router.push(url)
-            }}
-          >
-            <CardContent className="p-4 sm:p-6 lg:p-8">
-              {/* 카테고리 및 좋아요 영역 - 모바일 최적화 */}
-              <div className="flex items-start justify-between mb-4 sm:mb-6">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium ${categoryColors[post.category]}`}>
-                    {categoryLabels[post.category]}
-                  </span>
-                  {post.isAnonymous && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                      익명
+      {/* 데스크톱: 캐러셀, 모바일: 세로 리스트 */}
+      <div className="block sm:hidden">
+        {/* 모바일 세로 리스트 */}
+        <div className="space-y-4">
+          {posts.map((post) => (
+            <Card 
+              key={post.id}
+              className="cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300"
+              onClick={() => {
+                console.log('인기 게시글 클릭:', post.id)
+                const url = `/board?postId=${post.id}`
+                console.log('이동할 URL:', url)
+                router.push(url)
+              }}
+            >
+              <CardContent className="p-4">
+                {/* 모바일: 카테고리 상단 배치 */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${categoryColors[post.category]}`}>
+                      {categoryLabels[post.category]}
                     </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500">
-                  {post.userLiked ? (
-                    <HeartSolidIcon className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
-                  ) : (
-                    <HeartIcon className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
-                  )}
-                  <span className="font-medium">{post.likeCount}</span>
-                </div>
-              </div>
-              
-              {/* 제목 - 모바일 최적화 */}
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4 line-clamp-2 leading-tight">
-                {post.title}
-              </h3>
-              
-              {/* 내용 - 모바일 최적화 */}
-              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-5 line-clamp-3 leading-relaxed">
-                {post.content}
-              </p>
-              
-              {/* 하단 정보 - 모바일 최적화 */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 text-xs sm:text-sm text-gray-500 pt-3 sm:pt-2 border-t border-gray-100">
-                <span className="font-medium text-gray-700">
-                  {post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}
-                </span>
-                <div className="flex items-center justify-between sm:justify-end sm:gap-4 lg:gap-6">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <EyeIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
-                    <span className="font-medium">{post.viewCount}</span>
+                    {post.isAnonymous && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                        익명
+                      </span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <ChatBubbleLeftIcon className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
-                    <span className="font-medium">{post.commentCount}</span>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    {post.userLiked ? (
+                      <HeartSolidIcon className="w-3 h-3 text-red-500" />
+                    ) : (
+                      <HeartIcon className="w-3 h-3 text-red-500" />
+                    )}
+                    <span className="font-medium">{post.likeCount}</span>
                   </div>
-                  <span className="text-gray-400 font-medium text-xs sm:text-sm">
-                    {new Date(post.createdAt).toLocaleDateString()}
+                </div>
+                
+                {/* 제목 */}
+                <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight">
+                  {post.title}
+                </h3>
+                
+                {/* 내용 */}
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">
+                  {post.content}
+                </p>
+                
+                {/* 하단 정보 - 세로 배치 */}
+                <div className="space-y-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-700">
+                      {post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}
+                    </span>
+                    <span className="text-gray-400 font-medium">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="flex items-center gap-1">
+                      <EyeIcon className="w-3 h-3 text-blue-500" />
+                      <span className="font-medium">{post.viewCount}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <ChatBubbleLeftIcon className="w-3 h-3 text-green-500" />
+                      <span className="font-medium">{post.commentCount}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* 데스크톱: 캐러셀 */}
+      <div className="hidden sm:block">
+        <Carousel
+          autoPlay={true}
+          autoPlayInterval={4000}
+          showDots={true}
+          showArrows={true}
+          className="max-w-4xl mx-auto"
+        >
+          {posts.map((post) => (
+            <Card 
+              key={post.id}
+              className="cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300"
+              onClick={() => {
+                console.log('인기 게시글 클릭:', post.id)
+                const url = `/board?postId=${post.id}`
+                console.log('이동할 URL:', url)
+                router.push(url)
+              }}
+            >
+              <CardContent className="p-6 lg:p-8">
+                {/* 데스크톱: 카테고리 및 좋아요 영역 */}
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${categoryColors[post.category]}`}>
+                      {categoryLabels[post.category]}
+                    </span>
+                    {post.isAnonymous && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                        익명
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    {post.userLiked ? (
+                      <HeartSolidIcon className="w-4 h-4 text-red-500" />
+                    ) : (
+                      <HeartIcon className="w-4 h-4 text-red-500" />
+                    )}
+                    <span className="font-medium">{post.likeCount}</span>
+                  </div>
+                </div>
+                
+                {/* 제목 */}
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 line-clamp-2 leading-tight">
+                  {post.title}
+                </h3>
+                
+                {/* 내용 */}
+                <p className="text-base text-gray-600 mb-5 line-clamp-3 leading-relaxed">
+                  {post.content}
+                </p>
+                
+                {/* 하단 정보 - 가로 배치 */}
+                <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100">
+                  <span className="font-medium text-gray-700">
+                    {post.isAnonymous ? '익명' : post.author?.name || '알 수 없음'}
                   </span>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <EyeIcon className="w-4 h-4 text-blue-500" />
+                      <span className="font-medium">{post.viewCount}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ChatBubbleLeftIcon className="w-4 h-4 text-green-500" />
+                      <span className="font-medium">{post.commentCount}</span>
+                    </div>
+                    <span className="text-gray-400 font-medium">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </Carousel>
+              </CardContent>
+            </Card>
+          ))}
+        </Carousel>
+      </div>
     </div>
   )
 }
