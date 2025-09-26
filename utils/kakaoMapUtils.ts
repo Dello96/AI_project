@@ -108,8 +108,8 @@ export function generateKakaoMapDirectionsUrl(
   const { name, address, lat, lng } = locationData;
   const { startAddress, transportType = 'car' } = options;
 
-  // 카카오내비 앱 URL만 반환 (올바른 형식 사용)
-  return `kakaonavi://navigate?name=${encodeURIComponent(name)}&x=${lng}&y=${lat}&coord_type=wgs84`;
+  // 카카오내비 앱 URL만 반환 (가장 기본적인 형식)
+  return `kakaonavi://navigate?name=${encodeURIComponent(name)}&x=${lng}&y=${lat}`;
 }
 
 /**
@@ -218,8 +218,8 @@ export function startKakaoNavi(
   const { vehicleType = '1', rpOption = '1', routeInfo = true } = options;
 
   try {
-    // 카카오내비 앱 직접 연결 URL 생성 (올바른 형식 사용)
-    const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coord_type=wgs84`;
+    // 카카오내비 앱 직접 연결 URL 생성 (가장 기본적인 형식)
+    const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
     
     // 카카오내비 앱으로만 직접 이동 (웹 폴백 없음)
     window.location.href = appUrl;
@@ -227,7 +227,7 @@ export function startKakaoNavi(
   } catch (error) {
     console.error('카카오 내비 길 안내 시작 오류:', error);
     // 오류 발생 시에도 앱으로만 시도
-    const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coord_type=wgs84`;
+    const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
     window.location.href = appUrl;
   }
 }
@@ -323,8 +323,8 @@ export function shareKakaoNavi(locationData: LocationData): void {
   }
 
   try {
-    // 카카오내비 앱 직접 연결 URL 생성 (올바른 형식 사용)
-    const appUrl = `kakaonavi://share?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coord_type=wgs84`;
+    // 카카오내비 앱 직접 연결 URL 생성 (가장 기본적인 형식)
+    const appUrl = `kakaonavi://share?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
     
     // 카카오내비 앱으로만 직접 이동 (웹 폴백 없음)
     window.location.href = appUrl;
@@ -332,7 +332,7 @@ export function shareKakaoNavi(locationData: LocationData): void {
   } catch (error) {
     console.error('카카오 내비 목적지 공유 오류:', error);
     // 오류 발생 시에도 앱으로만 시도
-    const appUrl = `kakaonavi://share?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coord_type=wgs84`;
+    const appUrl = `kakaonavi://share?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
     window.location.href = appUrl;
   }
 }
