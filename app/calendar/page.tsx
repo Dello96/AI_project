@@ -88,9 +88,6 @@ export default function CalendarPage() {
             <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-white via-orange-500 to-red-500 bg-clip-text text-transparent">
               캘린더
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              청년부 일정을 <span className="text-orange-500 font-semibold">한눈에 확인하고 관리하세요</span>
-            </p>
           </motion.div>
         </div>
       </section>

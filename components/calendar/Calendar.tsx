@@ -249,8 +249,8 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
       {/* 헤더 - 극장 스타일 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h2 className="text-4xl font-bold text-white mb-2">일정 관리</h2>
-          <p className="text-gray-300 text-lg">청년부 일정을 한눈에 확인하고 관리하세요</p>
+          <h2 className="text-4xl font-bold text-white mb-2">청년부 일정 한 눈에 보기</h2>
+          <p className="text-gray-300 text-lg">다가오는 일정을 확인하고 참여하세요!</p>
         </div>
         <div className="flex gap-3">
           <Button 

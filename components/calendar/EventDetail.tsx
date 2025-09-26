@@ -17,19 +17,9 @@ import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { eventService } from '@/lib/database'
 import { 
-  generateKakaoMapUrl, 
-  generateKakaoMapDirectionsUrl, 
   isValidLocationData,
-  startKakaoNavi,
-  shareKakaoNavi,
-  startKakaoNaviWithSearch,
   searchPlaceCoordinates
 } from '@/utils/kakaoMapUtils'
-import { 
-  startKakaoNaviWithSDK, 
-  shareKakaoNaviWithSDK,
-  startKakaoNaviByPlaceName
-} from '@/utils/kakaoNaviSDK'
 
 interface EventDetailProps {
   event: Event
@@ -248,168 +238,55 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                     <p className="text-secondary-900">{event.location}</p>
                     
                     
-          {/* 카카오맵 및 카카오 내비 연결 버튼들 */}
+          {/* 카카오맵 검색 버튼 */}
           <div className="flex flex-wrap gap-2 mt-2">
             {isValidLocationData(event.locationData) ? (
-              // locationData가 있는 경우 - 정확한 위치로 연결
-              <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    // 정확한 좌표로 카카오맵 위치 표시
-                    const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(event.locationData!.name)},${event.locationData!.lat},${event.locationData!.lng}`;
-                    console.log('🔍 카카오맵 위치 표시 URL (locationData):', mapUrl);
-                    console.log('📍 위치 정보 (locationData):', event.locationData);
-                    window.open(mapUrl, '_blank');
-                  }}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <MapPinIcon className="w-3 h-3" />
-                  지도 보기
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                    try {
-                      // 정확한 좌표가 있는 경우 SDK 사용
-                      const success = await startKakaoNaviWithSDK(
-                        event.locationData!.name,
-                        event.locationData!.lng,
-                        event.locationData!.lat,
-                        {
-                          coordType: 'wgs84',
-                          vehicleType: 1, // 승용차
-                          rpOption: 100,  // 추천 경로
-                          routeInfo: false
-                        }
-                      );
-                      
-                      if (!success) {
-                        // SDK 실패 시 기존 방식으로 폴백
-                        startKakaoNavi(event.locationData!, {
-                          vehicleType: '1',
-                          rpOption: '1',
-                          routeInfo: true
-                        });
-                      }
-                    } catch (error) {
-                      console.error('카카오내비 길안내 오류:', error);
-                      // 오류 발생 시 기존 방식으로 폴백
-                      startKakaoNavi(event.locationData!, {
-                        vehicleType: '1',
-                        rpOption: '1',
-                        routeInfo: true
-                      });
-                    }
-                  }}
-                  className="flex items-center gap-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                >
-                  <ArrowTopRightOnSquareIcon className="w-3 h-3" />
-                  길찾기
-                </Button>
-                {isValidLocationData(event.locationData) && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={async () => {
-                      try {
-                        // 정확한 좌표가 있는 경우 SDK 사용
-                        const success = await shareKakaoNaviWithSDK(
-                          event.locationData!.name,
-                          event.locationData!.lng,
-                          event.locationData!.lat,
-                          'wgs84'
-                        );
-                        
-                        if (!success) {
-                          // SDK 실패 시 기존 방식으로 폴백
-                          shareKakaoNavi(event.locationData!);
-                        }
-                      } catch (error) {
-                        console.error('카카오내비 목적지 공유 오류:', error);
-                        // 오류 발생 시 기존 방식으로 폴백
-                        shareKakaoNavi(event.locationData!);
-                      }
-                    }}
-                    className="flex items-center gap-1 text-xs bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
-                  >
-                    <ArrowTopRightOnSquareIcon className="w-3 h-3" />
-                    목적지 공유
-                  </Button>
-                )}
-              </>
+              // locationData가 있는 경우 - 정확한 좌표로 지도 표시
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(event.locationData!.name)},${event.locationData!.lat},${event.locationData!.lng}`;
+                  window.open(mapUrl, '_blank');
+                }}
+                className="flex items-center gap-1 text-xs"
+              >
+                <MapPinIcon className="w-3 h-3" />
+                지도에서 보기
+              </Button>
             ) : (
               // locationData가 없는 경우 - 장소명으로 검색
-              <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                    if (event.location) {
-                      try {
-                        // 실시간 좌표 검색
-                        const locationData = await searchPlaceCoordinates(event.location);
-                        
-                        if (locationData) {
-                          // 검색된 좌표로 카카오맵 위치 표시
-                          const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(locationData.name)},${locationData.lat},${locationData.lng}`;
-                          console.log('🔍 카카오맵 위치 표시 URL:', mapUrl);
-                          console.log('📍 검색된 위치 정보:', locationData);
-                          window.open(mapUrl, '_blank');
-                        } else {
-                          // 좌표 검색 실패 시 일반 검색으로 폴백
-                          const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
-                          console.log('⚠️ 좌표 검색 실패, 일반 검색으로 폴백:', searchUrl);
-                          window.open(searchUrl, '_blank');
-                        }
-                      } catch (error) {
-                        console.error('지도 검색 오류:', error);
-                        // 오류 발생 시 일반 검색으로 폴백
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  if (event.location) {
+                    try {
+                      // 실시간 좌표 검색
+                      const locationData = await searchPlaceCoordinates(event.location);
+                      
+                      if (locationData) {
+                        // 검색된 좌표로 카카오맵 위치 표시
+                        const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(locationData.name)},${locationData.lat},${locationData.lng}`;
+                        window.open(mapUrl, '_blank');
+                      } else {
+                        // 좌표 검색 실패 시 일반 검색으로 폴백
                         const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
                         window.open(searchUrl, '_blank');
                       }
+                    } catch (error) {
+                      // 오류 발생 시 일반 검색으로 폴백
+                      const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
+                      window.open(searchUrl, '_blank');
                     }
-                  }}
-                  className="flex items-center gap-1 text-xs"
-                  disabled={!event.location}
-                >
-                  <MapPinIcon className="w-3 h-3" />
-                  지도에서 검색
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                    if (event.location) {
-                      try {
-                        // 실시간 좌표 검색을 통한 길찾기
-                        await startKakaoNaviWithSearch(event.location, {
-                          vehicleType: '1',
-                          rpOption: '1',
-                          routeInfo: true
-                        });
-                      } catch (error) {
-                        console.error('실시간 길찾기 오류:', error);
-                        // 오류 발생 시 웹 폴백
-                        const webUrl = `https://map.kakao.com/link/navi/${encodeURIComponent(event.location)}`;
-                        window.open(webUrl, '_blank');
-                      }
-                    }
-                  }}
-                  className="flex items-center gap-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                  disabled={!event.location}
-                >
-                  <ArrowTopRightOnSquareIcon className="w-3 h-3" />
-                  길찾기
-                </Button>
-                {event.location && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    카카오 내비 기능을 사용하려면 정확한 위치 정보가 필요합니다.
-                  </div>
-                )}
-              </>
+                  }
+                }}
+                className="flex items-center gap-1 text-xs"
+                disabled={!event.location}
+              >
+                <MapPinIcon className="w-3 h-3" />
+                지도에서 검색
+              </Button>
             )}
           </div>
                   </div>

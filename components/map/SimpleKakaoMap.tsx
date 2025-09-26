@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import kakaoMapManager from '@/lib/kakaoMapManager'
-import { startKakaoNaviByPlaceName } from '@/utils/kakaoNaviSDK'
 
 interface SimpleKakaoMapProps {
   className?: string
@@ -240,72 +239,20 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
             <p className="text-gray-600 text-sm mb-2">서울특별시 송파구 올림픽로35길 118</p>
             <p className="text-gray-500 text-sm mb-3">📞 02-423-5303</p>
             
-            {/* 지도 보기 및 길찾기 버튼 */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  // 교회 위치를 카카오맵에 표시
-                  const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent("잠실중앙교회")},37.5179242320345,127.100823924714`;
-                  console.log('🔍 메인 페이지 - 카카오맵 위치 표시 URL:', mapUrl);
-                  window.open(mapUrl, '_blank');
-                }}
-                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                지도 보기
-              </button>
-            </div>
-            
-            {/* 길찾기 버튼 */}
+            {/* 지도 보기 버튼 */}
             <button
-              onClick={async () => {
-                try {
-                  const churchLocation = "잠실중앙교회";
-                  
-                  // 카카오내비 SDK로 길찾기 시도
-                  const success = await startKakaoNaviByPlaceName(churchLocation, {
-                    vehicleType: 1, // 승용차
-                    rpOption: 100,  // 추천 경로
-                    routeInfo: false
-                  });
-                  
-                  if (!success) {
-                    // SDK 실패 시 카카오내비 앱으로 폴백 (정확한 길안내)
-                    const naviUrl = `kakaonavi://navigate?destination=127.100823924714,37.5179242320345&name=${encodeURIComponent(churchLocation)}`;
-                    console.log('🔍 메인 페이지 - 카카오내비 앱 URL:', naviUrl);
-                    console.log('📍 교회 위치 정보:', {
-                      name: churchLocation,
-                      x: 127.100823924714,
-                      y: 37.5179242320345
-                    });
-                    
-                    // 카카오내비 앱으로 이동 시도
-                    window.location.href = naviUrl;
-                    
-                    // 2초 후 카카오맵으로 폴백
-                    setTimeout(() => {
-                      console.log('⏰ 카카오내비 앱 타임아웃, 카카오맵으로 폴백');
-                      const fallbackUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
-                      window.location.href = fallbackUrl;
-                    }, 2000);
-                  }
-                } catch (error) {
-                  console.error('카카오맵 길찾기 오류:', error);
-                  // 오류 발생 시 웹 카카오맵으로 폴백
-                  const webUrl = `https://map.kakao.com/link/navi/${encodeURIComponent("잠실중앙교회")}`;
-                  console.log('🔍 메인 페이지 - 오류 시 웹 카카오맵 URL:', webUrl);
-                  window.open(webUrl, '_blank');
-                }
+              onClick={() => {
+                // 교회 위치를 카카오맵에 표시
+                const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent("잠실중앙교회")},37.5179242320345,127.100823924714`;
+                window.open(mapUrl, '_blank');
               }}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              길찾기
+              카카오지도 보기
             </button>
           </div>
         </div>

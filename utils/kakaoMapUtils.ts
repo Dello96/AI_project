@@ -1,5 +1,5 @@
 /**
- * 카카오맵 및 카카오 내비 관련 유틸리티 함수들
+ * 카카오맵 관련 유틸리티 함수들
  */
 
 export interface LocationData {
@@ -7,31 +7,6 @@ export interface LocationData {
   address: string;
   lat: number;
   lng: number;
-}
-
-// 카카오 내비 API 타입 정의
-declare global {
-  interface Window {
-    Kakao: {
-      Navi: {
-        start: (options: {
-          name: string;
-          x: number;
-          y: number;
-          coordType?: 'wgs84' | 'katec';
-          vehicleType?: '1' | '2' | '3' | '4';
-          rpOption?: '1' | '2' | '3' | '4' | '5';
-          routeInfo?: boolean;
-        }) => void;
-        share: (options: {
-          name: string;
-          x: number;
-          y: number;
-          coordType?: 'wgs84' | 'katec';
-        }) => void;
-      };
-    };
-  }
 }
 
 /**
@@ -56,115 +31,37 @@ export function generateKakaoMapUrl(
     showLabel = true
   } = options;
 
-  const { name, address, lat, lng } = locationData;
-
-  // 카카오맵 URL 생성
-  let url = `https://map.kakao.com/link/map/${name}/${lat},${lng}`;
-  
-  // 추가 파라미터 추가
+  const baseUrl = 'https://map.kakao.com/link/map';
   const params = new URLSearchParams();
   
-  if (zoom !== 3) {
-    params.append('level', zoom.toString());
-  }
+  // 장소명과 좌표를 포함한 URL 생성
+  const mapUrl = `${baseUrl}/${encodeURIComponent(locationData.name)},${locationData.lat},${locationData.lng}`;
   
-  if (mapType !== 'roadmap') {
-    params.append('maptype', mapType);
-  }
-  
-  if (showMarker) {
-    params.append('marker', '1');
-  }
-  
-  if (showLabel) {
-    params.append('label', '1');
-  }
-
-  // 주소 정보 추가
-  if (address) {
-    params.append('address', address);
-  }
-
-  if (params.toString()) {
-    url += `?${params.toString()}`;
-  }
-
-  return url;
+  return mapUrl;
 }
 
 /**
- * 카카오내비 길찾기 URL을 생성합니다 (카카오맵 대신 카카오내비 사용)
+ * 카카오맵 길찾기 URL을 생성합니다
  * @param locationData 목적지 장소 정보
- * @param options 추가 옵션
- * @returns 카카오내비 길찾기 URL
+ * @returns 카카오맵 길찾기 URL
  */
 export function generateKakaoMapDirectionsUrl(
-  locationData: LocationData,
-  options: {
-    startAddress?: string;
-    transportType?: 'car' | 'public' | 'walk' | 'bike';
-  } = {}
+  locationData: LocationData
 ): string {
-  const { name, address, lat, lng } = locationData;
-  const { startAddress, transportType = 'car' } = options;
-
-  // 다양한 카카오내비 URL 형식 시도
-  const destination = {
-    name: name,
-    x: lng.toString(),
-    y: lat.toString(),
-    coord_type: "wgs84"
-  };
-  
-  // 형식 1: JSON 파라미터 형식 (현재 사용 중)
-  const appUrl1 = `kakaonavi://navigate?param=${encodeURIComponent(JSON.stringify(destination))}`;
-  
-  // 형식 2: 직접 파라미터 형식
-  const appUrl2 = `kakaonavi://navigate?name=${encodeURIComponent(name)}&x=${lng}&y=${lat}&coord_type=wgs84`;
-  
-  // 형식 3: 간단한 형식
-  const appUrl3 = `kakaonavi://navigate?dest=${lng},${lat}&name=${encodeURIComponent(name)}`;
-  
-  // 첫 번째 형식 반환 (JSON 파라미터)
-  return appUrl1;
+  return `https://map.kakao.com/link/navi/${encodeURIComponent(locationData.name)}`;
 }
 
 /**
  * 카카오맵 검색 URL을 생성합니다
  * @param query 검색어
- * @param options 추가 옵션
  * @returns 카카오맵 검색 URL
  */
-export function generateKakaoMapSearchUrl(
-  query: string,
-  options: {
-    category?: string;
-    area?: string;
-  } = {}
-): string {
-  const { category, area } = options;
-  
-  let url = `https://map.kakao.com/link/search/${encodeURIComponent(query)}`;
-  
-  const params = new URLSearchParams();
-  
-  if (category) {
-    params.append('category', category);
-  }
-  
-  if (area) {
-    params.append('area', area);
-  }
-
-  if (params.toString()) {
-    url += `?${params.toString()}`;
-  }
-
-  return url;
+export function generateKakaoMapSearchUrl(query: string): string {
+  return `https://map.kakao.com/link/search/${encodeURIComponent(query)}`;
 }
 
 /**
- * 장소 정보를 카카오맵에서 검색할 수 있는 URL로 변환합니다
+ * 위치 데이터로 카카오맵 검색 URL을 생성합니다
  * @param locationData 장소 정보
  * @returns 카카오맵 검색 URL
  */
@@ -178,15 +75,13 @@ export function generateKakaoMapSearchByLocationUrl(locationData: LocationData):
  * @returns 길찾기 URL
  */
 export function generateDirectionsFromCurrentLocation(locationData: LocationData): string {
-  return generateKakaoMapDirectionsUrl(locationData, {
-    transportType: 'car'
-  });
+  return generateKakaoMapDirectionsUrl(locationData);
 }
 
 /**
- * 장소 정보가 유효한지 확인합니다
- * @param locationData 장소 정보
- * @returns 유효성 여부
+ * LocationData가 유효한지 확인합니다
+ * @param locationData 확인할 데이터
+ * @returns 유효한 LocationData인지 여부
  */
 export function isValidLocationData(locationData: any): locationData is LocationData {
   return (
@@ -197,16 +92,12 @@ export function isValidLocationData(locationData: any): locationData is Location
     typeof locationData.lat === 'number' &&
     typeof locationData.lng === 'number' &&
     !isNaN(locationData.lat) &&
-    !isNaN(locationData.lng) &&
-    locationData.lat >= -90 &&
-    locationData.lat <= 90 &&
-    locationData.lng >= -180 &&
-    locationData.lng <= 180
+    !isNaN(locationData.lng)
   );
 }
 
 /**
- * 장소 정보를 문자열로 포맷팅합니다
+ * 위치 정보를 문자열로 포맷합니다
  * @param locationData 장소 정보
  * @returns 포맷된 문자열
  */
@@ -215,429 +106,44 @@ export function formatLocationString(locationData: LocationData): string {
 }
 
 /**
- * 카카오 내비 앱으로 길 안내를 시작합니다 (앱 직접 연결)
- * @param locationData 목적지 장소 정보
- * @param options 길 안내 옵션
+ * 카카오맵 Places API를 사용하여 장소를 검색하고 좌표를 반환합니다
+ * @param query 검색어
+ * @returns 검색된 장소 정보 또는 null
  */
-export function startKakaoNavi(
-  locationData: LocationData,
-  options: {
-    vehicleType?: '1' | '2' | '3' | '4'; // 1:자동차, 2:승용차, 3:화물차, 4:대형차
-    rpOption?: '1' | '2' | '3' | '4' | '5'; // 1:추천, 2:최단, 3:무료, 4:고속, 5:일반
-    routeInfo?: boolean; // 경로 정보 표시 여부
-  } = {}
-): void {
-  if (typeof window === 'undefined') {
-    console.error('브라우저 환경이 아닙니다.');
-    return;
-  }
-
-  const { vehicleType = '1', rpOption = '1', routeInfo = true } = options;
-
-  try {
-    // 다양한 카카오내비 URL 형식 시도
-    const destination = {
-      name: locationData.name,
-      x: locationData.lng.toString(),
-      y: locationData.lat.toString(),
-      coord_type: "wgs84"
-    };
-    
-    // 형식 1: JSON 파라미터 형식 (현재 사용 중)
-    const appUrl1 = `kakaonavi://navigate?param=${encodeURIComponent(JSON.stringify(destination))}`;
-    
-    // 형식 2: 직접 파라미터 형식
-    const appUrl2 = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coord_type=wgs84`;
-    
-    // 형식 3: route 액션 사용
-    const appUrl3 = `kakaonavi://route?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coord_type=wgs84`;
-    
-    // 형식 4: 간단한 형식
-    const appUrl4 = `kakaonavi://navigate?dest=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
-    
-    // 형식 5: 카카오맵 앱으로 폴백 (좌표 포함)
-    const fallbackUrl = `kakaomap://route?sp=&ep=${locationData.lng},${locationData.lat}&by=CAR&rp=RECOMMEND`;
-    
-    // 디버깅: 생성된 URL들 출력
-    console.log('🔍 카카오내비 길찾기 URL (형식1 - JSON):', appUrl1);
-    console.log('🔍 카카오내비 길찾기 URL (형식2 - 직접):', appUrl2);
-    console.log('🔍 카카오내비 길찾기 URL (형식3 - route):', appUrl3);
-    console.log('🔍 카카오내비 길찾기 URL (형식4 - 간단):', appUrl4);
-    console.log('🔍 카카오맵 길찾기 URL (폴백):', fallbackUrl);
-    console.log('📍 목적지 정보:', destination);
-    
-    // 카카오내비 앱 우선 사용 (정확한 길안내)
-    console.log('🚗 카카오내비 앱으로 길안내 시작');
-    
-    // 카카오내비 앱 URL 시도 (좌표 포함)
-    const naviUrl = `kakaonavi://navigate?destination=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
-    console.log('🔍 카카오내비 앱 URL:', naviUrl);
-    
-    // 카카오내비 앱으로 이동 시도
-    window.location.href = naviUrl;
-    
-    // 2초 후 카카오맵으로 폴백 (앱이 없을 경우)
-    setTimeout(() => {
-      console.log('⏰ 카카오내비 앱 타임아웃, 카카오맵으로 폴백');
-      window.location.href = fallbackUrl;
-    }, 2000);
-    
-  } catch (error) {
-    console.error('카카오맵 길 안내 시작 오류:', error);
-    // 오류 발생 시 웹 카카오맵으로 폴백
-    const webUrl = `https://map.kakao.com/link/navi/${encodeURIComponent(locationData.name)}`;
-    console.log('🔍 오류 시 웹 카카오맵 URL:', webUrl);
-    window.open(webUrl, '_blank');
-  }
-}
-
-/**
- * 카카오 내비 앱 직접 연결 URL을 생성합니다
- * @param locationData 목적지 장소 정보
- * @param options 길 안내 옵션
- * @returns 카카오 내비 앱 URL
- */
-export function generateKakaoNaviAppUrl(
-  locationData: LocationData,
-  options: {
-    vehicleType?: '1' | '2' | '3' | '4';
-    rpOption?: '1' | '2' | '3' | '4' | '5';
-    routeInfo?: boolean;
-  } = {}
-): string {
-  const { vehicleType = '1', rpOption = '1', routeInfo = true } = options;
-  
-  // 카카오 내비 앱 직접 연결 URL 형식
-  const baseUrl = 'kakaomap://route';
-  const params = new URLSearchParams({
-    sp: '', // 출발지 (빈 값이면 현재 위치)
-    ep: `${locationData.lng},${locationData.lat}`, // 도착지 (경도,위도)
-    by: 'CAR', // 교통수단 (CAR, PUBLIC_TRANSIT, WALK, BICYCLE)
-    rp: rpOption === '1' ? 'RECOMMEND' : 
-        rpOption === '2' ? 'SHORTEST' : 
-        rpOption === '3' ? 'FREE' : 
-        rpOption === '4' ? 'HIGHWAY' : 'GENERAL',
-    name: locationData.name
-  });
-  
-  return `${baseUrl}?${params.toString()}`;
-}
-
-/**
- * 카카오 내비 앱 목적지 공유 URL을 생성합니다
- * @param locationData 목적지 장소 정보
- * @returns 카카오 내비 앱 공유 URL
- */
-export function generateKakaoNaviAppShareUrl(locationData: LocationData): string {
-  // 카카오 내비 앱 목적지 공유 URL 형식
-  const baseUrl = 'kakaomap://place';
-  const params = new URLSearchParams({
-    id: `${locationData.lng},${locationData.lat}`, // 장소 ID (경도,위도)
-    name: locationData.name,
-    address: locationData.address
-  });
-  
-  return `${baseUrl}?${params.toString()}`;
-}
-
-/**
- * 카카오 내비 웹 길안내 URL을 생성합니다
- * @param locationData 목적지 장소 정보
- * @param options 길 안내 옵션
- * @returns 카카오 내비 웹 URL
- */
-export function generateKakaoNaviWebUrl(
-  locationData: LocationData,
-  options: {
-    vehicleType?: '1' | '2' | '3' | '4';
-    rpOption?: '1' | '2' | '3' | '4' | '5';
-    routeInfo?: boolean;
-  } = {}
-): string {
-  const { vehicleType = '1', rpOption = '1', routeInfo = true } = options;
-  
-  // 카카오 내비 웹 길안내 URL 형식
-  const baseUrl = 'https://map.kakao.com/link/navi';
-  const params = new URLSearchParams({
-    name: locationData.name,
-    x: locationData.lng.toString(),
-    y: locationData.lat.toString(),
-    coordType: 'wgs84',
-    vehicleType,
-    rpOption,
-    routeInfo: routeInfo ? 'true' : 'false'
-  });
-  
-  return `${baseUrl}?${params.toString()}`;
-}
-
-/**
- * 카카오 내비 앱으로 목적지를 공유합니다 (앱 직접 연결)
- * @param locationData 목적지 장소 정보
- */
-export function shareKakaoNavi(locationData: LocationData): void {
-  if (typeof window === 'undefined') {
-    console.error('브라우저 환경이 아닙니다.');
-    return;
-  }
-
-  try {
-    // 다양한 카카오내비 URL 형식 시도
-    const destination = {
-      name: locationData.name,
-      x: locationData.lng.toString(),
-      y: locationData.lat.toString(),
-      coord_type: "wgs84"
-    };
-    
-    // 형식 1: JSON 파라미터 형식 (현재 사용 중)
-    const appUrl1 = `kakaonavi://share?param=${encodeURIComponent(JSON.stringify(destination))}`;
-    
-    // 형식 2: 직접 파라미터 형식
-    const appUrl2 = `kakaonavi://share?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}&coord_type=wgs84`;
-    
-    // 형식 3: 간단한 형식
-    const appUrl3 = `kakaonavi://share?dest=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
-    
-    // 형식 4: 카카오맵 앱으로 폴백 (좌표 포함)
-    const fallbackUrl = `kakaomap://place?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
-    
-    // 디버깅: 생성된 URL들 출력
-    console.log('🔍 카카오내비 공유 URL (형식1 - JSON):', appUrl1);
-    console.log('🔍 카카오내비 공유 URL (형식2 - 직접):', appUrl2);
-    console.log('🔍 카카오내비 공유 URL (형식3 - 간단):', appUrl3);
-    console.log('🔍 카카오맵 공유 URL (폴백):', fallbackUrl);
-    console.log('📍 목적지 정보:', destination);
-    
-    // 카카오내비 앱 우선 사용 (정확한 목적지 공유)
-    console.log('📍 카카오내비 앱으로 목적지 공유');
-    
-    // 카카오내비 앱 URL 시도 (좌표 포함)
-    const naviUrl = `kakaonavi://share?destination=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
-    console.log('🔍 카카오내비 공유 URL:', naviUrl);
-    
-    // 카카오내비 앱으로 이동 시도
-    window.location.href = naviUrl;
-    
-    // 2초 후 카카오맵으로 폴백 (앱이 없을 경우)
-    setTimeout(() => {
-      console.log('⏰ 카카오내비 앱 타임아웃, 카카오맵으로 폴백');
-      window.location.href = fallbackUrl;
-    }, 2000);
-    
-  } catch (error) {
-    console.error('카카오맵 목적지 공유 오류:', error);
-    // 오류 발생 시 웹 카카오맵으로 폴백
-    const webUrl = `https://map.kakao.com/link/share/${encodeURIComponent(locationData.name)}`;
-    console.log('🔍 오류 시 웹 카카오맵 공유 URL:', webUrl);
-    window.open(webUrl, '_blank');
-  }
-}
-
-/**
- * 카카오 내비 웹 목적지 공유 URL을 생성합니다
- * @param locationData 목적지 장소 정보
- * @returns 카카오 내비 웹 공유 URL
- */
-export function generateKakaoNaviShareUrl(locationData: LocationData): string {
-  // 카카오 내비 웹 목적지 공유 URL 형식
-  const baseUrl = 'https://map.kakao.com/link/share';
-  const params = new URLSearchParams({
-    name: locationData.name,
-    x: locationData.lng.toString(),
-    y: locationData.lat.toString(),
-    coordType: 'wgs84'
-  });
-  
-  return `${baseUrl}?${params.toString()}`;
-}
-
-/**
- * 웹 기반 카카오 내비 기능이 사용 가능한지 확인합니다
- * @returns 웹 내비 기능 사용 가능 여부
- */
-export function isKakaoNaviWebAvailable(): boolean {
-  return typeof window !== 'undefined' && 
-         typeof window.open === 'function';
-}
-
-/**
- * 카카오 내비 웹 길안내를 시작합니다 (즉시 실행)
- * @param locationData 목적지 장소 정보
- * @param options 길 안내 옵션
- */
-export function startKakaoNaviWeb(
-  locationData: LocationData,
-  options: {
-    vehicleType?: '1' | '2' | '3' | '4';
-    rpOption?: '1' | '2' | '3' | '4' | '5';
-    routeInfo?: boolean;
-  } = {}
-): void {
-  if (!isKakaoNaviWebAvailable()) {
-    console.error('웹 기반 카카오 내비 기능을 사용할 수 없습니다.');
-    return;
-  }
-
-  const { vehicleType = '1', rpOption = '1', routeInfo = true } = options;
-
-  try {
-    // 웹 기반 카카오 내비 길안내 URL 생성
-    const naviUrl = generateKakaoNaviWebUrl(locationData, {
-      vehicleType,
-      rpOption,
-      routeInfo
-    });
-    
-    // 새 창에서 카카오 내비 웹 길안내 열기
-    window.open(naviUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-  } catch (error) {
-    console.error('카카오 내비 웹 길 안내 시작 오류:', error);
-  }
-}
-
-/**
- * 카카오 내비 웹 목적지 공유를 시작합니다 (즉시 실행)
- * @param locationData 목적지 장소 정보
- */
-export function shareKakaoNaviWeb(locationData: LocationData): void {
-  if (!isKakaoNaviWebAvailable()) {
-    console.error('웹 기반 카카오 내비 기능을 사용할 수 없습니다.');
-    return;
-  }
-
-  try {
-    // 웹 기반 카카오 내비 목적지 공유 URL 생성
-    const shareUrl = generateKakaoNaviShareUrl(locationData);
-    
-    // 새 창에서 카카오 내비 웹 목적지 공유 열기
-    window.open(shareUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-  } catch (error) {
-    console.error('카카오 내비 웹 목적지 공유 오류:', error);
-  }
-}
-
-/**
- * 두 지점 간의 거리를 계산합니다 (Haversine 공식)
- * @param lat1 첫 번째 지점의 위도
- * @param lng1 첫 번째 지점의 경도
- * @param lat2 두 번째 지점의 위도
- * @param lng2 두 번째 지점의 경도
- * @returns 거리 (킬로미터)
- */
-export function calculateDistance(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const R = 6371; // 지구의 반지름 (킬로미터)
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-/**
- * 장소명으로 실시간 좌표를 검색합니다
- * @param placeName 장소명
- * @returns Promise<LocationData | null>
- */
-export async function searchPlaceCoordinates(placeName: string): Promise<LocationData | null> {
+export async function searchPlaceCoordinates(query: string): Promise<LocationData | null> {
   if (typeof window === 'undefined') {
     console.error('브라우저 환경이 아닙니다.');
     return null;
   }
 
   try {
-    // 카카오맵 API가 로드되었는지 확인
+    // 카카오맵이 로드되었는지 확인
     if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
-      console.error('카카오맵 API가 로드되지 않았습니다.');
+      console.error('카카오맵이 로드되지 않았습니다.');
       return null;
     }
 
-    const places = new window.kakao.maps.services.Places();
-    
     return new Promise((resolve) => {
-      places.keywordSearch(placeName, (data: any[], status: any) => {
+      const places = new window.kakao.maps.services.Places();
+      
+      places.keywordSearch(query, (data: any[], status: any) => {
         if (status === window.kakao.maps.services.Status.OK && data.length > 0) {
           const place = data[0];
           const locationData: LocationData = {
-            name: place.place_name || placeName,
-            address: place.road_address_name || place.address_name || '',
+            name: place.place_name,
+            address: place.road_address_name || place.address_name,
             lat: parseFloat(place.y),
             lng: parseFloat(place.x)
           };
-          
-          console.log('🔍 실시간 좌표 검색 성공:', locationData);
           resolve(locationData);
         } else {
-          console.error('장소 검색 실패:', status);
+          console.warn('장소 검색 실패:', status);
           resolve(null);
         }
       });
     });
   } catch (error) {
-    console.error('좌표 검색 오류:', error);
+    console.error('장소 검색 오류:', error);
     return null;
-  }
-}
-
-/**
- * 실시간 좌표 검색을 통한 길찾기
- * @param placeName 장소명
- * @param options 길 안내 옵션
- */
-export async function startKakaoNaviWithSearch(
-  placeName: string,
-  options: {
-    vehicleType?: '1' | '2' | '3' | '4';
-    rpOption?: '1' | '2' | '3' | '4' | '5';
-    routeInfo?: boolean;
-  } = {}
-): Promise<void> {
-  if (typeof window === 'undefined') {
-    console.error('브라우저 환경이 아닙니다.');
-    return;
-  }
-
-  try {
-    console.log('🔍 실시간 좌표 검색 시작:', placeName);
-    
-    // 1. 실시간 좌표 검색
-    const locationData = await searchPlaceCoordinates(placeName);
-    
-    if (locationData) {
-      // 2. 검색된 좌표로 카카오내비 앱 길안내
-      console.log('✅ 좌표 검색 성공, 카카오내비 앱으로 길안내 시작');
-      
-      // 카카오내비 앱 URL 생성 (좌표 포함)
-      const naviUrl = `kakaonavi://navigate?destination=${locationData.lng},${locationData.lat}&name=${encodeURIComponent(locationData.name)}`;
-      console.log('🔍 실시간 검색 후 카카오내비 앱 URL:', naviUrl);
-      
-      // 카카오내비 앱으로 이동 시도
-      window.location.href = naviUrl;
-      
-      // 2초 후 카카오맵으로 폴백
-      setTimeout(() => {
-        console.log('⏰ 카카오내비 앱 타임아웃, 카카오맵으로 폴백');
-        const fallbackUrl = `kakaomap://route?sp=&ep=${locationData.lng},${locationData.lat}&by=CAR&rp=RECOMMEND`;
-        window.location.href = fallbackUrl;
-      }, 2000);
-    } else {
-      // 3. 좌표 검색 실패 시 장소명으로 폴백
-      console.log('⚠️ 좌표 검색 실패, 장소명으로 폴백');
-      const fallbackUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(placeName)}&by=CAR&rp=RECOMMEND`;
-      window.location.href = fallbackUrl;
-    }
-  } catch (error) {
-    console.error('실시간 길찾기 오류:', error);
-    // 오류 발생 시 웹 폴백
-    const webUrl = `https://map.kakao.com/link/navi/${encodeURIComponent(placeName)}`;
-    window.open(webUrl, '_blank');
   }
 }
