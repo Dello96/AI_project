@@ -247,21 +247,17 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
                   const churchLocation = "잠실중앙교회";
                   const churchAddress = "서울특별시 송파구 올림픽로35길 118";
                   
-                  // 카카오내비 앱 직접 연결 시도
-                  const appUrl = `kakaomap://route?sp=&ep=&by=CAR&rp=RECOMMEND&name=${encodeURIComponent(churchLocation)}`;
+                  // 카카오내비 앱 직접 연결 시도 (목적지 명시)
+                  const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
                   const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(churchLocation)}`;
                   
-                  // 앱 설치 여부 확인을 위한 iframe 사용
-                  const iframe = document.createElement('iframe');
-                  iframe.style.display = 'none';
-                  iframe.src = appUrl;
-                  document.body.appendChild(iframe);
+                  // 카카오내비 앱으로 직접 이동 시도
+                  window.location.href = appUrl;
                   
-                  // 앱이 설치되지 않은 경우 웹으로 폴백
+                  // 앱이 열리지 않으면 웹으로 폴백
                   setTimeout(() => {
-                    document.body.removeChild(iframe);
                     window.location.href = webUrl;
-                  }, 1000);
+                  }, 2000);
                   
                 } catch (error) {
                   console.error('카카오 내비 길찾기 오류:', error);

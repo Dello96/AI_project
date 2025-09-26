@@ -316,21 +316,17 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                     if (event.location) {
                       // 장소명으로 카카오내비 앱 길찾기 시도
                       try {
-                        // 카카오내비 앱 직접 연결 시도
-                        const appUrl = `kakaomap://route?sp=&ep=&by=CAR&rp=RECOMMEND&name=${encodeURIComponent(event.location)}`;
+                        // 카카오내비 앱 직접 연결 시도 (목적지 명시)
+                        const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(event.location)}&by=CAR&rp=RECOMMEND`;
                         const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
                         
-                        // 앱 설치 여부 확인을 위한 iframe 사용
-                        const iframe = document.createElement('iframe');
-                        iframe.style.display = 'none';
-                        iframe.src = appUrl;
-                        document.body.appendChild(iframe);
+                        // 카카오내비 앱으로 직접 이동 시도
+                        window.location.href = appUrl;
                         
-                        // 앱이 설치되지 않은 경우 웹으로 폴백
+                        // 앱이 열리지 않으면 웹으로 폴백
                         setTimeout(() => {
-                          document.body.removeChild(iframe);
                           window.location.href = webUrl;
-                        }, 1000);
+                        }, 2000);
                         
                       } catch (error) {
                         console.error('카카오 내비 길찾기 오류:', error);
