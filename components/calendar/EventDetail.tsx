@@ -233,14 +233,6 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                     <p className="text-sm text-secondary-600">장소</p>
                     <p className="text-secondary-900">{event.location}</p>
                     
-                    {/* 디버깅 정보 */}
-                    {process.env.NODE_ENV === 'development' && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        locationData: {JSON.stringify(event.locationData)}
-                        <br />
-                        isValid: {isValidLocationData(event.locationData) ? 'true' : 'false'}
-                      </div>
-                    )}
                     
                     {/* 카카오맵 연결 버튼들 */}
                     <div className="flex gap-2 mt-2">
@@ -285,10 +277,13 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
-                              window.open(searchUrl, '_blank');
+                              if (event.location) {
+                                const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
+                                window.open(searchUrl, '_blank');
+                              }
                             }}
                             className="flex items-center gap-1 text-xs"
+                            disabled={!event.location}
                           >
                             <MapPinIcon className="w-3 h-3" />
                             지도에서 검색
@@ -297,10 +292,13 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              const directionsUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
-                              window.open(directionsUrl, '_blank');
+                              if (event.location) {
+                                const directionsUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
+                                window.open(directionsUrl, '_blank');
+                              }
                             }}
                             className="flex items-center gap-1 text-xs"
+                            disabled={!event.location}
                           >
                             <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                             길찾기

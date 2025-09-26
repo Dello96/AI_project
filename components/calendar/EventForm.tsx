@@ -98,16 +98,22 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
 
       if (initialData?.id) {
         // 일정 수정
-        result = await eventService.updateEvent(initialData.id, {
+        const updateData: Partial<Event> = {
           title: formData.title.trim(),
           description: formData.description?.trim() || '',
           startDate: formData.startDate,
           endDate: formData.endDate,
           location: formData.location?.trim() || '',
-          locationData: selectedLocation || undefined,
           category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle',
           isAllDay: formData.isAllDay
-        })
+        }
+        
+        // locationData가 있을 때만 추가
+        if (selectedLocation) {
+          updateData.locationData = selectedLocation
+        }
+        
+        result = await eventService.updateEvent(initialData.id, updateData)
 
       } else {
         // 새 일정 생성 - API 호출
@@ -120,16 +126,20 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           throw new Error('올바른 날짜를 선택해주세요.')
         }
         
-        const requestData = {
+        const requestData: any = {
           title: formData.title.trim(),
           description: formData.description?.trim() || undefined,
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
           location: formData.location?.trim() || undefined,
-          locationData: selectedLocation || undefined,
           category: formData.category as 'worship' | 'meeting' | 'event' | 'smallgroup' | 'vehicle',
           isAllDay: Boolean(formData.isAllDay),
           authorId: authorId
+        }
+        
+        // locationData가 있을 때만 추가
+        if (selectedLocation) {
+          requestData.locationData = selectedLocation
         }
         
         
