@@ -371,14 +371,14 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                         });
                         
                         if (!success) {
-                          // SDK 실패 시 카카오내비 앱으로만 폴백 (kakaonavi:// 스키마 사용)
-                          const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(event.location)}&x=127.100823924714&y=37.5179242320345&coordType=wgs84&vehicleType=1&rpOption=1&routeInfo=true`;
+                          // SDK 실패 시 카카오내비 앱으로만 폴백 (올바른 형식 사용)
+                          const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(event.location)}&x=127.100823924714&y=37.5179242320345&coord_type=wgs84`;
                           window.location.href = appUrl;
                         }
                       } catch (error) {
                         console.error('카카오 내비 길찾기 오류:', error);
-                        // 오류 발생 시에도 카카오내비 앱으로만 시도 (kakaonavi:// 스키마 사용)
-                        const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(event.location)}&x=127.100823924714&y=37.5179242320345&coordType=wgs84&vehicleType=1&rpOption=1&routeInfo=true`;
+                        // 오류 발생 시에도 카카오내비 앱으로만 시도 (올바른 형식 사용)
+                        const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(event.location)}&x=127.100823924714&y=37.5179242320345&coord_type=wgs84`;
                         window.location.href = appUrl;
                       }
                     }
