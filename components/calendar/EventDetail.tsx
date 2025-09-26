@@ -257,11 +257,10 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    const mapUrl = generateKakaoMapUrl(event.locationData!, {
-                      zoom: 3,
-                      showMarker: true,
-                      showLabel: true
-                    });
+                    // 정확한 좌표로 카카오맵 위치 표시
+                    const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(event.locationData!.name)},${event.locationData!.lat},${event.locationData!.lng}`;
+                    console.log('🔍 카카오맵 위치 표시 URL (locationData):', mapUrl);
+                    console.log('📍 위치 정보 (locationData):', event.locationData);
                     window.open(mapUrl, '_blank');
                   }}
                   className="flex items-center gap-1 text-xs"
@@ -347,10 +346,30 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
+                  onClick={async () => {
                     if (event.location) {
-                      const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
-                      window.open(searchUrl, '_blank');
+                      try {
+                        // 실시간 좌표 검색
+                        const locationData = await searchPlaceCoordinates(event.location);
+                        
+                        if (locationData) {
+                          // 검색된 좌표로 카카오맵 위치 표시
+                          const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(locationData.name)},${locationData.lat},${locationData.lng}`;
+                          console.log('🔍 카카오맵 위치 표시 URL:', mapUrl);
+                          console.log('📍 검색된 위치 정보:', locationData);
+                          window.open(mapUrl, '_blank');
+                        } else {
+                          // 좌표 검색 실패 시 일반 검색으로 폴백
+                          const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
+                          console.log('⚠️ 좌표 검색 실패, 일반 검색으로 폴백:', searchUrl);
+                          window.open(searchUrl, '_blank');
+                        }
+                      } catch (error) {
+                        console.error('지도 검색 오류:', error);
+                        // 오류 발생 시 일반 검색으로 폴백
+                        const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(event.location)}`;
+                        window.open(searchUrl, '_blank');
+                      }
                     }
                   }}
                   className="flex items-center gap-1 text-xs"

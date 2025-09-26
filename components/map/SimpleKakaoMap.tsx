@@ -240,6 +240,25 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
             <p className="text-gray-600 text-sm mb-2">서울특별시 송파구 올림픽로35길 118</p>
             <p className="text-gray-500 text-sm mb-3">📞 02-423-5303</p>
             
+            {/* 지도 보기 및 길찾기 버튼 */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  // 교회 위치를 카카오맵에 표시
+                  const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent("잠실중앙교회")},37.5179242320345,127.100823924714`;
+                  console.log('🔍 메인 페이지 - 카카오맵 위치 표시 URL:', mapUrl);
+                  window.open(mapUrl, '_blank');
+                }}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                지도 보기
+              </button>
+            </div>
+            
             {/* 길찾기 버튼 */}
             <button
               onClick={async () => {
