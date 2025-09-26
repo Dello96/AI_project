@@ -266,15 +266,16 @@ export function startKakaoNavi(
     console.log('🔍 카카오맵 길찾기 URL (폴백):', fallbackUrl);
     console.log('📍 목적지 정보:', destination);
     
-    // 첫 번째 형식 시도 (JSON 파라미터)
-    window.location.href = appUrl1;
+    // 카카오맵 앱 우선 사용 (더 안정적)
+    console.log('🚗 카카오맵 앱으로 길찾기 시작');
+    window.location.href = fallbackUrl;
     
   } catch (error) {
-    console.error('카카오 내비 길 안내 시작 오류:', error);
-    // 오류 발생 시 카카오맵으로 폴백
-    const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(locationData.name)}&by=CAR&rp=RECOMMEND`;
-    console.log('🔍 오류 시 카카오맵 길찾기 URL:', appUrl);
-    window.location.href = appUrl;
+    console.error('카카오맵 길 안내 시작 오류:', error);
+    // 오류 발생 시 웹 카카오맵으로 폴백
+    const webUrl = `https://map.kakao.com/link/navi/${encodeURIComponent(locationData.name)}`;
+    console.log('🔍 오류 시 웹 카카오맵 URL:', webUrl);
+    window.open(webUrl, '_blank');
   }
 }
 
@@ -396,15 +397,16 @@ export function shareKakaoNavi(locationData: LocationData): void {
     console.log('🔍 카카오맵 공유 URL (폴백):', fallbackUrl);
     console.log('📍 목적지 정보:', destination);
     
-    // 첫 번째 형식 시도 (JSON 파라미터)
-    window.location.href = appUrl1;
+    // 카카오맵 앱 우선 사용 (더 안정적)
+    console.log('📍 카카오맵 앱으로 목적지 공유');
+    window.location.href = fallbackUrl;
     
   } catch (error) {
-    console.error('카카오 내비 목적지 공유 오류:', error);
-    // 오류 발생 시 카카오맵으로 폴백
-    const appUrl = `kakaomap://place?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
-    console.log('🔍 오류 시 카카오맵 공유 URL:', appUrl);
-    window.location.href = appUrl;
+    console.error('카카오맵 목적지 공유 오류:', error);
+    // 오류 발생 시 웹 카카오맵으로 폴백
+    const webUrl = `https://map.kakao.com/link/share/${encodeURIComponent(locationData.name)}`;
+    console.log('🔍 오류 시 웹 카카오맵 공유 URL:', webUrl);
+    window.open(webUrl, '_blank');
   }
 }
 
