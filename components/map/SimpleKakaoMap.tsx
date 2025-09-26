@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import kakaoMapManager from '@/lib/kakaoMapManager'
+import { startKakaoNaviByPlaceName } from '@/utils/kakaoNaviSDK'
 
 interface SimpleKakaoMapProps {
   className?: string
@@ -241,24 +242,27 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
             
             {/* 길찾기 버튼 */}
             <button
-              onClick={() => {
-                // 교회 위치로 카카오내비 길찾기 시도
+              onClick={async () => {
                 try {
                   const churchLocation = "잠실중앙교회";
-                  const churchAddress = "서울특별시 송파구 올림픽로35길 118";
                   
-                  // 카카오내비 앱 직접 연결 시도 (목적지 명시)
-                  const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
-                  const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(churchLocation)}`;
+                  // 카카오내비 SDK로 길찾기 시도
+                  const success = await startKakaoNaviByPlaceName(churchLocation, {
+                    vehicleType: 1, // 승용차
+                    rpOption: 100,  // 추천 경로
+                    routeInfo: false
+                  });
                   
-                  // 카카오내비 앱으로 직접 이동 시도
-                  window.location.href = appUrl;
-                  
-                  // 앱이 열리지 않으면 웹으로 폴백
-                  setTimeout(() => {
-                    window.location.href = webUrl;
-                  }, 2000);
-                  
+                  if (!success) {
+                    // SDK 실패 시 기존 방식으로 폴백
+                    const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(churchLocation)}&by=CAR&rp=RECOMMEND`;
+                    const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(churchLocation)}`;
+                    
+                    window.location.href = appUrl;
+                    setTimeout(() => {
+                      window.location.href = webUrl;
+                    }, 2000);
+                  }
                 } catch (error) {
                   console.error('카카오 내비 길찾기 오류:', error);
                   // 오류 발생 시 웹으로 폴백

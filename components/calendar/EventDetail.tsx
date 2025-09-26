@@ -23,6 +23,11 @@ import {
   startKakaoNavi,
   shareKakaoNavi
 } from '@/utils/kakaoMapUtils'
+import { 
+  startKakaoNaviWithSDK, 
+  shareKakaoNaviWithSDK,
+  startKakaoNaviByPlaceName
+} from '@/utils/kakaoNaviSDK'
 
 interface EventDetailProps {
   event: Event
@@ -265,12 +270,38 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    startKakaoNavi(event.locationData!, {
-                      vehicleType: '1', // 자동차
-                      rpOption: '1',    // 추천 경로
-                      routeInfo: true   // 경로 정보 표시
-                    });
+                  onClick={async () => {
+                    try {
+                      // 정확한 좌표가 있는 경우 SDK 사용
+                      const success = await startKakaoNaviWithSDK(
+                        event.locationData!.name,
+                        event.locationData!.lng,
+                        event.locationData!.lat,
+                        {
+                          coordType: 'wgs84',
+                          vehicleType: 1, // 승용차
+                          rpOption: 100,  // 추천 경로
+                          routeInfo: false
+                        }
+                      );
+                      
+                      if (!success) {
+                        // SDK 실패 시 기존 방식으로 폴백
+                        startKakaoNavi(event.locationData!, {
+                          vehicleType: '1',
+                          rpOption: '1',
+                          routeInfo: true
+                        });
+                      }
+                    } catch (error) {
+                      console.error('카카오내비 길안내 오류:', error);
+                      // 오류 발생 시 기존 방식으로 폴백
+                      startKakaoNavi(event.locationData!, {
+                        vehicleType: '1',
+                        rpOption: '1',
+                        routeInfo: true
+                      });
+                    }
                   }}
                   className="flex items-center gap-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
                 >
@@ -281,8 +312,25 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => {
-                      shareKakaoNavi(event.locationData!);
+                    onClick={async () => {
+                      try {
+                        // 정확한 좌표가 있는 경우 SDK 사용
+                        const success = await shareKakaoNaviWithSDK(
+                          event.locationData!.name,
+                          event.locationData!.lng,
+                          event.locationData!.lat,
+                          'wgs84'
+                        );
+                        
+                        if (!success) {
+                          // SDK 실패 시 기존 방식으로 폴백
+                          shareKakaoNavi(event.locationData!);
+                        }
+                      } catch (error) {
+                        console.error('카카오내비 목적지 공유 오류:', error);
+                        // 오류 발생 시 기존 방식으로 폴백
+                        shareKakaoNavi(event.locationData!);
+                      }
                     }}
                     className="flex items-center gap-1 text-xs bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
                   >
@@ -312,22 +360,26 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
+                  onClick={async () => {
                     if (event.location) {
-                      // 장소명으로 카카오내비 앱 길찾기 시도
                       try {
-                        // 카카오내비 앱 직접 연결 시도 (목적지 명시)
-                        const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(event.location)}&by=CAR&rp=RECOMMEND`;
-                        const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
+                        // 장소명으로 카카오내비 SDK 시도
+                        const success = await startKakaoNaviByPlaceName(event.location, {
+                          vehicleType: 1, // 승용차
+                          rpOption: 100,  // 추천 경로
+                          routeInfo: false
+                        });
                         
-                        // 카카오내비 앱으로 직접 이동 시도
-                        window.location.href = appUrl;
-                        
-                        // 앱이 열리지 않으면 웹으로 폴백
-                        setTimeout(() => {
-                          window.location.href = webUrl;
-                        }, 2000);
-                        
+                        if (!success) {
+                          // SDK 실패 시 기존 방식으로 폴백
+                          const appUrl = `kakaomap://route?sp=&ep=${encodeURIComponent(event.location)}&by=CAR&rp=RECOMMEND`;
+                          const webUrl = `https://map.kakao.com/link/to/${encodeURIComponent(event.location)}`;
+                          
+                          window.location.href = appUrl;
+                          setTimeout(() => {
+                            window.location.href = webUrl;
+                          }, 2000);
+                        }
                       } catch (error) {
                         console.error('카카오 내비 길찾기 오류:', error);
                         // 오류 발생 시 웹으로 폴백
