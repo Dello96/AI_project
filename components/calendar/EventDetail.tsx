@@ -373,12 +373,19 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
                         if (!success) {
                           // SDK 실패 시 카카오내비 앱으로만 폴백 (가장 기본적인 형식)
                           const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(event.location)}&x=127.100823924714&y=37.5179242320345`;
+                          console.log('🔍 이벤트 상세 - 카카오내비 길찾기 URL:', appUrl);
+                          console.log('📍 이벤트 위치 정보:', {
+                            location: event.location,
+                            x: 127.100823924714,
+                            y: 37.5179242320345
+                          });
                           window.location.href = appUrl;
                         }
                       } catch (error) {
                         console.error('카카오 내비 길찾기 오류:', error);
                         // 오류 발생 시에도 카카오내비 앱으로만 시도 (가장 기본적인 형식)
                         const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(event.location)}&x=127.100823924714&y=37.5179242320345`;
+                        console.log('🔍 이벤트 상세 - 오류 시 카카오내비 길찾기 URL:', appUrl);
                         window.location.href = appUrl;
                       }
                     }

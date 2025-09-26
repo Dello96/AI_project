@@ -256,12 +256,19 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
                   if (!success) {
                     // SDK 실패 시 카카오내비 앱으로만 폴백 (가장 기본적인 형식)
                     const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(churchLocation)}&x=127.100823924714&y=37.5179242320345`;
+                    console.log('🔍 메인 페이지 - 카카오내비 길찾기 URL:', appUrl);
+                    console.log('📍 교회 위치 정보:', {
+                      name: churchLocation,
+                      x: 127.100823924714,
+                      y: 37.5179242320345
+                    });
                     window.location.href = appUrl;
                   }
                 } catch (error) {
                   console.error('카카오 내비 길찾기 오류:', error);
                   // 오류 발생 시에도 카카오내비 앱으로만 시도 (가장 기본적인 형식)
                   const appUrl = `kakaonavi://navigate?name=${encodeURIComponent("잠실중앙교회")}&x=127.100823924714&y=37.5179242320345`;
+                  console.log('🔍 메인 페이지 - 오류 시 카카오내비 길찾기 URL:', appUrl);
                   window.location.href = appUrl;
                 }
               }}

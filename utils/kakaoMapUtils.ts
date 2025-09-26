@@ -221,6 +221,14 @@ export function startKakaoNavi(
     // 카카오내비 앱 직접 연결 URL 생성 (가장 기본적인 형식)
     const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
     
+    // 디버깅: 생성된 URL 출력
+    console.log('🔍 카카오내비 길찾기 URL:', appUrl);
+    console.log('📍 목적지 정보:', {
+      name: locationData.name,
+      lng: locationData.lng,
+      lat: locationData.lat
+    });
+    
     // 카카오내비 앱으로만 직접 이동 (웹 폴백 없음)
     window.location.href = appUrl;
     
@@ -228,6 +236,7 @@ export function startKakaoNavi(
     console.error('카카오 내비 길 안내 시작 오류:', error);
     // 오류 발생 시에도 앱으로만 시도
     const appUrl = `kakaonavi://navigate?name=${encodeURIComponent(locationData.name)}&x=${locationData.lng}&y=${locationData.lat}`;
+    console.log('🔍 오류 시 카카오내비 길찾기 URL:', appUrl);
     window.location.href = appUrl;
   }
 }
