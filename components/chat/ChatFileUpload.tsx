@@ -121,19 +121,19 @@ export default function ChatFileUpload({
   }
 
   return (
-    <div className="space-y-3">
-      {/* 파일 첨부 버튼 */}
-      <div className="flex items-center gap-2">
+    <div className="space-y-2">
+      {/* 파일 첨부 버튼 - 작은 크기 */}
+      <div className="flex items-center gap-1">
         <Button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
           size="sm"
           variant="outline"
-          className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 hover:text-white"
+          className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 hover:text-white px-2 py-1 h-7"
         >
-          <Paperclip className="w-4 h-4 mr-1" />
-          파일 첨부
+          <Paperclip className="w-3 h-3 mr-1" />
+          <span className="text-xs">첨부</span>
         </Button>
         
         <input
@@ -145,24 +145,24 @@ export default function ChatFileUpload({
         />
       </div>
 
-      {/* 드래그 앤 드롭 영역 */}
+      {/* 드래그 앤 드롭 영역 - 매우 컴팩트 버전 */}
       <div
-        className={`border-2 border-dashed rounded-lg p-4 transition-all duration-200 ${
+        className={`border border-dashed rounded p-1.5 transition-all duration-200 ${
           isDragOver 
             ? 'border-orange-500 bg-orange-500/10' 
-            : 'border-gray-600 bg-gray-800/50'
+            : 'border-gray-600 bg-gray-800/30'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="text-center">
-          <Upload className="w-6 h-6 mx-auto text-gray-400 mb-2" />
-          <p className="text-sm text-gray-400">
-            파일을 여기에 드래그하거나 클릭하여 선택하세요
+          <Upload className="w-3 h-3 mx-auto text-gray-400 mb-0.5" />
+          <p className="text-xs text-gray-400">
+            드래그하거나 클릭
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            이미지, PDF, 텍스트 파일 (최대 10MB)
+          <p className="text-xs text-gray-500">
+            최대 10MB
           </p>
         </div>
       </div>
@@ -182,42 +182,42 @@ export default function ChatFileUpload({
         )}
       </AnimatePresence>
 
-      {/* 첨부된 파일 목록 */}
+      {/* 첨부된 파일 목록 - 매우 컴팩트 버전 */}
       <AnimatePresence>
         {attachments.length > 0 && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="space-y-2"
+            className="space-y-1"
           >
-            <p className="text-sm text-gray-400 font-medium">첨부된 파일:</p>
+            <p className="text-xs text-gray-400 font-medium">첨부:</p>
             {attachments.map((attachment) => (
               <motion.div
                 key={attachment.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600"
+                className="flex items-center gap-1.5 p-1.5 bg-gray-700/50 rounded border border-gray-600"
               >
-                {/* 파일 썸네일/아이콘 */}
+                {/* 파일 썸네일/아이콘 - 매우 작은 크기 */}
                 <div className="flex-shrink-0">
                   {attachment.thumbnailUrl && attachment.mimeType.startsWith('image/') ? (
                     <img
                       src={attachment.thumbnailUrl}
                       alt={attachment.originalName}
-                      className="w-10 h-10 object-cover rounded border border-gray-600"
+                      className="w-4 h-4 object-cover rounded border border-gray-600"
                     />
                   ) : (
-                    <div className="w-10 h-10 bg-gray-600 rounded border border-gray-500 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-gray-600 rounded border border-gray-500 flex items-center justify-center">
                       {getFileIcon(attachment.mimeType)}
                     </div>
                   )}
                 </div>
 
-                {/* 파일 정보 */}
+                {/* 파일 정보 - 매우 작은 텍스트 */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white font-medium truncate">
+                  <p className="text-xs text-white font-medium truncate">
                     {attachment.originalName}
                   </p>
                   <p className="text-xs text-gray-400">
@@ -240,17 +240,17 @@ export default function ChatFileUpload({
         )}
       </AnimatePresence>
 
-      {/* 첨부 파일 히스토리 */}
+      {/* 첨부 파일 히스토리 - 매우 컴팩트 버전 */}
       <AnimatePresence>
         {attachmentHistory.length > 0 && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="space-y-2"
+            className="space-y-1"
           >
-            <p className="text-sm text-gray-400 font-medium">이전에 첨부한 파일:</p>
-            <div className="max-h-32 overflow-y-auto space-y-2">
+            <p className="text-xs text-gray-400 font-medium">이전:</p>
+            <div className="max-h-16 overflow-y-auto space-y-0.5">
               {attachmentHistory.map((attachment) => {
                 const isAlreadyAttached = attachments.some(pending => pending.id === attachment.id)
                 
@@ -260,29 +260,29 @@ export default function ChatFileUpload({
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className={`flex items-center gap-3 p-2 rounded-lg border transition-all duration-200 ${
+                    className={`flex items-center gap-1 p-1 rounded border transition-all duration-200 ${
                       isAlreadyAttached 
                         ? 'bg-orange-500/20 border-orange-500/50' 
                         : 'bg-gray-700/30 border-gray-600 hover:bg-gray-700/50 cursor-pointer'
                     }`}
                     onClick={() => !isAlreadyAttached && onReattachFile(attachment)}
                   >
-                    {/* 파일 썸네일/아이콘 */}
+                    {/* 파일 썸네일/아이콘 - 극소 크기 */}
                     <div className="flex-shrink-0">
                       {attachment.thumbnailUrl && attachment.mimeType.startsWith('image/') ? (
                         <img
                           src={attachment.thumbnailUrl}
                           alt={attachment.originalName}
-                          className="w-8 h-8 object-cover rounded border border-gray-600"
+                          className="w-3 h-3 object-cover rounded border border-gray-600"
                         />
                       ) : (
-                        <div className="w-8 h-8 bg-gray-600 rounded border border-gray-500 flex items-center justify-center">
+                        <div className="w-3 h-3 bg-gray-600 rounded border border-gray-500 flex items-center justify-center">
                           {getFileIcon(attachment.mimeType)}
                         </div>
                       )}
                     </div>
 
-                    {/* 파일 정보 */}
+                    {/* 파일 정보 - 극소 텍스트 */}
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-medium truncate ${
                         isAlreadyAttached ? 'text-orange-300' : 'text-gray-300'
@@ -294,8 +294,8 @@ export default function ChatFileUpload({
                       </p>
                     </div>
 
-                    {/* 액션 버튼들 */}
-                    <div className="flex items-center gap-1">
+                    {/* 액션 버튼들 - 극소 크기 */}
+                    <div className="flex items-center gap-0.5">
                       {!isAlreadyAttached && (
                         <Button
                           onClick={(e) => {
@@ -304,10 +304,10 @@ export default function ChatFileUpload({
                           }}
                           size="sm"
                           variant="ghost"
-                          className="text-gray-400 hover:text-orange-400 hover:bg-orange-900/20 p-1"
+                          className="text-gray-400 hover:text-orange-400 hover:bg-orange-900/20 p-0.5"
                           title="다시 첨부"
                         >
-                          <Paperclip className="w-3 h-3" />
+                          <Paperclip className="w-2 h-2" />
                         </Button>
                       )}
                       <Button
@@ -317,10 +317,10 @@ export default function ChatFileUpload({
                         }}
                         size="sm"
                         variant="ghost"
-                        className="text-gray-400 hover:text-red-400 hover:bg-red-900/20 p-1"
+                        className="text-gray-400 hover:text-red-400 hover:bg-red-900/20 p-0.5"
                         title="히스토리에서 제거"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-2 h-2" />
                       </Button>
                     </div>
                   </motion.div>

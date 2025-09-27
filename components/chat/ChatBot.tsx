@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   MessageCircle, 
@@ -24,6 +24,9 @@ import ChatFileUpload from './ChatFileUpload'
 
 export default function ChatBot() {
   const [inputValue, setInputValue] = useState('')
+  const [chatHeight, setChatHeight] = useState(40) // rem 단위로 높이 관리
+  const [isResizing, setIsResizing] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const { user } = useAuth()
   const {
     messages,
@@ -57,6 +60,48 @@ export default function ChatBot() {
       handleSubmit(e)
     }
   }
+
+  // 리사이즈 핸들러
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing) return
+    
+    const newHeight = Math.max(20, Math.min(60, (window.innerHeight - e.clientY) / 16))
+    setChatHeight(newHeight)
+  }
+
+  const handleMouseUp = () => {
+    setIsResizing(false)
+  }
+
+  // 마우스 이벤트 리스너 등록/해제
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing])
+
+  // 모바일 감지
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   return (
     <>
@@ -99,9 +144,22 @@ export default function ChatBot() {
               opacity: 0,
               y: 20
             }}
-            className={`fixed ${config.position === 'bottom-right' ? 'bottom-6 right-6' : 'bottom-6 left-6'} z-[9999]`}
+            className={`fixed ${isMobile ? 'inset-0' : (config.position === 'bottom-right' ? 'bottom-6 right-6' : 'bottom-6 left-6')} z-[9999]`}
           >
-            <Card className="w-96 h-[32rem] bg-gradient-to-br from-gray-900 to-black shadow-2xl border border-orange-500/30 flex flex-col">
+            <Card 
+              className={`${isMobile ? 'w-full h-full' : 'w-96'} bg-gradient-to-br from-gray-900 to-black shadow-2xl border border-orange-500/30 flex flex-col relative`}
+              style={{ 
+                height: isMobile ? '100vh' : `${chatHeight}rem`
+              }}
+            >
+              {/* 리사이즈 핸들 - 데스크톱에서만 표시 */}
+              {!isMobile && (
+                <div
+                  className="absolute top-0 left-0 right-0 h-1 bg-orange-500/50 hover:bg-orange-500 cursor-ns-resize z-10"
+                  onMouseDown={handleMouseDown}
+                />
+              )}
+
               {/* 헤더 - 인터파크 스타일 */}
               <div className="flex items-center justify-between p-4 border-b border-orange-500/30 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-lg">
                 <div className="flex items-center gap-2">

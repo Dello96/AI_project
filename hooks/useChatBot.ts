@@ -114,61 +114,65 @@ export function useChatBot() {
   const sendMessage = useCallback(async (content: string) => {
     if ((!content.trim() && pendingAttachments.length === 0) || isLoading) return
 
+    // 현재 첨부파일들을 임시 저장 (초기화 전에)
+    const currentAttachments = [...pendingAttachments]
+
     // 첨부파일이 있으면 히스토리에 추가
-    if (pendingAttachments.length > 0) {
+    if (currentAttachments.length > 0) {
       setAttachmentHistory(prev => {
-        const newAttachments = pendingAttachments.filter(
+        const newAttachments = currentAttachments.filter(
           newAttachment => !prev.some(existing => existing.id === newAttachment.id)
         )
         return [...prev, ...newAttachments]
       })
     }
 
-    // 사용자 메시지 추가 (첨부파일 포함)
-    const messageData: Omit<ChatMessage, 'id' | 'timestamp'> = {
+    // 사용자 메시지 생성 (저장된 첨부파일 사용)
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
       role: 'user',
-      content: content.trim()
+      content: content.trim(),
+      timestamp: new Date()
     }
     
-    if (pendingAttachments.length > 0) {
-      messageData.attachments = [...pendingAttachments]
+    if (currentAttachments.length > 0) {
+      userMessage.attachments = [...currentAttachments]
     }
-    
-    addMessage(messageData)
 
-    // 첨부파일 초기화
+    // 첨부파일 즉시 초기화 (UI에서 사라지도록)
     setPendingAttachments([])
     setIsLoading(true)
 
     try {
-      // 현재 메시지 목록에 사용자 메시지 추가
-      const userMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: content.trim(),
-        timestamp: new Date()
-      }
-      
-      if (pendingAttachments.length > 0) {
-        userMessage.attachments = [...pendingAttachments]
-      }
-      
-      const currentMessages = [...messages, userMessage]
-
-      console.log('챗봇 메시지 전송 중...', { 
-        messageCount: currentMessages.length,
-        hasAttachments: pendingAttachments.length > 0
+      // 메시지 목록에 사용자 메시지 추가
+      setMessages(prev => {
+        const updatedMessages = [...prev, userMessage]
+        
+        // Gemini API 호출 (첨부파일 정보 포함)
+        geminiService.sendMessage(updatedMessages).then(response => {
+          console.log('챗봇 응답 받음:', response)
+          
+          // AI 응답 추가
+          addMessage({
+            role: 'assistant',
+            content: response
+          })
+        }).catch(error => {
+          console.error('메시지 전송 오류:', error)
+          addMessage({
+            role: 'assistant',
+            content: '죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          })
+        }).finally(() => {
+          setIsLoading(false)
+        })
+        
+        return updatedMessages
       })
 
-      // Gemini API 호출 (첨부파일 정보 포함)
-      const response = await geminiService.sendMessage(currentMessages)
-      
-      console.log('챗봇 응답 받음:', response)
-      
-      // AI 응답 추가
-      addMessage({
-        role: 'assistant',
-        content: response
+      console.log('챗봇 메시지 전송 중...', { 
+        messageCount: messages.length + 1,
+        hasAttachments: currentAttachments.length > 0
       })
     } catch (error) {
       console.error('메시지 전송 오류:', error)
@@ -176,7 +180,6 @@ export function useChatBot() {
         role: 'assistant',
         content: '죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
       })
-    } finally {
       setIsLoading(false)
     }
   }, [messages, isLoading, addMessage, pendingAttachments])
