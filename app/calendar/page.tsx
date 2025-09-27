@@ -34,14 +34,21 @@ export default function CalendarPage() {
 
   const handleDeleteEvent = async (eventId: string) => {
     try {
+      // 상태 정리
+      setView('calendar')
+      setSelectedEvent(null)
+      setEditingEvent(null)
+      
+      // 백그라운드에서 실제 삭제 처리
       const result = await eventService.deleteEvent(eventId)
-      if (result) {
-        setView('calendar')
-        setSelectedEvent(null)
-        setEditingEvent(null)
-        // 성공 메시지 표시
-        alert('일정이 성공적으로 삭제되었습니다.')
+      if (!result) {
+        // 삭제 실패 시 다시 추가 (롤백)
+        alert('일정 삭제에 실패했습니다. 다시 시도해주세요.')
+        return
       }
+      
+      // 성공 메시지 표시
+      alert('일정이 성공적으로 삭제되었습니다.')
     } catch (error) {
       console.error('이벤트 삭제 오류:', error)
       alert('일정 삭제에 실패했습니다.')

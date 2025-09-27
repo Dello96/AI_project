@@ -66,7 +66,11 @@ export function useRealtimeEvents() {
 
   // 이벤트 즉시 삭제 함수 (UI 반응성 향상)
   const deleteEvent = (eventId: string) => {
-    setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId))
+    setEvents(prevEvents => {
+      const filteredEvents = prevEvents.filter(event => event.id !== eventId)
+      console.log('이벤트 삭제됨:', eventId, '남은 이벤트 수:', filteredEvents.length)
+      return filteredEvents
+    })
   }
 
   // 이벤트 즉시 추가 함수 (UI 반응성 향상)

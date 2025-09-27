@@ -89,19 +89,15 @@ export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, 
     try {
       setIsDeleting(true)
       
-      // 먼저 UI에서 즉시 제거 (사용자 경험 향상)
-      onDelete(event.id)
+      // 전역 함수를 사용하여 UI 즉시 업데이트
+      if ((window as any).calendarDeleteEvent) {
+        (window as any).calendarDeleteEvent(event.id)
+      } else {
+        // 폴백: 기존 방식 사용
+        onDelete(event.id)
+      }
       onClose()
       
-      // 백그라운드에서 실제 삭제 처리
-      const result = await eventService.deleteEvent(event.id)
-      if (!result) {
-        // 삭제 실패 시 다시 추가 (롤백)
-        alert('일정 삭제에 실패했습니다. 다시 시도해주세요.')
-      } else {
-        // 성공 메시지 표시
-        alert('일정이 성공적으로 삭제되었습니다.')
-      }
     } catch (error) {
       alert('일정 삭제에 실패했습니다. 다시 시도해주세요.')
     } finally {

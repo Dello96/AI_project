@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경력기술서 - 앱개발 프론트엔드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+        }
+
+        .resume-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 30px;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 40px;
+        }
+
+        .left-column {
+            flex: 2;
+        }
+
+        .right-column {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        .resume-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .job-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .contact-icon {
+            width: 12px;
+            height: 12px;
+            background: #8B5CF6;
+            border-radius: 2px;
+        }
+
+        .profile-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #8B5CF6;
+        }
+
+        .decorative-elements {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .decorative-shape {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+
+        .shape-1 {
+            background: #F59E0B;
+            top: -10px;
+            right: 20px;
+        }
+
+        .shape-2 {
+            background: #8B5CF6;
+            top: 10px;
+            left: -10px;
+            transform: rotate(45deg);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #8B5CF6;
+        }
+
+        .experience-item {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #8B5CF6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .company-info {
+            flex: 1;
+        }
+
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .role {
+            font-size: 14px;
+            color: #8B5CF6;
+            font-weight: 600;
+        }
+
+        .duration {
+            font-size: 12px;
+            color: #888;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .responsibilities {
+            margin-top: 15px;
+        }
+
+        .responsibility-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .bullet-point {
+            width: 6px;
+            height: 6px;
+            background: #8B5CF6;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .project-links {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .project-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: #8B5CF6;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .project-link:hover {
+            background: #7C3AED;
+        }
+
+        .education-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .education-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .education-details {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .skills-section {
+            margin-bottom: 30px;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #e5e7eb;
+            color: #374151;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 3px;
+            font-weight: 500;
+        }
+
+        .abilities-section {
+            margin-bottom: 30px;
+        }
+
+        .ability-item {
+            margin-bottom: 15px;
+        }
+
+        .ability-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .ability-score {
+            font-size: 12px;
+            color: #8B5CF6;
+            font-weight: bold;
+        }
+
+        .tech-stack {
+            margin-top: 20px;
+        }
+
+        .tech-category {
+            margin-bottom: 15px;
+        }
+
+        .tech-category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .tech-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tech-item {
+            padding: 4px 8px;
+            background: #8B5CF6;
+            color: white;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        @media print {
+            .resume-container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            
+            .project-link {
+                background: #8B5CF6 !important;
+                color: white !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="resume-container">
+        <div class="header">
+            <div class="left-column">
+                <div class="resume-title">Resume</div>
+                <div class="job-title">앱개발 프론트엔드</div>
+                <div class="name">윤성현</div>
+                <div class="summary">
+                    SmartGlass 하드웨어 제어를 위한 모바일 애플리케이션 개발에 전문성을 가진 프론트엔드 개발자입니다. 
+                    라즈베리파이 기반 IoT 시스템과의 통신 및 사용자 인터페이스 개발 경험을 바탕으로 
+                    하드웨어와 소프트웨어를 연결하는 혁신적인 솔루션을 제공합니다.
+                </div>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon"></div>
+                        <span>GitHub: github.com/Dello96</span>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"></div>
+                        <span>Portfolio: youtube.com/shorts/bEsAhKcBQ5g</span>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"></div>
+                        <span>Email: contact@example.com</span>
+                    </div>
+                </div>
+            </div>
+            <div class="right-column">
+                <div class="profile-section">
+                    <div class="decorative-elements">
+                        <div class="decorative-shape shape-1"></div>
+                        <div class="decorative-shape shape-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="left-column">
+                <!-- 경력 & 프로젝트 섹션 -->
+                <div class="section-title">경력 & 프로젝트</div>
+                
+                <div class="experience-item">
+                    <div class="experience-header">
+                        <div class="company-info">
+                            <div class="company-name">글래틱 (Glatic)</div>
+                            <div class="role">SmartGlass Control Application FE Developer</div>
+                        </div>
+                        <div class="duration">2023년 1월 - 현재</div>
+                    </div>
+                    <div class="responsibilities">
+                        <div class="responsibility-item">
+                            <div class="bullet-point"></div>
+                            <span>라즈베리파이 싱글보드에 연동된 SmartGlass 하드웨어 컨트롤 기능을 모바일 환경에서 원격으로 제어할 수 있는 애플리케이션 개발</span>
+                        </div>
+                        <div class="responsibility-item">
+                            <div class="bullet-point"></div>
+                            <span>단순 on/off 스위치 및 물리 농도 컨트롤러를 모바일 UI로 구현하여 사용자 편의성 향상</span>
+                        </div>
+                        <div class="responsibility-item">
+                            <div class="bullet-point"></div>
+                            <span>IoT 하드웨어와의 실시간 통신을 통한 원격 제어 시스템 구축 및 안정성 확보</span>
+                        </div>
+                        <div class="responsibility-item">
+                            <div class="bullet-point"></div>
+                            <span>모바일 사용자 경험(UX) 최적화를 통한 직관적인 하드웨어 제어 인터페이스 설계</span>
+                        </div>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://youtube.com/shorts/bEsAhKcBQ5g?feature=share" class="project-link" target="_blank">
+                            📹 프로젝트 데모
+                        </a>
+                        <a href="https://github.com/Dello96/asan.git" class="project-link" target="_blank">
+                            💻 GitHub 저장소
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 교육 섹션 -->
+                <div class="section-title">교육</div>
+                <div class="education-item">
+                    <div class="education-title">컴퓨터공학 학사</div>
+                    <div class="education-details">모바일 애플리케이션 개발 및 IoT 시스템 통합 전공</div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <!-- 기술 스킬 섹션 -->
+                <div class="skills-section">
+                    <div class="section-title">기술 스킬</div>
+                    <div class="skill-tag">React Native</div>
+                    <div class="skill-tag">Flutter</div>
+                    <div class="skill-tag">JavaScript</div>
+                    <div class="skill-tag">TypeScript</div>
+                    <div class="skill-tag">Dart</div>
+                    <div class="skill-tag">HTML/CSS</div>
+                    <div class="skill-tag">Node.js</div>
+                    <div class="skill-tag">Raspberry Pi</div>
+                    <div class="skill-tag">IoT 통신</div>
+                    <div class="skill-tag">RESTful API</div>
+                    <div class="skill-tag">WebSocket</div>
+                    <div class="skill-tag">Git</div>
+                </div>
+
+                <!-- 기술 스택 상세 -->
+                <div class="tech-stack">
+                    <div class="tech-category">
+                        <div class="tech-category-title">프론트엔드</div>
+                        <div class="tech-items">
+                            <div class="tech-item">React Native</div>
+                            <div class="tech-item">Flutter</div>
+                            <div class="tech-item">JavaScript</div>
+                            <div class="tech-item">TypeScript</div>
+                        </div>
+                    </div>
+                    <div class="tech-category">
+                        <div class="tech-category-title">백엔드/통신</div>
+                        <div class="tech-items">
+                            <div class="tech-item">Node.js</div>
+                            <div class="tech-item">RESTful API</div>
+                            <div class="tech-item">WebSocket</div>
+                            <div class="tech-item">MQTT</div>
+                        </div>
+                    </div>
+                    <div class="tech-category">
+                        <div class="tech-category-title">하드웨어/IoT</div>
+                        <div class="tech-items">
+                            <div class="tech-item">Raspberry Pi</div>
+                            <div class="tech-item">Arduino</div>
+                            <div class="tech-item">GPIO</div>
+                            <div class="tech-item">Serial Communication</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 기타 능력 섹션 -->
+                <div class="abilities-section">
+                    <div class="section-title">기타 능력</div>
+                    <div class="ability-item">
+                        <div class="ability-title">프로젝트 관리</div>
+                        <div class="ability-score">90/100</div>
+                    </div>
+                    <div class="ability-item">
+                        <div class="ability-title">문제 해결 능력</div>
+                        <div class="ability-score">95/100</div>
+                    </div>
+                    <div class="ability-item">
+                        <div class="ability-title">팀워크</div>
+                        <div class="ability-score">88/100</div>
+                    </div>
+                    <div class="ability-item">
+                        <div class="ability-title">기술 학습</div>
+                        <div class="ability-score">92/100</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

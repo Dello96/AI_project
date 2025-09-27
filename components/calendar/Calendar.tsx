@@ -45,6 +45,29 @@ export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDe
 
   // 실시간 이벤트 사용으로 인해 별도 조회 불필요
 
+  // onDeleteEvent prop이 변경될 때 내부 deleteEvent 함수와 연결
+  useEffect(() => {
+    if (onDeleteEvent) {
+      // onDeleteEvent를 내부 deleteEvent 함수로 래핑
+      const wrappedDeleteEvent = (eventId: string) => {
+        // UI에서 즉시 제거
+        deleteEvent(eventId)
+        // 부모 컴포넌트에 알림
+        onDeleteEvent(eventId)
+      }
+      
+      // 전역 함수로 등록하여 EventDetail에서 사용할 수 있도록 함
+      (window as any).calendarDeleteEvent = wrappedDeleteEvent
+    }
+    
+    // 클린업 함수
+    return () => {
+      if ((window as any).calendarDeleteEvent) {
+        delete (window as any).calendarDeleteEvent
+      }
+    }
+  }, [onDeleteEvent, deleteEvent])
+
   // 월 선택기 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
