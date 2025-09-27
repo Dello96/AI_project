@@ -108,6 +108,12 @@ export class GeminiService {
       return '죄송합니다. AI 서비스가 현재 사용할 수 없습니다. 관리자에게 문의해주세요.'
     }
 
+    // API 키 형식 검증
+    if (!this.apiKey.startsWith('AIza')) {
+      console.error('잘못된 Google API 키 형식입니다.')
+      return '죄송합니다. AI 서비스 설정에 문제가 있습니다. 관리자에게 문의해주세요.'
+    }
+
     try {
       // 시스템 프롬프트를 첫 번째 메시지로 추가
       const systemMessage = {
@@ -136,7 +142,7 @@ export class GeminiService {
         hasSystemPrompt: true
       })
 
-      const response = await fetch(`${this.baseUrl}/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`, {
+      const response = await fetch(`${this.baseUrl}/models/gemini-flash-latest:generateContent?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -173,9 +179,26 @@ export class GeminiService {
       console.log('Gemini API 응답 상태:', response.status)
 
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Gemini API 오류 응답:', errorData)
-        throw new Error(`Gemini API 오류: ${response.status} - ${errorData.error?.message || 'Unknown error'}`)
+        let errorMessage = `Gemini API 오류: ${response.status}`
+        
+        try {
+          const errorData = await response.json()
+          console.error('Gemini API 오류 응답:', errorData)
+          
+          if (errorData.error?.message) {
+            errorMessage += ` - ${errorData.error.message}`
+          }
+          
+          // 404 에러의 경우 모델명 문제일 수 있음
+          if (response.status === 404) {
+            errorMessage += '\n\n가능한 해결 방법:\n1. API 키가 올바른지 확인\n2. Gemini API가 활성화되어 있는지 확인\n3. 모델명이 올바른지 확인'
+          }
+        } catch (parseError) {
+          console.error('에러 응답 파싱 실패:', parseError)
+          errorMessage += ' - 응답 파싱 실패'
+        }
+        
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()

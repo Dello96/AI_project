@@ -300,7 +300,7 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
 
         {/* 인디케이터 도트 */}
         {posts.length > 1 && (
-          <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
+          <div className="absolute bottom-1 sm:bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
             {posts.map((_, index) => (
               <button
                 key={index}
