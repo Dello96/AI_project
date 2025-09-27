@@ -300,7 +300,7 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
 
         {/* 인디케이터 도트 */}
         {posts.length > 1 && (
-          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
+          <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
             {posts.map((_, index) => (
               <button
                 key={index}
@@ -308,10 +308,10 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
                   e.stopPropagation()
                   setCurrentIndex(index)
                 }}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full transition-all duration-300 ${
                   index === currentIndex 
-                    ? 'bg-orange-500 scale-125' 
-                    : 'bg-white/50 hover:bg-white/70'
+                    ? 'bg-orange-500 scale-125 shadow-lg' 
+                    : 'bg-white/60 hover:bg-white/80 shadow-md'
                 }`}
               />
             ))}
