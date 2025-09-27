@@ -132,122 +132,27 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
 
   return (
     <div className="relative w-full max-w-6xl mx-auto">
-      {/* 디버그: 현재 화면 크기 확인 */}
-      <div className="fixed top-0 left-0 bg-red-500 text-white p-2 text-xs z-50">
-        Mobile View Active - Posts: {posts.length}
-      </div>
-      
-      {/* 모바일: 세로 리스트 */}
-      <div className="block sm:hidden">
-        <div className="bg-yellow-500 text-black p-2 text-xs mb-4">
-          MOBILE LIST RENDERED - {posts.length} posts
-        </div>
-        <div className="space-y-4">
-          {posts.map((post, index) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300"
-              onClick={() => handlePostClick(post)}
-            >
-              <div className="p-4">
-                {/* 카테고리 상단 배치 */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span 
-                      className="px-2 py-1 rounded-full text-xs font-medium"
-                      style={{ 
-                        backgroundColor: getCategoryColor(post.category),
-                        color: '#fff'
-                      }}
-                    >
-                      {getCategoryLabel(post.category)}
-                    </span>
-                    {post.isAnonymous && (
-                      <span className="px-2 py-1 bg-gray-600 text-white rounded-full text-xs">
-                        익명
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                    {post.userLiked ? (
-                      <HeartSolidIcon className="w-3 h-3 text-red-500" />
-                    ) : (
-                      <HeartIcon className="w-3 h-3 text-red-500" />
-                    )}
-                    <span className="font-medium">{post.likeCount || 0}</span>
-                  </div>
-                </div>
-                
-                {/* 제목 */}
-                <h3 className="text-base font-semibold text-white mb-2 line-clamp-2 leading-tight">
-                  {post.title}
-                </h3>
-                
-                {/* 내용 */}
-                <p className="text-sm text-gray-300 mb-3 line-clamp-2 leading-relaxed">
-                  {post.content}
-                </p>
-                
-                {/* 하단 정보 - 세로 배치 */}
-                <div className="space-y-2 text-xs text-gray-400 pt-2 border-t border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-white">
-                      {post.isAnonymous ? '익명' : (post.author?.name || '알 수 없음')}
-                    </span>
-                    <span className="text-gray-500">
-                      {new Date(post.createdAt).toLocaleDateString('ko-KR')}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="flex items-center gap-1">
-                      <EyeIcon className="w-3 h-3 text-green-400" />
-                      <span className="font-medium">{post.viewCount || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <ChatBubbleLeftIcon className="w-3 h-3 text-blue-400" />
-                      <span className="font-medium">{post.commentCount || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* 데스크톱: 캐러셀 */}
-      <div className="hidden sm:block">
-        {/* 디버그: 데스크톱 뷰 확인 */}
-        <div className="fixed top-0 right-0 bg-blue-500 text-white p-2 text-xs z-50">
-          Desktop View Active - Posts: {posts.length}
-        </div>
-        <div className="bg-green-500 text-black p-2 text-xs mb-4">
-          DESKTOP CAROUSEL RENDERED - {posts.length} posts
-        </div>
-        <div className="relative h-96 bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-xl overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.5, ease: 'easeInOut' }}
-              className="absolute inset-0 cursor-pointer"
-              onClick={() => handlePostClick(currentPost)}
-            >
-              {/* 배경 그라데이션 */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-70" />
-              
-              {/* 포스터 영역 (왼쪽) */}
-              <div 
-                className="absolute left-4 top-4 bottom-4 w-40 sm:w-48 flex items-center cursor-pointer"
-                onClick={() => handlePostClick(currentPost)}
-              >
+      {/* 모바일 최적화 캐러셀 */}
+      <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-xl overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => handlePostClick(currentPost)}
+          >
+            {/* 배경 그라데이션 */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-70" />
+            
+            {/* 모바일: 세로 레이아웃, 데스크톱: 가로 레이아웃 */}
+            <div className="absolute inset-0 flex flex-col sm:flex-row text-white overflow-hidden">
+              {/* 모바일: 카테고리 상단, 데스크톱: 포스터 영역 (왼쪽) */}
+              <div className="sm:absolute sm:left-4 sm:top-4 sm:bottom-4 sm:w-40 sm:w-48 flex items-center cursor-pointer">
                 <div 
-                  className="w-full h-full rounded-lg shadow-2xl flex items-center justify-center text-white font-bold text-lg sm:text-xl hover:scale-105 transition-transform duration-300"
+                  className="w-full h-20 sm:h-full rounded-lg shadow-2xl flex items-center justify-center text-white font-bold text-sm sm:text-lg hover:scale-105 transition-transform duration-300"
                   style={{
                     background: `linear-gradient(135deg, ${getCategoryColor(currentPost.category)}, ${getCategoryColor(currentPost.category)}dd)`
                   }}
@@ -256,16 +161,34 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
                 </div>
               </div>
 
-              {/* 콘텐츠 영역 (오른쪽) */}
-              <div className="absolute left-44 sm:left-56 right-4 top-4 bottom-4 flex flex-col text-white overflow-hidden">
+              {/* 콘텐츠 영역 */}
+              <div className="flex-1 sm:absolute sm:left-44 sm:left-56 sm:right-4 sm:top-4 sm:bottom-4 flex flex-col text-white overflow-hidden p-4 sm:p-0">
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="h-full flex flex-col justify-between py-4"
+                  className="h-full flex flex-col justify-between py-2 sm:py-4"
                 >
-                  {/* 상단: 카테고리 태그 */}
-                  <div className="flex items-center gap-2">
+                  {/* 상단: 카테고리 태그 (모바일에서만 표시) */}
+                  <div className="flex items-center gap-2 sm:hidden mb-3">
+                    <span 
+                      className="px-2 py-1 rounded-full text-xs font-medium"
+                      style={{ 
+                        backgroundColor: getCategoryColor(currentPost.category),
+                        color: '#fff'
+                      }}
+                    >
+                      {getCategoryLabel(currentPost.category)}
+                    </span>
+                    {currentPost.isAnonymous && (
+                      <span className="px-2 py-1 bg-gray-600 text-white rounded-full text-xs">
+                        익명
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 데스크톱: 카테고리 태그 */}
+                  <div className="hidden sm:flex items-center gap-2">
                     <span 
                       className="px-3 py-1 rounded-full text-sm font-medium"
                       style={{ 
@@ -285,27 +208,27 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
                   {/* 중간: 제목과 내용 */}
                   <div className="flex-1 flex flex-col justify-center">
                     {/* 제목 */}
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 leading-tight break-words">
+                    <h2 className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-bold mb-2 sm:mb-3 lg:mb-4 leading-tight break-words">
                       {currentPost.title}
                     </h2>
 
                     {/* 내용 미리보기 */}
-                    <p className="text-sm sm:text-base lg:text-lg text-gray-300 mb-4 sm:mb-6 line-clamp-2 sm:line-clamp-3 leading-relaxed break-words">
+                    <p className="text-sm sm:text-base lg:text-lg text-gray-300 mb-3 sm:mb-4 lg:mb-6 line-clamp-2 sm:line-clamp-3 leading-relaxed break-words">
                       {currentPost.content}
                     </p>
                   </div>
 
                   {/* 하단: 작성자, 통계, 버튼 */}
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* 작성자 정보 */}
                     <div className="flex items-center gap-2 sm:gap-4">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-white font-bold text-xs sm:text-sm">
                           {currentPost.isAnonymous ? '익' : (currentPost.author?.name?.[0] || '?')}
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm sm:text-base truncate">
+                        <p className="font-medium text-xs sm:text-sm lg:text-base truncate">
                           {currentPost.isAnonymous ? '익명' : (currentPost.author?.name || '알 수 없음')}
                         </p>
                         <p className="text-xs sm:text-sm text-gray-400">
@@ -315,28 +238,28 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
                     </div>
 
                     {/* 통계 정보 */}
-                    <div className="flex items-center gap-3 sm:gap-6">
+                    <div className="flex items-center gap-2 sm:gap-3 lg:gap-6">
                       <div className="flex items-center gap-1 sm:gap-2">
                         {currentPost.userLiked ? (
-                          <HeartSolidIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+                          <HeartSolidIcon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-red-500" />
                         ) : (
-                          <HeartIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+                          <HeartIcon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-red-500" />
                         )}
-                        <span className="text-sm sm:text-lg font-medium">{currentPost.likeCount || 0}</span>
+                        <span className="text-xs sm:text-sm lg:text-lg font-medium">{currentPost.likeCount || 0}</span>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2">
-                        <ChatBubbleLeftIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
-                        <span className="text-sm sm:text-lg font-medium">{currentPost.commentCount || 0}</span>
+                        <ChatBubbleLeftIcon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-blue-400" />
+                        <span className="text-xs sm:text-sm lg:text-lg font-medium">{currentPost.commentCount || 0}</span>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2">
-                        <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
-                        <span className="text-sm sm:text-lg font-medium">{currentPost.viewCount || 0}</span>
+                        <EyeIcon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-green-400" />
+                        <span className="text-xs sm:text-sm lg:text-lg font-medium">{currentPost.viewCount || 0}</span>
                       </div>
                     </div>
 
                     {/* 액션 버튼 */}
                     <button 
-                      className="bg-orange-500 hover:bg-red-500 text-white px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base lg:text-lg transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg w-full sm:w-auto"
+                      className="bg-orange-500 hover:bg-red-500 text-white px-3 sm:px-4 lg:px-6 xl:px-8 py-2 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm lg:text-base transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg w-full sm:w-auto"
                       onClick={(e) => {
                         e.stopPropagation()
                         handlePostClick(currentPost)
@@ -347,53 +270,53 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
                   </div>
                 </motion.div>
               </div>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* 네비게이션 화살표 */}
-          {posts.length > 1 && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  prevSlide()
-                }}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
-              >
-                <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  nextSlide()
-                }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
-              >
-                <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-              </button>
-            </>
-          )}
-
-          {/* 인디케이터 도트 */}
-          {posts.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-              {posts.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setCurrentIndex(index)
-                  }}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentIndex 
-                      ? 'bg-orange-500 scale-125' 
-                      : 'bg-white/50 hover:bg-white/70'
-                  }`}
-                />
-              ))}
             </div>
-          )}
-        </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* 네비게이션 화살표 */}
+        {posts.length > 1 && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                prevSlide()
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
+            >
+              <ChevronLeftIcon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                nextSlide()
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-10"
+            >
+              <ChevronRightIcon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6" />
+            </button>
+          </>
+        )}
+
+        {/* 인디케이터 도트 */}
+        {posts.length > 1 && (
+          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
+            {posts.map((_, index) => (
+              <button
+                key={index}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setCurrentIndex(index)
+                }}
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                  index === currentIndex 
+                    ? 'bg-orange-500 scale-125' 
+                    : 'bg-white/50 hover:bg-white/70'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
