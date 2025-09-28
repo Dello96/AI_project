@@ -100,7 +100,7 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
 
   if (isLoading) {
     return (
-      <div className="relative w-full h-96 bg-gray-900 rounded-xl overflow-hidden">
+      <div className="relative w-full h-64 bg-gray-900 rounded-xl overflow-hidden">
         <LoadingSpinner 
           message="인기 게시글을 불러오는 중..."
           size="sm"
@@ -112,7 +112,7 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
 
   if (error || posts.length === 0) {
     return (
-      <div className="relative w-full h-96 bg-gray-900 rounded-xl overflow-hidden">
+      <div className="relative w-full h-64 bg-gray-900 rounded-xl overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white">
             <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -133,7 +133,7 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
   return (
     <div className="relative w-full max-w-6xl mx-auto">
       {/* 모바일 최적화 캐러셀 */}
-      <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-xl overflow-hidden">
+      <div className="relative h-64 sm:h-[18.67rem] lg:h-[21.33rem] bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-xl overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
@@ -298,26 +298,27 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
           </>
         )}
 
-        {/* 인디케이터 도트 */}
-        {posts.length > 1 && (
-          <div className="absolute bottom-1 sm:bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
-            {posts.map((_, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setCurrentIndex(index)
-                }}
-                className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full transition-all duration-300 ${
-                  index === currentIndex 
-                    ? 'bg-orange-500 scale-125 shadow-lg' 
-                    : 'bg-white/60 hover:bg-white/80 shadow-md'
-                }`}
-              />
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* 인디케이터 도트 - 캐러셀 외부로 이동 */}
+      {posts.length > 1 && (
+        <div className="flex justify-center gap-2 sm:gap-2.5 mt-6 sm:mt-8">
+          {posts.map((_, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.stopPropagation()
+                setCurrentIndex(index)
+              }}
+              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-300 border ${
+                index === currentIndex 
+                  ? 'bg-orange-500 border-orange-300 scale-110 shadow-lg shadow-orange-500/50' 
+                  : 'bg-white/40 border-white/60 hover:bg-white/60 hover:border-white/80 shadow-md'
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

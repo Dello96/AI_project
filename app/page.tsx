@@ -40,9 +40,6 @@ export default function Home() {
             <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-white via-orange-500 to-red-500 bg-clip-text text-transparent">
               PrayGround
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              교회 청년부를 위한 <span className="text-orange-500 font-semibold">올인원 플랫폼</span>
-            </p>
           </motion.div>
 
           {/* 인기 게시글 포스터 캐러셀 */}
@@ -50,7 +47,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="mb-16 px-4 sm:px-6 lg:px-8"
+            className="mb-20 px-4 sm:px-6 lg:px-8"
           >
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
