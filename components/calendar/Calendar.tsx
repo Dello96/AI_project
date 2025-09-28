@@ -21,7 +21,7 @@ import {
 import { Event, CalendarView, eventCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { useRealtimeEvents } from '@/hooks/useRealtimeEvents'
+import { useEventsStore } from '@/stores/eventsStore'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { eventService } from '@/lib/database'
 
@@ -37,7 +37,7 @@ type CalendarViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listW
 
 export default function Calendar({ onAddEvent, onSelectEvent, onSelectDate, onDeleteEvent, onRefresh }: CalendarProps) {
   const [view, setView] = useState<CalendarViewType>('dayGridMonth')
-  const { events, setEvents, isLoading, deleteEvent, addEvent, updateEvent } = useRealtimeEvents()
+  const { events, setEvents, isLoading, deleteEvent, addEvent, updateEvent } = useEventsStore()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showMonthPicker, setShowMonthPicker] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['worship', 'meeting', 'event', 'smallgroup', 'vehicle'])

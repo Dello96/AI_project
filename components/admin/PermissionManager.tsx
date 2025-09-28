@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { usePermissions } from '@/hooks/usePermissions'
 import { 
   Permission, 
@@ -33,7 +33,7 @@ interface PermissionManagerProps {
 }
 
 export default function PermissionManager({ className = '' }: PermissionManagerProps) {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const permissions = usePermissions()
   const toast = useToast()
   

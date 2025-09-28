@@ -1,12 +1,12 @@
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { UserRole } from '@/types'
 import { permissionManager, ResourceType, ActionType } from '@/lib/permissions'
 import { permissionAuditManager } from '@/lib/permission-audit'
 
 export function usePermissions() {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
 
   // 사용자 역할 확인
   const hasRole = (requiredRole: UserRole): boolean => {

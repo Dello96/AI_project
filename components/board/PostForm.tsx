@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/Input'
 import { FileUpload, FileWithPreview } from '@/components/ui/FileUpload'
 import { postService } from '@/lib/database'
 import { fileUploadService } from '@/lib/fileUpload'
-import { useAuth } from '@/contexts/AuthContext'
-import { useAlert } from '@/contexts/AlertContext'
+import { useAuthStore } from '@/stores/authStore'
+import { useAlertStore } from '@/stores/alertStore'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { 
   postFormSchema, 
@@ -31,8 +31,8 @@ interface PostFormProps {
 export default function PostForm({ isOpen, onClose, onSuccess, initialData }: PostFormProps) {
   const [attachedFiles, setAttachedFiles] = useState<FileWithPreview[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const { user, isLoading: authLoading, refreshToken, signOut, getAccessToken } = useAuth()
-  const { showAlert } = useAlert()
+  const { user, isLoading: authLoading, refreshToken, signOut, getAccessToken } = useAuthStore()
+  const { showAlert } = useAlertStore()
   const supabase = createClientComponentClient()
   
   // React Hook Form 설정

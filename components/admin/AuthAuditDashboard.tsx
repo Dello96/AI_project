@@ -13,7 +13,7 @@ import {
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { usePermissions } from '@/hooks/usePermissions'
 
 interface AuthAuditLog {
@@ -27,7 +27,7 @@ interface AuthAuditLog {
 }
 
 export default function AuthAuditDashboard({ className = '' }: { className?: string }) {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const permissions = usePermissions()
   
   const [auditLogs, setAuditLogs] = useState<AuthAuditLog[]>([])

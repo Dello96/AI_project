@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -19,7 +19,7 @@ interface ChurchDomain {
 }
 
 export default function ChurchDomainsPage() {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const [domains, setDomains] = useState<ChurchDomain[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')

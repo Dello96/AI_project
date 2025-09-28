@@ -4,8 +4,8 @@ import './globals.css'
 import Header from '@/components/navigation/Header'
 import Footer from '@/components/navigation/Footer'
 import ChatBot from '@/components/chat/ChatBot'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { AlertProvider } from '@/contexts/AlertContext'
+import { StoreProvider } from '@/stores/StoreProvider'
+import { AlertProvider } from '@/components/ui/AlertProvider'
 import Script from 'next/script'
 
 export const metadata: Metadata = {
@@ -50,7 +50,7 @@ export default function RootLayout({
               src="//developers.kakao.com/sdk/js/kakao.js"
               strategy="beforeInteractive"
             />
-        <AuthProvider>
+        <StoreProvider>
           <AlertProvider>
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-secondary-100 flex flex-col overflow-x-hidden">
               <Header />
@@ -61,7 +61,7 @@ export default function RootLayout({
               <ChatBot />
             </div>
           </AlertProvider>
-        </AuthProvider>
+        </StoreProvider>
       </body>
     </html>
   )

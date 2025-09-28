@@ -17,8 +17,8 @@ import {
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import Logo from '@/components/ui/Logo'
-import { usePWA } from '@/hooks/usePWA'
-import { useAuth } from '@/contexts/AuthContext'
+import { usePWAStore } from '@/stores/pwaStore'
+import { useAuthStore } from '@/stores/authStore'
 import AuthModal from '@/components/auth/AuthModal'
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 
@@ -33,8 +33,8 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const pathname = usePathname()
-  const { notificationPermission } = usePWA()
-  const { user, isLoading, signOut } = useAuth()
+  const { notificationPermission } = usePWAStore()
+  const { user, isLoading, signOut } = useAuthStore()
 
   // 스크롤 감지
   useEffect(() => {

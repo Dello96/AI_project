@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   MessageCircle, 
@@ -15,8 +15,8 @@ import {
   FileText,
   File
 } from 'lucide-react'
-import { useChatBot } from '@/hooks/useChatBot'
-import { useAuth } from '@/contexts/AuthContext'
+import { useChatBotStore } from '@/stores/chatbotStore'
+import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -27,7 +27,8 @@ export default function ChatBot() {
   const [chatHeight, setChatHeight] = useState(40) // rem 단위로 높이 관리
   const [isResizing, setIsResizing] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const { user } = useAuth()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { user } = useAuthStore()
   const {
     messages,
     isLoading,
@@ -35,16 +36,21 @@ export default function ChatBot() {
     pendingAttachments,
     attachmentHistory,
     config,
-    messagesEndRef,
     sendMessage,
+    uploadFile,
+    removeAttachment,
+    addToHistory,
+    removeFromHistory,
+    updateConfig,
+    clearMessages,
+    toggleChat,
+    toggleMinimize,
     handleFileSelect,
     handleFileRemove,
     handleReattachFile,
-    handleRemoveFromHistory,
-    toggleChat,
-    toggleMinimize,
-    clearMessages
-  } = useChatBot()
+    handleRemoveFromHistory
+  } = useChatBotStore()
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -305,7 +311,8 @@ export default function ChatBot() {
                       onRemoveFromHistory={handleRemoveFromHistory}
                       attachments={pendingAttachments}
                       attachmentHistory={attachmentHistory}
-                      isLoading={isUploading}
+                      isLoading={isLoading}
+                      isUploading={isUploading}
                       isAuthenticated={!!user}
                     />
                   </div>

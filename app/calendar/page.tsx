@@ -7,7 +7,9 @@ import EventForm from '@/components/calendar/EventForm'
 import EventDetail from '@/components/calendar/EventDetail'
 import { Event } from '@/types'
 import { eventService } from '@/lib/database'
+import { useEventsStore } from '@/stores/eventsStore'
 export default function CalendarPage() {
+  const { events, isLoading } = useEventsStore()
   const [view, setView] = useState<'calendar' | 'add' | 'edit' | 'detail'>('calendar')
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
@@ -101,23 +103,33 @@ export default function CalendarPage() {
 
       {/* 캘린더 콘텐츠 */}
       <div className="relative z-10 container mx-auto px-6 pb-16 max-w-7xl">
-        <AnimatePresence mode="wait">
-          {/* 캘린더는 항상 표시 */}
-          <motion.div
-            key="calendar"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Calendar
-              onAddEvent={handleAddEvent}
-              onSelectEvent={handleSelectEvent}
-              onSelectDate={handleSelectDate}
-              onDeleteEvent={handleDeleteEvent}
-              onRefresh={handleRefresh}
-            />
-          </motion.div>
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">캘린더를 불러오는 중...</p>
+            </div>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            {/* 캘린더는 항상 표시 */}
+            <motion.div
+              key="calendar"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Calendar
+                onAddEvent={handleAddEvent}
+                onSelectEvent={handleSelectEvent}
+                onSelectDate={handleSelectDate}
+                onDeleteEvent={handleDeleteEvent}
+                onRefresh={handleRefresh}
+              />
+            </motion.div>
+          </AnimatePresence>
+        )}
 
         {/* 이벤트 추가/수정 폼 */}
         {view === 'add' && (
@@ -153,7 +165,6 @@ export default function CalendarPage() {
             />
           </motion.div>
         )}
-        </AnimatePresence>
 
         {/* 이벤트 상세정보 모달 - 오버레이 방식 */}
         {selectedEvent && (

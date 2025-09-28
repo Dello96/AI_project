@@ -11,8 +11,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { useAuth } from '@/contexts/AuthContext'
-import { usePWA } from '@/hooks/usePWA'
+import { useAuthStore } from '@/stores/authStore'
+import { usePWAStore } from '@/stores/pwaStore'
 
 interface NotificationSettings {
   pushNotifications: boolean
@@ -24,8 +24,8 @@ interface NotificationSettings {
 }
 
 export default function NotificationSettings() {
-  const { user } = useAuth()
-  const { notificationPermission, requestNotificationPermission } = usePWA()
+  const { user } = useAuthStore()
+  const { notificationPermission, requestNotificationPermission } = usePWAStore()
   const [settings, setSettings] = useState<NotificationSettings>({
     pushNotifications: true,
     emailNotifications: true,

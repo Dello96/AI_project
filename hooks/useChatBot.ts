@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { ChatMessage, ChatBotConfig, ChatAttachment } from '@/types'
 import { getGeminiService } from '@/lib/gemini'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 
 export function useChatBot() {
@@ -21,7 +21,7 @@ export function useChatBot() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const geminiService = getGeminiService()
-  const { user } = useAuth()
+  const { user } = useAuthStore()
 
   // 메시지 목록 스크롤을 맨 아래로
   const scrollToBottom = useCallback(() => {

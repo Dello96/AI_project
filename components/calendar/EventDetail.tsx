@@ -14,7 +14,7 @@ import {
 import { Event, eventCategories } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { eventService } from '@/lib/database'
 import { 
   isValidLocationData,
@@ -31,7 +31,7 @@ interface EventDetailProps {
 }
 
 export default function EventDetail({ event, isOpen, onClose, onEdit, onDelete, onRefresh }: EventDetailProps) {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [isAttending, setIsAttending] = useState(event.userAttending || false)

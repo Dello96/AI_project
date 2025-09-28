@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useId } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface InputProps
@@ -32,7 +32,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     id,
     ...props 
   }, ref) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`
+    const generatedId = useId()
+    const finalInputId = id || generatedId
     const baseClasses = "flex w-full rounded-xl border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300"
     
     const variantClasses = {
@@ -58,7 +59,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="space-y-2">
         {label && (
           <label 
-            htmlFor={inputId}
+            htmlFor={finalInputId}
             className="block text-sm font-medium text-gray-700"
           >
             {label}
@@ -74,7 +75,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           
           <input
-            id={inputId}
+            id={finalInputId}
             type={type}
             className={cn(
               baseClasses,
@@ -88,8 +89,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             aria-invalid={!!error}
             aria-describedby={
-              error ? `${inputId}-error` : 
-              helperText ? `${inputId}-helper` : 
+              error ? `${finalInputId}-error` : 
+              helperText ? `${finalInputId}-helper` : 
               undefined
             }
             {...props}
@@ -103,13 +104,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </div>
         
         {helperText && !error && (
-          <p id={`${inputId}-helper`} className="text-sm text-gray-500">
+          <p id={`${finalInputId}-helper`} className="text-sm text-gray-500">
             {helperText}
           </p>
         )}
         
         {error && (
-          <p id={`${inputId}-error`} className="mt-2 text-sm text-error-600 animate-fade-in-up" role="alert">
+          <p id={`${finalInputId}-error`} className="mt-2 text-sm text-error-600 animate-fade-in-up" role="alert">
             {error}
           </p>
         )}

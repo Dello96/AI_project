@@ -13,7 +13,7 @@ import {
 import { Notification } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { notificationService } from '@/lib/database'
 
 interface NotificationListProps {
@@ -22,7 +22,7 @@ interface NotificationListProps {
 }
 
 export default function NotificationList({ isOpen, onClose }: NotificationListProps) {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)

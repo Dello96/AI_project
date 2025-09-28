@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { eventService } from '@/lib/database'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { supabase } from '@/lib/supabase'
 import LocationSearch from './LocationSearch'
 
@@ -22,7 +22,7 @@ interface EventFormProps {
 }
 
 export default function EventForm({ isOpen, onClose, onSuccess, initialData, selectedDate }: EventFormProps) {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const [formData, setFormData] = useState<{
     title: string;
     description: string;

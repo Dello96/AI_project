@@ -9,14 +9,14 @@ import AuthModal from '@/components/auth/AuthModal'
 import KakaoLoginButton from '@/components/auth/KakaoLoginButton'
 import LoginSuccessModal from '@/components/auth/LoginSuccessModal'
 import Logo from '@/components/ui/Logo'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
-  const { user, isLoading } = useAuth()
+  const { user, isLoading } = useAuthStore()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 

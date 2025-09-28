@@ -20,10 +20,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 
 export default function ProfilePage() {
-  const { user, isLoading, signOut } = useAuth()
+  const { user, isLoading, signOut } = useAuthStore()
   const [isEditing, setIsEditing] = useState(false)
   const [stats, setStats] = useState({
     postCount: 0,

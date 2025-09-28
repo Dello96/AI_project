@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { BellIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { usePWA } from '@/hooks/usePWA'
 import { notificationService } from '@/lib/database'
 import NotificationList from './NotificationList'
@@ -13,7 +13,7 @@ interface NotificationBellProps {
 }
 
 export default function NotificationBell({ className = '' }: NotificationBellProps) {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const { notificationPermission, requestNotificationPermission, registerServiceWorker } = usePWA()
   const [unreadCount, setUnreadCount] = useState(0)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)

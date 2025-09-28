@@ -11,7 +11,7 @@ import {
   CheckCircleIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { usePermissions } from '@/hooks/usePermissions'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -26,7 +26,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const permissions = usePermissions()
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,

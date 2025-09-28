@@ -10,7 +10,7 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon
 } from '@heroicons/react/24/outline'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import { usePermissions } from '@/hooks/usePermissions'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -45,7 +45,7 @@ interface PaginationInfo {
 }
 
 export default function ApprovalsPage() {
-  const { user } = useAuth()
+  const { user } = useAuthStore()
   const permissions = usePermissions()
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([])
   const [pagination, setPagination] = useState<PaginationInfo>({

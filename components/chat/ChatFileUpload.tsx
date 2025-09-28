@@ -22,6 +22,7 @@ interface ChatFileUploadProps {
   attachments: ChatAttachment[]
   attachmentHistory: ChatAttachment[]
   isLoading?: boolean
+  isUploading?: boolean
   isAuthenticated?: boolean
 }
 
@@ -33,6 +34,7 @@ export default function ChatFileUpload({
   attachments, 
   attachmentHistory,
   isLoading = false,
+  isUploading = false,
   isAuthenticated = true
 }: ChatFileUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false)
@@ -41,6 +43,11 @@ export default function ChatFileUpload({
 
   const handleFileSelect = (file: File) => {
     setUploadError(null)
+    
+    // 이미 업로드 중이면 무시
+    if (isUploading) {
+      return
+    }
     
     // 인증 상태 확인
     if (!isAuthenticated) {
@@ -126,14 +133,33 @@ export default function ChatFileUpload({
       <div className="flex items-center gap-1">
         <Button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isLoading}
+          onClick={() => {
+            if (!isAuthenticated) {
+              setUploadError('파일 업로드를 위해서는 로그인이 필요합니다.')
+              return
+            }
+            
+            if (isUploading) {
+              return
+            }
+            
+            if (fileInputRef.current) {
+              fileInputRef.current.click()
+            }
+          }}
+          disabled={isLoading || isUploading}
           size="sm"
           variant="outline"
-          className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 hover:text-white px-2 py-1 h-7"
+          className={`px-2 py-1 h-7 ${
+            isAuthenticated 
+              ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 hover:text-white' 
+              : 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed'
+          }`}
         >
           <Paperclip className="w-3 h-3 mr-1" />
-          <span className="text-xs">첨부</span>
+          <span className="text-xs">
+            {isUploading ? '업로드 중...' : isAuthenticated ? '첨부' : '로그인 필요'}
+          </span>
         </Button>
         
         <input
@@ -148,22 +174,26 @@ export default function ChatFileUpload({
       {/* 드래그 앤 드롭 영역 - 매우 컴팩트 버전 */}
       <div
         className={`border border-dashed rounded p-1.5 transition-all duration-200 ${
-          isDragOver 
-            ? 'border-orange-500 bg-orange-500/10' 
-            : 'border-gray-600 bg-gray-800/30'
+          !isAuthenticated
+            ? 'border-gray-700 bg-gray-800/30 cursor-not-allowed'
+            : isDragOver 
+              ? 'border-orange-500 bg-orange-500/10' 
+              : 'border-gray-600 bg-gray-800/30'
         }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        onDragOver={isAuthenticated ? handleDragOver : undefined}
+        onDragLeave={isAuthenticated ? handleDragLeave : undefined}
+        onDrop={isAuthenticated ? handleDrop : undefined}
       >
         <div className="text-center">
-          <Upload className="w-3 h-3 mx-auto text-gray-400 mb-0.5" />
-          <p className="text-xs text-gray-400">
-            드래그하거나 클릭
+          <Upload className={`w-3 h-3 mx-auto mb-0.5 ${isAuthenticated ? 'text-gray-400' : 'text-gray-600'}`} />
+          <p className={`text-xs ${isAuthenticated ? 'text-gray-400' : 'text-gray-600'}`}>
+            {isAuthenticated ? '드래그하거나 클릭' : '로그인 필요'}
           </p>
-          <p className="text-xs text-gray-500">
-            최대 10MB
-          </p>
+          {isAuthenticated && (
+            <p className="text-xs text-gray-500">
+              최대 10MB
+            </p>
+          )}
         </div>
       </div>
 

@@ -17,8 +17,8 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import LikeButton from '@/components/ui/LikeButton'
-import { useAuth } from '@/contexts/AuthContext'
-import { usePermissions } from '@/hooks/usePermissions'
+import { useAuthStore } from '@/stores/authStore'
+import { usePermissionsStore } from '@/stores/permissionsStore'
 import { postService, commentService } from '@/lib/database'
 import { useRealtimeComments } from '@/hooks/useRealtimeComments'
 import { supabase } from '@/lib/supabase'
@@ -33,8 +33,8 @@ interface PostDetailProps {
 export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetailProps) {
   console.log('🎯 PostDetail 컴포넌트 렌더링:', post.id)
   
-  const { user } = useAuth()
-  const permissions = usePermissions()
+  const { user } = useAuthStore()
+  const permissions = usePermissionsStore()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
