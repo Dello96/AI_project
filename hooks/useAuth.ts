@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { User, AuthState, SignUpData, SignInData } from '@/types'
+import { User, AuthState, SignupForm, SignInData } from '@/types'
 import { supabase } from '@/lib/supabase'
 import { userService } from '@/lib/database'
 
@@ -54,7 +54,7 @@ export function useAuth() {
   }, [])
 
   // 회원가입
-  const signUp = useCallback(async (data: SignUpData) => {
+  const signUp = useCallback(async (data: SignupForm) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }))
       
@@ -70,8 +70,7 @@ export function useAuth() {
         options: {
           data: {
             name: data.name,
-            phone: data.phone,
-            churchDomain: data.churchDomain
+            phone: data.phone
           }
         }
       })
@@ -83,8 +82,7 @@ export function useAuth() {
         const profile = await userService.createProfile(authData.user.id, {
           email: data.email,
           name: data.name,
-          phone: data.phone || '',
-          churchDomain: data.churchDomain
+          phone: data.phone || ''
         })
 
         if (!profile) {

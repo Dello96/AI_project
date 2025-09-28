@@ -14,6 +14,7 @@ interface ChatBotStore {
   isUploading: boolean
   attachmentHistory: ChatAttachment[]
   config: ChatBotConfig
+  error: string | null
   
   // Actions
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void
@@ -35,6 +36,8 @@ interface ChatBotStore {
   handleFileRemove: (attachmentId: string) => void
   handleReattachFile: (attachment: ChatAttachment) => void
   handleRemoveFromHistory: (attachmentId: string) => void
+  clearError: () => void
+  setError: (error: string | null) => void
 }
 
 export const useChatBotStore = create<ChatBotStore>()(
@@ -59,6 +62,7 @@ export const useChatBotStore = create<ChatBotStore>()(
       theme: 'light',
       position: 'bottom-right'
     },
+    error: null,
 
     // Actions
     addMessage: (message) => {
@@ -173,6 +177,10 @@ export const useChatBotStore = create<ChatBotStore>()(
 
     clearError: () => {
       set({ error: null })
+    },
+
+    setError: (error: string | null) => {
+      set({ error })
     },
 
     updateConfig: (newConfig) => {
