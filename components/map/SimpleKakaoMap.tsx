@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import kakaoMapManager from '@/lib/kakaoMapManager'
 
@@ -31,6 +31,14 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
     setIsMounted(true)
   }, [])
 
+  // 지도 컨테이너가 마운트된 후 지도 초기화
+  useEffect(() => {
+    if (!isMounted || !mapRef.current) return
+    
+    addDebugInfo('SimpleKakaoMap: 지도 컨테이너 마운트 확인됨')
+    addDebugInfo(`SimpleKakaoMap: mapRef.current 존재: ${!!mapRef.current}`)
+  }, [isMounted, mapRef.current])
+
   const apiKey = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY
 
   useEffect(() => {
@@ -44,6 +52,17 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
       addDebugInfo('API 키 문제로 지도 로드 중단')
       setError('카카오맵 API 키가 올바르게 설정되지 않았습니다.')
       return
+    }
+
+    // 지도 컨테이너가 마운트될 때까지 대기
+    const waitForContainer = () => {
+      if (!mapRef.current) {
+        addDebugInfo('SimpleKakaoMap: 지도 컨테이너 대기 중...')
+        setTimeout(waitForContainer, 100)
+        return
+      }
+      addDebugInfo('SimpleKakaoMap: 지도 컨테이너 확인됨')
+      loadMap()
     }
 
     const loadMap = () => {
@@ -85,18 +104,35 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
       }
     }
 
-    loadMap()
+    // 지도 컨테이너가 준비될 때까지 대기
+    waitForContainer()
   }, [apiKey])
 
-  const createMap = () => {
+  const createMap = useCallback(() => {
+    // 지도 컨테이너 존재 여부 확인
     if (!mapRef.current) {
       addDebugInfo('지도 컨테이너를 찾을 수 없음')
       setError('지도 컨테이너를 찾을 수 없습니다.')
       return
     }
 
+    // 카카오맵 API 로딩 상태 확인
+    if (!window.kakao || !window.kakao.maps) {
+      addDebugInfo('카카오맵 API가 로드되지 않음')
+      setError('카카오맵 API가 로드되지 않았습니다.')
+      return
+    }
+
+    // LatLng 생성자 확인
+    if (!window.kakao.maps.LatLng) {
+      addDebugInfo('LatLng 생성자가 없음')
+      setError('카카오맵 LatLng 생성자를 사용할 수 없습니다.')
+      return
+    }
+
     try {
       addDebugInfo('SimpleKakaoMap: 지도 생성 시작')
+      addDebugInfo(`SimpleKakaoMap: 컨테이너 크기 - ${mapRef.current.offsetWidth}x${mapRef.current.offsetHeight}`)
       
       // 지도 옵션 설정 (공식 코드 방식)
       const mapOption = {
@@ -144,9 +180,10 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
       
     } catch (err: any) {
       addDebugInfo(`지도 생성 오류: ${err.message || err}`)
+      addDebugInfo(`오류 스택: ${err.stack || 'N/A'}`)
       setError(`지도 생성 오류: ${err.message || '알 수 없는 오류'}`)
     }
-  }
+  }, [])
 
   // 하이드레이션 안전성을 위한 조건부 렌더링
   if (!isMounted) {

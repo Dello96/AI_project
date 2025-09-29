@@ -46,7 +46,7 @@ const categoryColors = {
 export default function BoardList({ onWritePost, onSelectPost }: BoardListProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const [filters, setFilters] = useState({
-    category: 'free' as 'notice' | 'free' | 'qna' | undefined,
+    category: undefined as 'notice' | 'free' | 'qna' | undefined,
     search: '',
     sortBy: 'latest' as 'latest' | 'popular' | 'views'
   })

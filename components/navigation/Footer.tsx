@@ -16,15 +16,6 @@ const footerNavigation = {
     { name: '캘린더', href: '/calendar' },
     { name: '내정보', href: '/profile' },
   ],
-  support: [
-    { name: '도움말', href: '/help' },
-    { name: '문의하기', href: '/contact' },
-    { name: '피드백', href: '/feedback' },
-  ],
-  legal: [
-    { name: '개인정보처리방침', href: '/privacy' },
-    { name: '이용약관', href: '/terms' },
-  ],
 }
 
 const socialLinks = [
@@ -53,9 +44,9 @@ export default function Footer() {
       <div className="container-wide">
         {/* 메인 푸터 콘텐츠 */}
         <div className="py-12 md:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* 브랜드 섹션 */}
-            <div className="lg:col-span-1">
+            <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-br from-church-purple to-church-teal rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-xl">청</span>
@@ -101,40 +92,6 @@ export default function Footer() {
                       {item.name === '캘린더' && <CalendarIcon className="w-4 h-4" />}
                       {item.name === '내정보' && <UserCircleIcon className="w-4 h-4" />}
                       <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* 지원 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">지원</h3>
-              <ul className="space-y-3">
-                {footerNavigation.support.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="text-gray-300 hover:text-white transition-colors duration-200"
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* 법적 정보 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">법적 정보</h3>
-              <ul className="space-y-3">
-                {footerNavigation.legal.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="text-gray-300 hover:text-white transition-colors duration-200"
-                    >
-                      {item.name}
                     </Link>
                   </li>
                 ))}

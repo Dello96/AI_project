@@ -43,9 +43,28 @@ export default function LocationSearch({
     setIsMounted(true)
   }, [])
 
+  // 지도 컨테이너가 마운트된 후 지도 초기화
+  useEffect(() => {
+    if (!isMounted || !mapRef.current) return
+    
+    console.log('LocationSearch: 지도 컨테이너 마운트 확인됨')
+    console.log(`LocationSearch: mapRef.current 존재: ${!!mapRef.current}`)
+  }, [isMounted, mapRef.current])
+
   // 카카오맵 로드 확인
   useEffect(() => {
     if (!isMounted) return
+
+    // 지도 컨테이너가 마운트될 때까지 대기
+    const waitForContainer = () => {
+      if (!mapRef.current) {
+        console.log('LocationSearch: 지도 컨테이너 대기 중...')
+        setTimeout(waitForContainer, 100)
+        return
+      }
+      console.log('LocationSearch: 지도 컨테이너 확인됨')
+      loadKakaoMap()
+    }
 
     const loadKakaoMap = () => {
       try {
@@ -87,7 +106,8 @@ export default function LocationSearch({
       }
     }
 
-    loadKakaoMap()
+    // 지도 컨테이너가 준비될 때까지 대기
+    waitForContainer()
   }, [isMounted])
 
   // 장소 검색 함수 (카카오지도 API 공식 코드 방식)
@@ -155,6 +175,12 @@ export default function LocationSearch({
         // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해
         // LatLngBounds 객체에 좌표를 추가합니다 (공식 코드 방식)
         if (mapInstance.current && data && data.length > 0) {
+          // 카카오맵 API 로딩 상태 확인
+          if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng || !window.kakao.maps.LatLngBounds) {
+            console.error('LocationSearch: LatLngBounds를 사용할 수 없습니다')
+            return
+          }
+
           console.log('LocationSearch: 지도에 마커 표시 시작')
           const bounds = new window.kakao.maps.LatLngBounds()
           
@@ -197,6 +223,12 @@ export default function LocationSearch({
   const displayMarker = (place: any) => {
     if (!mapInstance.current) {
       console.error('LocationSearch: displayMarker - 지도 인스턴스가 없습니다')
+      return
+    }
+
+    // 카카오맵 API 로딩 상태 확인
+    if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
+      console.error('LocationSearch: displayMarker - 카카오맵 API가 완전히 로드되지 않음')
       return
     }
     
@@ -253,6 +285,12 @@ export default function LocationSearch({
   // 지도 초기화
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return
+
+    // 카카오맵 API 로딩 상태 확인
+    if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
+      console.error('LocationSearch: 카카오맵 API가 완전히 로드되지 않음')
+      return
+    }
 
     const container = mapRef.current
     const options = {
