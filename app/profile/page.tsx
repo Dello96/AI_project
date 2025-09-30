@@ -57,19 +57,12 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserStats = async () => {
       if (!user) {
-        console.log('사용자 통계 조회 - 사용자가 없음')
         return
       }
 
       try {
-        console.log('사용자 통계 조회 시작:', { userId: user.id, email: user.email })
         setStatsLoading(true)
         const response = await fetch(`/api/users/stats?userId=${user.id}`)
-        
-        console.log('사용자 통계 API 응답:', { 
-          status: response.status, 
-          ok: response.ok 
-        })
         
         if (!response.ok) {
           const errorData = await response.json()
@@ -86,7 +79,6 @@ export default function ProfilePage() {
         }
         
         const data = await response.json()
-        console.log('통계 데이터:', data)
         
         if (data.success && data.data) {
           setStats(data.data)

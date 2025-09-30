@@ -170,7 +170,6 @@ export class SearchService {
   async saveSearchHistory(query: string, userId: string): Promise<void> {
     try {
       // 실제 구현에서는 검색 기록을 저장하는 테이블이 필요합니다
-      console.log(`검색 기록 저장: ${query} (사용자: ${userId})`)
     } catch (error) {
       console.error('검색 기록 저장 오류:', error)
     }

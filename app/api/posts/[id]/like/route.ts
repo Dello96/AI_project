@@ -27,12 +27,9 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log('=== 좋아요 API 호출 시작 ===')
-    console.log('Post ID:', params.id)
     
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('authorization')
-    console.log('Authorization 헤더:', authHeader ? '존재' : '없음')
     
     let user = null
     
@@ -41,10 +38,8 @@ export async function POST(
       if (!token) {
         return NextResponse.json({ error: '유효하지 않은 인증 토큰입니다.' }, { status: 401 })
       }
-      console.log('토큰 길이:', token.length)
       
       // 토큰으로 사용자 정보 확인
-      console.log('사용자 인증 확인 중...')
       const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token)
 
       if (authError || !authUser) {
@@ -53,9 +48,7 @@ export async function POST(
       }
       
       user = authUser
-      console.log('사용자 인증 성공:', user.id)
     } else {
-      console.log('인증 헤더가 없거나 잘못된 형식 - 익명 사용자로 처리')
       // 익명 사용자 ID 생성 (일관성을 위해)
       user = { id: 'anonymous-user' }
     }
@@ -63,7 +56,6 @@ export async function POST(
     const postId = params.id
 
     // 게시글의 좋아요 정보를 한 번에 조회
-    console.log('게시글 좋아요 정보 조회 중...')
     const { data: currentPost, error: postError } = await supabaseAdmin
       .from('posts')
       .select('id, like_count, liked_by')
@@ -75,11 +67,9 @@ export async function POST(
       return NextResponse.json({ error: '게시글을 찾을 수 없습니다.' }, { status: 404 })
     }
     
-    console.log('게시글 조회 성공:', currentPost)
 
     const likedBy = currentPost.liked_by || []
     const isCurrentlyLiked = likedBy.includes(user.id)
-    console.log('현재 좋아요 상태:', isCurrentlyLiked ? '좋아요됨' : '좋아요 안됨')
 
     if (isCurrentlyLiked) {
       // 이미 좋아요를 눌렀으면 취소

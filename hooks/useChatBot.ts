@@ -150,7 +150,6 @@ export function useChatBot() {
         
         // Gemini API 호출 (첨부파일 정보 포함)
         geminiService.sendMessage(updatedMessages).then(response => {
-          console.log('챗봇 응답 받음:', response)
           
           // AI 응답 추가
           addMessage({
@@ -170,10 +169,6 @@ export function useChatBot() {
         return updatedMessages
       })
 
-      console.log('챗봇 메시지 전송 중...', { 
-        messageCount: messages.length + 1,
-        hasAttachments: currentAttachments.length > 0
-      })
     } catch (error) {
       console.error('메시지 전송 오류:', error)
       addMessage({

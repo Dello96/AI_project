@@ -206,7 +206,6 @@ export function logAuthAction(log: Omit<AuthAuditLog, 'id' | 'timestamp'>): void
   
   // 콘솔에 로그 출력 (개발용)
   if (process.env.NODE_ENV === 'development') {
-    console.log('🔐 Auth Audit Log:', auditLog)
   }
 }
 

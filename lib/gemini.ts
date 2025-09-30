@@ -90,12 +90,6 @@ export class GeminiService {
 
 항상 사랑과 은혜로 충만한 답변을 해주시고, 청년부 공동체가 더욱 견고히 세워져 나가도록 도와주세요! 🙏✨`
     
-    console.log('GeminiService 초기화:', {
-      hasApiKey: !!this.apiKey,
-      apiKeyLength: this.apiKey.length,
-      apiKeyPrefix: `${this.apiKey.substring(0, 10)}...`
-    })
-    
     if (!this.apiKey) {
       console.error('GOOGLE_GEMINI_API_KEY가 설정되지 않았습니다. 챗봇 기능이 제한됩니다.')
       console.error('현재 환경 변수들:', Object.keys(process.env).filter(key => key.includes('GEMINI')))
@@ -136,12 +130,6 @@ export class GeminiService {
         }))
       ]
 
-      console.log('Gemini API 호출 중...', { 
-        apiKey: `${this.apiKey.substring(0, 10)}...`,
-        messageCount: geminiMessages.length,
-        hasSystemPrompt: true
-      })
-
       const response = await fetch(`${this.baseUrl}/models/gemini-flash-latest:generateContent?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
@@ -176,7 +164,6 @@ export class GeminiService {
         }),
       })
 
-      console.log('Gemini API 응답 상태:', response.status)
 
       if (!response.ok) {
         let errorMessage = `Gemini API 오류: ${response.status}`
@@ -202,7 +189,6 @@ export class GeminiService {
       }
 
       const data = await response.json()
-      console.log('Gemini API 응답 데이터:', data)
       
       if (data.candidates && data.candidates[0] && data.candidates[0].content) {
         return data.candidates[0].content.parts[0].text
@@ -223,7 +209,6 @@ export class GeminiService {
   // 시스템 프롬프트 동적 설정
   setSystemPrompt(prompt: string): void {
     this.systemPrompt = prompt
-    console.log('시스템 프롬프트가 업데이트되었습니다.')
   }
 
   // 현재 시스템 프롬프트 조회

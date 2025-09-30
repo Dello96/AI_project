@@ -19,13 +19,6 @@ function PaymentSuccessContent() {
     const orderId = searchParams.get('orderId')
     const amount = searchParams.get('amount')
 
-    console.log('결제 성공 페이지 파라미터:', {
-      paymentKey,
-      orderId,
-      amount,
-      allParams: Object.fromEntries(searchParams.entries())
-    })
-
     if (!paymentKey || !orderId) {
       setError('결제 정보를 찾을 수 없습니다.')
       setIsLoading(false)
@@ -41,7 +34,6 @@ function PaymentSuccessContent() {
 
   const confirmPayment = async (paymentKey: string, orderId: string, amount: number) => {
     try {
-      console.log('결제 승인 시작:', { paymentKey, orderId, amount })
       
       const response = await fetch('/api/payments/confirm', {
         method: 'POST',
@@ -55,17 +47,14 @@ function PaymentSuccessContent() {
         })
       })
 
-      console.log('결제 승인 응답 상태:', response.status)
       
       const result = await response.json()
-      console.log('결제 승인 응답 데이터:', result)
 
       if (!result.success) {
         throw new Error(result.error || '결제 승인에 실패했습니다.')
       }
 
       setPayment(result.payment)
-      console.log('결제 정보 설정 완료:', result.payment)
     } catch (err) {
       console.error('결제 승인 오류:', err)
       setError(err instanceof Error ? err.message : '결제 승인에 실패했습니다.')

@@ -32,11 +32,9 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
         }
         
         const data = await response.json()
-        console.log('인기 게시글 API 응답:', data)
         
         if (data.success && Array.isArray(data.data)) {
           setPosts(data.data)
-          console.log('인기 게시글 로드 성공:', data.data.length, '개')
         } else if (Array.isArray(data)) {
           // 이전 형식 호환성
           setPosts(data)
@@ -75,7 +73,6 @@ export default function PosterCarousel({ onPostClick }: PosterCarouselProps) {
   }
 
   const handlePostClick = (post: Post) => {
-    console.log('포스터 클릭:', post.id, post.title)
     // 게시판으로 이동
     router.push('/board')
   }

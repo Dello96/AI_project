@@ -24,9 +24,6 @@ export async function GET(request: NextRequest) {
     
     const redirectUrl = getRedirectUrl()
     
-    console.log('카카오 로그인 리다이렉트 URL:', redirectUrl)
-    console.log('현재 환경:', process.env.NODE_ENV)
-    console.log('NEXT_PUBLIC_SITE_URL:', process.env.NEXT_PUBLIC_SITE_URL)
     
     // Supabase Auth의 카카오 소셜 로그인 URL 생성
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -78,9 +75,6 @@ export async function POST(request: NextRequest) {
     
     const redirectUrl = getRedirectUrl()
     
-    console.log('카카오 로그인 리다이렉트 URL:', redirectUrl)
-    console.log('현재 환경:', process.env.NODE_ENV)
-    console.log('NEXT_PUBLIC_SITE_URL:', process.env.NEXT_PUBLIC_SITE_URL)
     
     // Supabase Auth의 카카오 소셜 로그인 URL 생성
     const { data, error } = await supabase.auth.signInWithOAuth({

@@ -112,7 +112,6 @@ export const useEventsStore = create<EventsStore>()(
             table: 'events'
           },
           (payload) => {
-            console.log('이벤트 변경 감지:', payload)
             // 실시간 구독이 작동하지 않을 경우를 대비해 전체 목록을 다시 가져옴
             get().fetchEvents()
           }

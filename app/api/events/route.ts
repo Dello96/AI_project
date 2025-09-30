@@ -34,18 +34,11 @@ const GetEventsSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== 이벤트 생성 API 호출 시작 ===')
-    console.log('요청 URL:', request.url)
-    console.log('요청 헤더:', Object.fromEntries(request.headers.entries()))
     
     // 요청 본문 파싱
     const body = await request.json()
-    console.log('받은 요청 데이터:')
-    console.log(JSON.stringify(body, null, 2))
     
-    console.log('각 필드별 타입 확인:')
     Object.keys(body).forEach(key => {
-      console.log(`${key}: ${typeof body[key]} = ${JSON.stringify(body[key])}`)
     })
     
     const parsed = CreateEventSchema.safeParse(body)
@@ -79,13 +72,11 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    console.log('유효성 검사 통과! 파싱된 데이터:', parsed.data)
     
     const { title, description, startDate, endDate, location, locationData, category, isAllDay, authorId } = parsed.data
     
     // Authorization 헤더에서 토큰 확인
     const authHeader = request.headers.get('Authorization')
-    console.log('Authorization 헤더:', authHeader)
     
     let user = null
     let authError = null
@@ -93,21 +84,17 @@ export async function POST(request: NextRequest) {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       // Authorization 헤더에서 토큰 사용
       const token = authHeader.substring(7)
-      console.log('토큰으로 사용자 확인 중...')
       
       const supabase = createServerSupabaseClient()
       const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token)
       user = tokenUser
       authError = tokenError
-      console.log('토큰 사용자 확인 결과:', { user: user ? { id: user.id, email: user.email } : null, error: tokenError })
     } else {
       // 쿠키에서 세션 확인
-      console.log('쿠키에서 세션 확인 중...')
       const supabase = createRouteHandlerClient({ cookies })
       const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
       user = sessionUser
       authError = sessionError
-      console.log('세션 사용자 확인 결과:', { user: user ? { id: user.id, email: user.email } : null, error: sessionError })
     }
     
     if (authError || !user) {
@@ -118,7 +105,6 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    console.log('인증된 사용자:', { id: user.id, email: user.email })
     
     // 사용자 프로필 확인 및 생성
     let actualAuthorId = user.id
@@ -135,7 +121,6 @@ export async function POST(request: NextRequest) {
     
     if (profileError && profileError.code === 'PGRST116') {
       // 프로필이 없는 경우 생성
-      console.log('사용자 프로필이 없어서 생성합니다:', user.id)
       
       const { error: createProfileError } = await serverSupabase
         .from('user_profiles')
@@ -182,7 +167,6 @@ export async function POST(request: NextRequest) {
       created_by: actualAuthorId
     }
     
-    console.log('데이터베이스에 삽입할 데이터:', insertData)
     
     const { data: event, error } = await serverSupabase
       .from('events')

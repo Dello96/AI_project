@@ -69,16 +69,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     const validFiles: FileWithPreview[] = []
     const errors: string[] = []
 
-    console.log('파일 추가 시작:', fileArray.length, '개 파일')
-
     fileArray.forEach((file, index) => {
-      console.log(`파일 ${index + 1} 정보:`, {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified
-      })
-
       const validationError = validateFile(file)
       if (validationError) {
         console.error(`파일 ${file.name} 검증 실패:`, validationError)
@@ -101,20 +92,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         file: file // 원본 File 객체 저장
       }
 
-      console.log('FileWithPreview 생성:', {
-        id: fileWithPreview.id,
-        name: fileWithPreview.name,
-        size: fileWithPreview.size,
-        type: fileWithPreview.type,
-        originalFileSize: file.size,
-        originalFileType: file.type
-      })
-
       if (file.type && file.type.startsWith('image/')) {
         const reader = new FileReader()
         reader.onload = () => {
           fileWithPreview.preview = reader.result as string
-          console.log('이미지 미리보기 생성 완료:', fileWithPreview.name)
         }
         reader.readAsDataURL(file)
       }

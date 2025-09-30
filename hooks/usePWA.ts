@@ -51,7 +51,6 @@ export function usePWA() {
   // PWA 설치 프롬프트 표시
   const installPWA = async (): Promise<boolean> => {
     if (!deferredPrompt) {
-      console.log('PWA 설치 프롬프트를 사용할 수 없습니다.')
       return false
     }
 
@@ -60,11 +59,9 @@ export function usePWA() {
       const { outcome } = await deferredPrompt.userChoice
       
       if (outcome === 'accepted') {
-        console.log('PWA 설치가 수락되었습니다.')
         setDeferredPrompt(null)
         return true
       } else {
-        console.log('PWA 설치가 거부되었습니다.')
         return false
       }
     } catch (error) {
@@ -136,7 +133,6 @@ export function usePWA() {
 
     try {
       const registration = await navigator.serviceWorker.register('/sw.js')
-      console.log('Service Worker 등록 성공:', registration)
       return true
     } catch (error) {
       console.error('Service Worker 등록 실패:', error)

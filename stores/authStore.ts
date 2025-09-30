@@ -223,7 +223,6 @@ export const useAuthStore = create<AuthStore>()(
 
     refreshToken: async () => {
       try {
-        console.log('토큰 갱신 시도...')
         const { data: { session }, error } = await supabase.auth.refreshSession()
         
         if (error) {
@@ -232,7 +231,6 @@ export const useAuthStore = create<AuthStore>()(
         }
         
         if (session?.user) {
-          console.log('토큰 갱신 성공, 사용자 상태 업데이트')
           
           // 사용자 프로필 정보 가져오기
           const { data: userProfile } = await supabase
@@ -285,7 +283,6 @@ export const useAuthStore = create<AuthStore>()(
         // Auth 상태 변경 감지
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log('Auth 상태 변경:', event, session?.user?.email)
             
             if (event === 'SIGNED_IN' && session?.user) {
               const userData: User = {

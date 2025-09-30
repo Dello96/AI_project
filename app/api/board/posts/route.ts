@@ -59,17 +59,11 @@ const GetPostsSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== 게시글 작성 API 시작 ===')
-    console.log('요청 URL:', request.url)
-    console.log('요청 메서드:', request.method)
-    console.log('요청 헤더:', Object.fromEntries(request.headers.entries()))
     
     // 요청 본문 파싱
     const body = await request.json()
-    console.log('게시글 작성 요청 본문:', body)
     
     const parsed = CreatePostSchema.safeParse(body)
-    console.log('스키마 검증 결과:', { success: parsed.success, data: parsed.data })
     
     if (!parsed.success) {
       console.error('게시글 작성 스키마 검증 실패:', parsed.error.issues)
@@ -80,15 +74,6 @@ export async function POST(request: NextRequest) {
     }
     
     const { title, content, category, isAnonymous, attachments, authorId } = parsed.data
-    
-    console.log('게시글 작성 데이터:', {
-      title,
-      content: content.substring(0, 100) + '...',
-      category,
-      isAnonymous,
-      attachments: attachments?.length || 0,
-      authorId
-    })
     
     // 콘텐츠 정화
     const sanitizedTitle = sanitizeTitle(title)
@@ -114,7 +99,6 @@ export async function POST(request: NextRequest) {
         attachments: attachments || []
       }
       
-      console.log('모의 게시글 생성:', mockPost)
       
       return NextResponse.json({
         success: true,
@@ -135,9 +119,7 @@ export async function POST(request: NextRequest) {
       // 1차: Authorization 헤더에서 사용자 정보 가져오기
       try {
         user = await getUserFromAuthHeader(request)
-        console.log('헤더에서 사용자 정보:', user ? { id: user.id, email: user.email } : null)
       } catch (error) {
-        console.log('헤더 인증 실패:', error)
       }
       
       // 2차: 헤더에서 가져오지 못했으면 쿠키 세션 확인
@@ -145,13 +127,10 @@ export async function POST(request: NextRequest) {
         try {
           const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
           if (sessionError) {
-            console.log('세션 인증 오류:', sessionError)
           } else if (sessionUser) {
             user = sessionUser
-            console.log('세션에서 사용자 정보:', { id: user.id, email: user.email })
           }
         } catch (error) {
-          console.log('세션 인증 실패:', error)
         }
       }
       
@@ -224,9 +203,7 @@ export async function POST(request: NextRequest) {
     // 1차: Authorization 헤더에서 사용자 정보 가져오기
     try {
       user = await getUserFromAuthHeader(request)
-      console.log('헤더에서 사용자 정보:', user ? { id: user.id, email: user.email } : null)
     } catch (error) {
-      console.log('헤더 인증 실패:', error)
     }
     
     // 2차: 헤더에서 가져오지 못했으면 쿠키 세션 확인
@@ -234,13 +211,10 @@ export async function POST(request: NextRequest) {
       try {
         const { data: { user: sessionUser }, error: sessionError } = await serverSupabase.auth.getUser()
         if (sessionError) {
-          console.log('세션 인증 오류:', sessionError)
         } else if (sessionUser) {
           user = sessionUser
-          console.log('세션에서 사용자 정보:', { id: user.id, email: user.email })
         }
       } catch (error) {
-        console.log('세션 인증 실패:', error)
       }
     }
     
@@ -425,7 +399,6 @@ export async function GET(request: NextRequest) {
           }
         } catch (error) {
           // 인증 오류는 무시 (비로그인 사용자)
-          console.log('사용자 인증 확인 중 오류 (무시됨):', error)
         }
 
         // 작성자 정보 조회 (익명이 아닌 경우)

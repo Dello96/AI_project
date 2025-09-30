@@ -44,11 +44,6 @@ export async function GET(request: NextRequest) {
     // 토스페이먼츠 결제창 URL 생성
     const clientKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY
     
-    console.log('환경 변수 확인:', {
-      clientKey,
-      envKeys: Object.keys(process.env).filter(key => key.includes('TOSS'))
-    })
-    
     if (!clientKey) {
       return NextResponse.json(
         { 
@@ -93,7 +88,6 @@ export async function GET(request: NextRequest) {
             successUrl: '${successUrl}',
             failUrl: '${failUrl}'
         }).then(function(result) {
-            console.log('결제 성공:', result);
             // 테스트 환경에서는 즉시 성공 페이지로 이동
             if (result) {
                 window.location.href = '${successUrl}?paymentKey=' + encodeURIComponent(result.paymentKey || 'test_payment_key') + '&orderId=' + encodeURIComponent('${orderId}') + '&amount=${amount}';

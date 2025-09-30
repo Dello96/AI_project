@@ -58,15 +58,8 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
     if (isSubmitting) return
 
     try {
-      console.log('PostForm 제출 시도:', { 
-        authLoading, 
-        hasUser: !!user,
-        userInfo: user ? { id: user.id, email: user.email } : null
-      })
-      
       // 인증 상태 확인 - 로그인 필수
       if (authLoading) {
-        console.log('인증 로딩 중...')
         showAlert({
           title: '인증 확인 중',
           message: '인증 상태를 확인하는 중입니다. 잠시만 기다려주세요.',
@@ -77,7 +70,6 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       }
       
       if (!user) {
-        console.log('사용자가 인증되지 않음')
         showAlert({
           title: '로그인 필요',
           message: '게시글 작성은 로그인이 필요합니다. 먼저 로그인해주세요.',
@@ -87,13 +79,6 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
         return
       }
       
-      console.log('사용자 인증 상태 확인됨:', { 
-        userId: user.id, 
-        userEmail: user.email,
-        userName: user.name,
-        isAuthenticated: !!user 
-      })
-
       // 업로드 시작
       setIsUploading(true)
 
@@ -102,7 +87,6 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       if (!tokenRefreshed) {
         console.warn('토큰 갱신 실패, 기존 토큰으로 진행')
       } else {
-        console.log('토큰 갱신 성공, 세션 새로고침 시도...')
         
         // 토큰 갱신 후 세션을 강제로 새로고침
         try {
@@ -110,7 +94,6 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
           if (refreshError) {
             console.error('세션 새로고침 오류:', refreshError)
           } else if (refreshedSession) {
-            console.log('세션 새로고침 성공:', !!refreshedSession.access_token)
           }
         } catch (error) {
           console.error('세션 새로고침 중 오류:', error)
@@ -123,19 +106,10 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       // 파일 업로드 처리
       let fileUrls: string[] = []
       if (attachedFiles.length > 0) {
-        console.log('첨부파일 업로드 시작:', attachedFiles.length, '개 파일')
-        console.log('첨부파일 정보:', attachedFiles.map(f => ({
-          name: f.name,
-          size: f.size,
-          type: f.type
-        })))
-        
         const uploadResult = await fileUploadService.uploadFiles(attachedFiles, 'posts')
-        console.log('파일 업로드 결과:', uploadResult)
         
         if (uploadResult.success && uploadResult.files) {
           fileUrls = uploadResult.files.map(f => f.url)
-          console.log('업로드된 파일 URL들:', fileUrls)
         } else {
           console.error('파일 업로드 실패:', uploadResult.error)
           showAlert({
@@ -157,7 +131,6 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       
       // 2차: 세션이 없으면 토큰 갱신 시도
       if (!session?.access_token) {
-        console.log('세션이 없어서 토큰 갱신 시도...')
         try {
           await refreshToken()
           const { data: refreshedSession } = await supabase.auth.getSession()
@@ -169,7 +142,6 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       
       // 3차: 여전히 세션이 없으면 AuthContext에서 직접 가져오기
       if (!session?.access_token) {
-        console.log('AuthContext에서 토큰 가져오기 시도...')
         const accessToken = await getAccessToken()
         if (accessToken) {
           session = {
@@ -192,21 +164,12 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
         })
         return
       }
-      
-      console.log('세션 확인 완료:', {
-        hasToken: !!session.access_token,
-        tokenLength: session.access_token?.length
-      })
 
       const authHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`
       }
 
-      console.log('게시글 작성 API 호출 시작...')
-      console.log('사용자 ID:', user.id)
-      console.log('사용자 이름:', user.name)
-      console.log('토큰 존재:', !!session.access_token)
 
       // API 라우트 호출 - 실명 작성
       const response = await fetch('/api/board/posts', {
@@ -223,10 +186,8 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       })
 
       const result = await response.json()
-      console.log('API 응답:', { status: response.status, result })
 
       if (response.ok && result.success) {
-        console.log('게시글 작성 성공')
         
         // 사용자 통계 업데이트
         try {
@@ -242,7 +203,6 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
           })
           
           if (statsResponse.ok) {
-            console.log('사용자 통계 업데이트 성공')
           } else {
             console.warn('사용자 통계 업데이트 실패')
           }

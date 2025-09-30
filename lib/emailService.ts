@@ -50,7 +50,6 @@ class EmailService {
       }
 
       const result = await response.json()
-      console.log('이메일 발송 성공:', result)
       return true
 
     } catch (error) {

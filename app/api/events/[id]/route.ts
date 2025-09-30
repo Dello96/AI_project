@@ -41,10 +41,6 @@ export async function DELETE(
       )
     }
 
-    console.log('=== 이벤트 삭제 API 시작 ===')
-    console.log('요청 URL:', request.url)
-    console.log('요청 메서드:', request.method)
-    console.log('요청 헤더:', Object.fromEntries(request.headers.entries()))
 
     // Supabase 환경 변수 확인
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -67,9 +63,7 @@ export async function DELETE(
       // 1차: Authorization 헤더에서 사용자 정보 가져오기
       try {
         user = await getUserFromAuthHeader(request)
-        console.log('헤더에서 사용자 정보:', user ? { id: user.id, email: user.email } : null)
       } catch (error) {
-        console.log('헤더 인증 실패:', error)
       }
       
       // 2차: 헤더에서 가져오지 못했으면 쿠키 세션 확인
@@ -77,13 +71,10 @@ export async function DELETE(
         try {
           const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
           if (sessionError) {
-            console.log('세션 인증 오류:', sessionError)
           } else if (sessionUser) {
             user = sessionUser
-            console.log('세션에서 사용자 정보:', { id: user.id, email: user.email })
           }
         } catch (error) {
-          console.log('세션 인증 실패:', error)
         }
       }
       
@@ -95,7 +86,6 @@ export async function DELETE(
         )
       }
       
-      console.log('최종 인증된 사용자:', { id: user.id, email: user.email })
       
       // 이벤트 존재 및 작성자 확인
       const { data: event, error: fetchError } = await supabase
@@ -135,7 +125,6 @@ export async function DELETE(
         )
       }
 
-      console.log('이벤트 삭제 성공:', id)
       return NextResponse.json({
         success: true,
         message: '이벤트가 성공적으로 삭제되었습니다.'
@@ -151,9 +140,7 @@ export async function DELETE(
     // 1차: Authorization 헤더에서 사용자 정보 가져오기
     try {
       user = await getUserFromAuthHeader(request)
-      console.log('헤더에서 사용자 정보:', user ? { id: user.id, email: user.email } : null)
     } catch (error) {
-      console.log('헤더 인증 실패:', error)
     }
     
     // 2차: 헤더에서 가져오지 못했으면 쿠키 세션 확인
@@ -162,13 +149,10 @@ export async function DELETE(
       try {
         const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
         if (sessionError) {
-          console.log('세션 인증 오류:', sessionError)
         } else if (sessionUser) {
           user = sessionUser
-          console.log('세션에서 사용자 정보:', { id: user.id, email: user.email })
         }
       } catch (error) {
-        console.log('세션 인증 실패:', error)
       }
     }
     
@@ -180,7 +164,6 @@ export async function DELETE(
       )
     }
     
-    console.log('최종 인증된 사용자:', { id: user.id, email: user.email })
     
     // 이벤트 존재 및 작성자 확인
     const { data: event, error: fetchError } = await serverSupabase
@@ -220,7 +203,6 @@ export async function DELETE(
       )
     }
 
-    console.log('이벤트 삭제 성공:', id)
     return NextResponse.json({
       success: true,
       message: '이벤트가 성공적으로 삭제되었습니다.'

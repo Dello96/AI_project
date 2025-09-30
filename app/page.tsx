@@ -153,15 +153,12 @@ export default function Home() {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectPost={(post) => {
-          console.log('선택된 게시글:', post)
           setIsSearchOpen(false)
         }}
         onSelectEvent={(event) => {
-          console.log('선택된 일정:', event)
           setIsSearchOpen(false)
         }}
         onSelectUser={(user) => {
-          console.log('선택된 사용자:', user)
           setIsSearchOpen(false)
         }}
       />

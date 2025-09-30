@@ -357,13 +357,6 @@ export const commentService = {
   // 댓글 생성
   async createComment(data: Omit<Comment, 'id' | 'createdAt' | 'updatedAt'>): Promise<Comment | null> {
     try {
-      console.log('Supabase 댓글 생성 시도:', {
-        post_id: data.postId,
-        author_id: data.authorId,
-        is_anonymous: data.isAnonymous,
-        content_length: data.content.length
-      })
-
       // Service Role 클라이언트 사용 (RLS 우회)
       const serverSupabase = createServerSupabaseClient()
       
@@ -375,7 +368,6 @@ export const commentService = {
         .single()
 
       if (!existingProfile) {
-        console.log('사용자 프로필이 없어서 생성 시도:', data.authorId)
         
         // 실제 사용자 프로필 생성 시도
         const { error: profileError } = await serverSupabase
@@ -393,7 +385,6 @@ export const commentService = {
           throw new Error('사용자 프로필을 생성할 수 없습니다.')
         }
         
-        console.log('사용자 프로필 생성 완료:', data.authorId)
       }
 
       const { data: comment, error } = await serverSupabase
@@ -413,7 +404,6 @@ export const commentService = {
         throw error
       }
 
-      console.log('Supabase 댓글 생성 성공:', comment)
       return comment
     } catch (error) {
       console.error('댓글 생성 오류 상세:', error)

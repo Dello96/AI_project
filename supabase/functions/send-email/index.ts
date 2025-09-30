@@ -136,7 +136,6 @@ serve(async (req) => {
     }
 
     // 실제 이메일 발송 로직 (여기서는 로깅만 수행)
-    console.log('이메일 발송 요청:', {
       to,
       subject,
       htmlLength: html.length,

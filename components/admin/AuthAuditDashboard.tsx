@@ -299,7 +299,6 @@ export default function AuthAuditDashboard({ className = '' }: { className?: str
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => console.log('상세 정보:', log.details)}
                     >
                       <EyeIcon className="w-4 h-4 mr-1" />
                       상세보기

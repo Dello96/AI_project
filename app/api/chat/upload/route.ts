@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
-    console.log('인증된 사용자:', user.email)
 
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -67,13 +66,6 @@ export async function POST(request: NextRequest) {
     const fileName = `chat_${timestamp}_${randomString}.${fileExtension}`
 
     // Supabase Storage에 업로드
-    console.log('Supabase Storage 업로드 시작:', {
-      bucket: 'chat-attachments',
-      fileName,
-      fileSize: file.size,
-      fileType: file.type
-    })
-
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('chat-attachments')
       .upload(fileName, file, {
@@ -89,14 +81,12 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log('파일 업로드 성공:', uploadData)
 
     // 공개 URL 생성
     const { data: urlData } = supabase.storage
       .from('chat-attachments')
       .getPublicUrl(fileName)
 
-    console.log('공개 URL 생성:', urlData)
 
     // 썸네일 생성 (이미지인 경우)
     let thumbnailUrl = null
@@ -104,7 +94,6 @@ export async function POST(request: NextRequest) {
       try {
         // 간단한 썸네일 생성 (실제로는 더 정교한 이미지 리사이징이 필요)
         thumbnailUrl = urlData.publicUrl
-        console.log('썸네일 URL:', thumbnailUrl)
       } catch (error) {
         console.error('썸네일 생성 오류:', error)
       }
@@ -120,7 +109,6 @@ export async function POST(request: NextRequest) {
       thumbnailUrl: thumbnailUrl
     }
 
-    console.log('최종 첨부파일 객체:', attachment)
 
     return NextResponse.json({
       success: true,

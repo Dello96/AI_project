@@ -67,7 +67,6 @@ export const usePWAStore = create<PWAStore>()(
     requestNotificationPermission: async () => {
       try {
         if (!('Notification' in window)) {
-          console.log('이 브라우저는 알림을 지원하지 않습니다.')
           return 'denied'
         }
 
@@ -84,7 +83,6 @@ export const usePWAStore = create<PWAStore>()(
       const { installPrompt } = get()
       
       if (!installPrompt) {
-        console.log('설치 프롬프트를 사용할 수 없습니다.')
         return false
       }
 
@@ -96,7 +94,6 @@ export const usePWAStore = create<PWAStore>()(
           set({ isInstalled: true, installPrompt: null })
           return true
         } else {
-          console.log('사용자가 앱 설치를 거부했습니다.')
           return false
         }
       } catch (error) {

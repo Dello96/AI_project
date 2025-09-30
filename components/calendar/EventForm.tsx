@@ -174,9 +174,7 @@ export default function EventForm({ isOpen, onClose, onSuccess, initialData, sel
           window.dispatchEvent(new CustomEvent('eventCreated', { detail: result }))
           
           // 즉시 onSuccess 호출
-          console.log('onSuccess 호출 시작')
           onSuccess()
-          console.log('onSuccess 호출 완료')
           
         } else {
           throw new Error(data.error || '이벤트 생성에 실패했습니다.')

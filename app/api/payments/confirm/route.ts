@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (existingPayment && existingPayment.status === 'DONE') {
-        console.log('이미 완료된 결제 발견:', existingPayment)
         return NextResponse.json({
           success: true,
           message: '이미 완료된 결제입니다.',
@@ -49,7 +48,6 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       // 기존 결제가 없는 경우 (정상적인 경우)
-      console.log('기존 결제 없음 - 새 결제 진행')
     }
 
     // 토스페이먼츠 API를 직접 호출하여 결제 승인
@@ -64,13 +62,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('결제 승인 요청:', { paymentKey, orderId, amount })
 
     let payment: any
 
     // 테스트 환경에서는 mock 결제 데이터 생성
     if (paymentKey === 'test_payment_key' || paymentKey.startsWith('test_')) {
-      console.log('테스트 환경 - Mock 결제 데이터 생성')
       payment = {
         paymentKey,
         orderId,
@@ -86,12 +82,10 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // 실제 토스페이먼츠 API 호출
-      console.log('실제 토스페이먼츠 API 호출')
       
       // amount가 0인 경우, 먼저 결제 정보를 조회하여 실제 금액을 확인
       let actualAmount = amount
       if (amount === 0) {
-        console.log('amount가 0이므로 결제 정보 조회')
         const getResponse = await fetch(`https://api.tosspayments.com/v1/payments/${paymentKey}`, {
           method: 'GET',
           headers: {
@@ -103,7 +97,6 @@ export async function POST(request: NextRequest) {
         if (getResponse.ok) {
           const paymentInfo = await getResponse.json()
           actualAmount = paymentInfo.amount
-          console.log('조회된 실제 결제 금액:', actualAmount)
         }
       }
 
@@ -129,7 +122,6 @@ export async function POST(request: NextRequest) {
       payment = await response.json()
     }
     
-    console.log('결제 승인 성공:', payment)
 
     // 결제 성공 시 데이터베이스에 저장
     if (payment.status === 'DONE') {
@@ -157,7 +149,6 @@ export async function POST(request: NextRequest) {
         console.error('결제 내역 저장 오류:', insertError)
         // 결제는 성공했지만 DB 저장 실패 - 로그만 남기고 성공 응답
       } else {
-        console.log('결제 내역 저장 성공:', payment.orderId)
       }
     }
 

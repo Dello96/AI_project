@@ -93,14 +93,6 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
         // 현재까지 로드된 게시글 수가 전체 게시글 수보다 적으면 더 로드 가능
         const currentTotalLoaded = append ? posts.length + data.data.posts.length : data.data.posts.length
         const shouldHaveMore = currentTotalLoaded < data.data.pagination.totalCount
-        console.log('게시글 로드 상태:', {
-          page,
-          append,
-          '받은 게시글 수': data.data.posts.length,
-          '현재 총 로드된 수': currentTotalLoaded,
-          '전체 게시글 수': data.data.pagination.totalCount,
-          '더 로드 가능': shouldHaveMore
-        })
         setHasMore(shouldHaveMore)
       } else {
         console.error('게시글 조회 실패:', data.error)
@@ -121,7 +113,6 @@ export default function BoardList({ onWritePost, onSelectPost }: BoardListProps)
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting && hasMore && !isLoadingRef.current) {
-          console.log('Intersection detected, loading more...')
           setCurrentPage(prev => prev + 1)
         }
       },

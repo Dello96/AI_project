@@ -115,7 +115,6 @@ function PaymentContent() {
 
   // 결제 취소 처리
   const handlePaymentCancel = (error: PaymentError) => {
-    console.log('결제 취소:', error)
     router.push(`/payment/cancel?error=${encodeURIComponent(error.message)}`)
   }
 

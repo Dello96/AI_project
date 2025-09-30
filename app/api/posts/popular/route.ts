@@ -3,7 +3,6 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('인기 게시글 조회 API 호출')
     const supabase = createServerSupabaseClient()
     
     // 모든 게시글을 조회하여 클라이언트에서 정렬
@@ -21,7 +20,6 @@ export async function GET(request: NextRequest) {
         author_id
       `)
 
-    console.log('전체 게시글 조회 결과:', { count: allPosts?.length, error })
 
     if (error) {
       console.error('게시글 조회 오류:', error)
@@ -33,7 +31,6 @@ export async function GET(request: NextRequest) {
 
     // 게시글이 없는 경우 빈 배열 반환
     if (!allPosts || allPosts.length === 0) {
-      console.log('게시글이 없습니다.')
       return NextResponse.json({
         success: true,
         data: []
@@ -56,15 +53,6 @@ export async function GET(request: NextRequest) {
       })
       .slice(0, 5)
 
-    console.log('정렬된 상위 5개 게시글:', sortedPosts.map((p, index) => ({ 
-      rank: index + 1,
-      id: p.id, 
-      title: p.title, 
-      like_count: p.like_count,
-      view_count: p.view_count,
-      created_at: p.created_at
-    })))
-
     const posts = sortedPosts
 
     // 각 게시글의 작성자 정보와 사용자 좋아요 상태 조회
@@ -85,7 +73,6 @@ export async function GET(request: NextRequest) {
           }
         } catch (error) {
           // 인증 오류는 무시 (비로그인 사용자)
-          console.log('사용자 인증 확인 중 오류 (무시됨):', error)
         }
 
         if (post.is_anonymous) {
@@ -136,7 +123,6 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    console.log('가공된 인기 게시글:', postsWithAuthors)
 
     return NextResponse.json({
       success: true,

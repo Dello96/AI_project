@@ -68,7 +68,6 @@ export function useRealtimeEvents() {
   const deleteEvent = (eventId: string) => {
     setEvents(prevEvents => {
       const filteredEvents = prevEvents.filter(event => event.id !== eventId)
-      console.log('이벤트 삭제됨:', eventId, '남은 이벤트 수:', filteredEvents.length)
       return filteredEvents
     })
   }

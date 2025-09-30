@@ -27,14 +27,11 @@ function PostDetailContent() {
         setIsLoading(true)
         setError(null)
         
-        console.log('게시글 상세 조회 시작:', postId)
         const fetchedPost = await postService.getPost(postId)
         
         if (fetchedPost) {
-          console.log('게시글 조회 성공:', fetchedPost)
           setPost(fetchedPost)
         } else {
-          console.log('게시글을 찾을 수 없음')
           setError('게시글을 찾을 수 없습니다.')
         }
       } catch (error) {

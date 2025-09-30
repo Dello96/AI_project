@@ -117,7 +117,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 관리자에게 알림 (간단한 로그, 실제로는 알림 시스템 연동)
-    console.log(`새 신고가 접수되었습니다: ${report.id} - ${targetType}:${targetId}`)
 
     return NextResponse.json({
       success: true,

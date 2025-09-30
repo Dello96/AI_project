@@ -22,7 +22,6 @@ export default function SimpleKakaoMap({ className = '' }: SimpleKakaoMapProps) 
   const [isMounted, setIsMounted] = useState(false)
 
   const addDebugInfo = (info: string) => {
-    console.log('SimpleKakaoMap Debug:', info)
     setDebugInfo(prev => [...prev, `${new Date().toLocaleTimeString()}: ${info}`])
   }
 

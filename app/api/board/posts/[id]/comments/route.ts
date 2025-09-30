@@ -122,13 +122,6 @@ export async function POST(
     const sanitizedContent = sanitizeComment(content)
 
     // 댓글 생성
-    console.log('댓글 생성 시도:', {
-      authorId: user.id,
-      postId,
-      content: `${sanitizedContent.substring(0, 50)}...`,
-      isAnonymous: isAnonymous || false
-    })
-
     const result = await commentService.createComment({
       content: sanitizedContent,
       authorId: user.id,
@@ -137,7 +130,6 @@ export async function POST(
       parentId: parentId || null
     })
 
-    console.log('댓글 생성 결과:', result)
 
     if (!result) {
       console.error('댓글 생성 실패 - commentService.createComment returned null')

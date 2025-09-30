@@ -24,10 +24,8 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
     try {
       setIsLoading(true)
       setError(null)
-      console.log('🔥 인기 게시글 조회 시작')
       
       const response = await fetch('/api/posts/popular')
-      console.log('🔥 API 응답 상태:', response.status, response.statusText)
       
       if (!response.ok) {
         console.error('🔥 API 응답 오류:', response.status, response.statusText)
@@ -38,11 +36,9 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
       }
       
       const result = await response.json()
-      console.log('🔥 인기 게시글 API 응답:', { response: response.status, result })
       
       if (result.success) {
         setPosts(result.data || [])
-        console.log('🔥 인기 게시글 조회 성공:', result.data)
       } else {
         const errorMsg = result.error || '인기 게시글을 불러오는데 실패했습니다.'
         console.error('🔥 인기 게시글 조회 실패:', errorMsg)
@@ -132,9 +128,7 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
               key={post.id}
               className="cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300"
               onClick={() => {
-                console.log('인기 게시글 클릭:', post.id)
                 const url = `/board?postId=${post.id}`
-                console.log('이동할 URL:', url)
                 router.push(url)
               }}
             >
@@ -212,9 +206,7 @@ export default function PopularPostsCarousel({ onPostClick }: PopularPostsCarous
               key={post.id}
               className="cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300"
               onClick={() => {
-                console.log('인기 게시글 클릭:', post.id)
                 const url = `/board?postId=${post.id}`
-                console.log('이동할 URL:', url)
                 router.push(url)
               }}
             >

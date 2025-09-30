@@ -30,7 +30,6 @@ class FileUploadService {
    */
   async uploadFiles(files: FileWithPreview[], folder: string = 'general'): Promise<FileUploadResult> {
     try {
-      console.log('파일 업로드 시작:', { files: files.length, folder, bucket: this.bucket })
       
       // 먼저 일반 클라이언트로 시도
       let supabaseClient = supabase
@@ -38,16 +37,8 @@ class FileUploadService {
       
       // Supabase 인증 상태 확인
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      console.log('Supabase 세션 상태:', { 
-        hasSession: !!session, 
-        userId: session?.user?.id,
-        userEmail: session?.user?.email,
-        sessionError: sessionError?.message,
-        accessToken: session?.access_token ? '있음' : '없음'
-      })
       
       if (sessionError || !session || !session.user) {
-        console.log('일반 클라이언트 인증 실패, Service Role Key 사용 시도')
         useServiceRole = true
         supabaseClient = createServerSupabaseClient()
       } else {
@@ -55,42 +46,25 @@ class FileUploadService {
         const now = Math.floor(Date.now() / 1000)
         const tokenExpiry = session.expires_at
         if (tokenExpiry && now >= tokenExpiry) {
-          console.log('토큰이 만료되었습니다. 갱신을 시도합니다.')
           
           // 토큰 갱신 시도
           const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
           if (refreshError || !refreshData.session) {
-            console.log('토큰 갱신 실패, Service Role Key 사용 시도')
             useServiceRole = true
             supabaseClient = createServerSupabaseClient()
           } else {
-            console.log('토큰 갱신 성공')
           }
         }
       }
       
       if (useServiceRole) {
-        console.log('Service Role Key를 사용하여 파일 업로드 시도')
       }
       
       const uploadedFiles: UploadedFile[] = []
       
       for (const filePreview of files) {
-        console.log('개별 파일 정보:', {
-          name: filePreview.name,
-          size: filePreview.size,
-          type: filePreview.type,
-          lastModified: filePreview.lastModified
-        })
-        
         // 원본 File 객체 가져오기
         const file = getFileFromPreview(filePreview)
-        console.log('원본 File 객체:', {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified
-        })
         
         // 파일 확장자 추출
         const fileExtension = file.name.split('.').pop() || ''
@@ -106,16 +80,6 @@ class FileUploadService {
         // 최종 파일명 생성
         const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${safeBaseName || 'file'}.${fileExtension}`
         const filePath = `${folder}/${fileName}`
-        
-        console.log('업로드 경로:', filePath)
-        
-        console.log('Supabase Storage 업로드 시도:', {
-          bucket: this.bucket,
-          filePath,
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type
-        })
 
         const { data, error } = await supabaseClient.storage
           .from(this.bucket)
@@ -153,14 +117,12 @@ class FileUploadService {
           }
         }
 
-        console.log('업로드 성공:', data)
 
         // 공개 URL 생성
         const { data: urlData } = supabaseClient.storage
           .from(this.bucket)
           .getPublicUrl(filePath)
 
-        console.log('공개 URL 생성:', urlData)
 
         const uploadedFile = {
           id: data.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -172,7 +134,6 @@ class FileUploadService {
           path: filePath
         }
         
-        console.log('최종 업로드된 파일 정보:', uploadedFile)
         uploadedFiles.push(uploadedFile)
       }
 

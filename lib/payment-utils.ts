@@ -76,7 +76,6 @@ export class PaymentManager {
         const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
 
         if (requestedAt < tenMinutesAgo) {
-          console.log('만료된 결제 처리:', orderId)
           await this.updatePaymentStatus(orderId, 'EXPIRED')
           return { isDuplicate: false }
         }

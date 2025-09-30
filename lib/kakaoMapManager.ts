@@ -34,10 +34,8 @@ class KakaoMapManager {
     
     // LatLng가 없으면 수동으로 로드 시도
     if (hasKakao && hasMaps && !hasLatLng) {
-      console.log('KakaoMapManager: LatLng가 없어서 수동 로드 시도')
       try {
         window.kakao.maps.load(() => {
-          console.log('KakaoMapManager: 수동 로드 완료')
           this.isLoaded = true
         })
       } catch (error) {
@@ -46,18 +44,6 @@ class KakaoMapManager {
     }
     
     const isFullyLoaded = this.isLoaded && hasKakao && hasMaps && hasLatLng && hasMap && hasMarker && hasInfoWindow && hasLatLngBounds
-    
-    console.log('KakaoMapManager: isMapLoaded 체크:', {
-      isLoaded: this.isLoaded,
-      hasKakao,
-      hasMaps,
-      hasLatLng,
-      hasMap,
-      hasMarker,
-      hasInfoWindow,
-      hasLatLngBounds,
-      isFullyLoaded
-    })
     
     return isFullyLoaded
   }
@@ -84,10 +70,8 @@ class KakaoMapManager {
       
       const checkLatLng = () => {
         checkCount++
-        console.log(`KakaoMapManager: LatLng 생성자 체크 ${checkCount}/${maxChecks}`)
         
         if (window.kakao && window.kakao.maps && window.kakao.maps.LatLng) {
-          console.log('KakaoMapManager: LatLng 생성자 사용 가능')
           resolve()
           return
         }
@@ -126,7 +110,6 @@ class KakaoMapManager {
       script.async = true
       
       script.onload = () => {
-        console.log('KakaoMapManager: 대체 스크립트 로드 완료')
         if (window.kakao && window.kakao.maps) {
           resolve()
         } else {
@@ -154,11 +137,9 @@ class KakaoMapManager {
     this.isLoading = true
 
     return new Promise((resolve, reject) => {
-      console.log('KakaoMapManager: 카카오맵 로딩 시작')
       
       // 이미 로드되어 있는지 확인
       if (this.isMapLoaded()) {
-        console.log('KakaoMapManager: 카카오맵이 이미 로드됨')
         this.isLoaded = true
         this.isLoading = false
         this.notifyListeners()
@@ -168,10 +149,8 @@ class KakaoMapManager {
 
       // 카카오맵이 부분적으로 로드된 경우
       if (window.kakao && !window.kakao.maps) {
-        console.log('KakaoMapManager: 카카오맵 수동 로드 시도')
         try {
           window.kakao.maps.load(() => {
-            console.log('KakaoMapManager: 카카오맵 수동 로드 완료')
             this.isLoaded = true
             this.isLoading = false
             this.notifyListeners()
@@ -186,29 +165,23 @@ class KakaoMapManager {
       }
 
       // 카카오 객체가 아예 없는 경우 - 더 자주 체크
-      console.log('KakaoMapManager: 카카오 객체 대기 중...')
       let checkCount = 0
       const maxChecks = 100 // 10초간 100ms마다 체크
       
       const checkInterval = setInterval(() => {
         checkCount++
-        console.log(`KakaoMapManager: 체크 ${checkCount}/${maxChecks} - window.kakao:`, !!window.kakao)
         
         if (window.kakao) {
           clearInterval(checkInterval)
-          console.log('KakaoMapManager: 카카오 객체 발견')
           
           if (window.kakao.maps) {
-            console.log('KakaoMapManager: 카카오맵이 이미 로드됨')
             this.isLoaded = true
             this.isLoading = false
             this.notifyListeners()
             resolve()
           } else {
-            console.log('KakaoMapManager: 카카오맵 로드 시도')
             try {
               window.kakao.maps.load(() => {
-                console.log('KakaoMapManager: 카카오맵 로드 완료')
                 this.isLoaded = true
                 this.isLoading = false
                 this.notifyListeners()
@@ -227,7 +200,6 @@ class KakaoMapManager {
           // 대체 로딩 방법 시도
           this.loadKakaoMapScript()
             .then(() => {
-              console.log('KakaoMapManager: 대체 로딩 성공')
               this.isLoaded = true
               this.isLoading = false
               this.notifyListeners()
@@ -251,11 +223,6 @@ class KakaoMapManager {
 
   // 지도 인스턴스 생성
   createMap(container: HTMLElement, options: any): any {
-    console.log('KakaoMapManager: createMap 호출됨')
-    console.log('KakaoMapManager: isLoaded:', this.isLoaded)
-    console.log('KakaoMapManager: window.kakao:', !!window.kakao)
-    console.log('KakaoMapManager: window.kakao.maps:', !!(window.kakao && window.kakao.maps))
-    console.log('KakaoMapManager: window.kakao.maps.Map:', !!(window.kakao && window.kakao.maps && window.kakao.maps.Map))
     
     if (!this.isMapLoaded()) {
       const errorMsg = `카카오맵이 로드되지 않았습니다. 상태: isLoaded=${this.isLoaded}, kakao=${!!window.kakao}, maps=${!!(window.kakao && window.kakao.maps)}, Map=${!!(window.kakao && window.kakao.maps && window.kakao.maps.Map)}`
@@ -265,7 +232,6 @@ class KakaoMapManager {
     
     try {
       const map = new window.kakao.maps.Map(container, options)
-      console.log('KakaoMapManager: Map 생성 성공:', map)
       return map
     } catch (error) {
       console.error('KakaoMapManager: Map 생성 실패:', error)
@@ -283,18 +249,11 @@ class KakaoMapManager {
 
   // LatLng 생성
   createLatLng(lat: number, lng: number): any {
-    console.log('KakaoMapManager: createLatLng 호출됨')
-    console.log('KakaoMapManager: isLoaded:', this.isLoaded)
-    console.log('KakaoMapManager: window.kakao:', !!window.kakao)
-    console.log('KakaoMapManager: window.kakao.maps:', !!(window.kakao && window.kakao.maps))
-    console.log('KakaoMapManager: window.kakao.maps.LatLng:', !!(window.kakao && window.kakao.maps && window.kakao.maps.LatLng))
     
     // LatLng 생성자가 없으면 수동으로 로드 시도
     if (window.kakao && window.kakao.maps && !window.kakao.maps.LatLng) {
-      console.log('KakaoMapManager: LatLng 생성자가 없어서 수동 로드 시도')
       try {
         window.kakao.maps.load(() => {
-          console.log('KakaoMapManager: 수동 로드 완료')
           this.isLoaded = true
         })
       } catch (error) {
@@ -311,7 +270,6 @@ class KakaoMapManager {
     
     try {
       const latLng = new window.kakao.maps.LatLng(lat, lng)
-      console.log('KakaoMapManager: LatLng 생성 성공:', latLng)
       return latLng
     } catch (error) {
       console.error('KakaoMapManager: LatLng 생성 실패:', error)
@@ -321,7 +279,6 @@ class KakaoMapManager {
 
   // LatLngBounds 생성
   createLatLngBounds(): any {
-    console.log('KakaoMapManager: createLatLngBounds 호출됨')
     if (!this.isMapLoaded()) {
       const errorMsg = `카카오맵이 로드되지 않았습니다. 상태: isLoaded=${this.isLoaded}, kakao=${!!window.kakao}, maps=${!!(window.kakao && window.kakao.maps)}, LatLng=${!!(window.kakao && window.kakao.maps && window.kakao.maps.LatLng)}`
       console.error('KakaoMapManager:', errorMsg)
@@ -330,7 +287,6 @@ class KakaoMapManager {
     
     try {
       const bounds = new window.kakao.maps.LatLngBounds()
-      console.log('KakaoMapManager: LatLngBounds 생성 성공:', bounds)
       return bounds
     } catch (error) {
       console.error('KakaoMapManager: LatLngBounds 생성 실패:', error)
@@ -340,7 +296,6 @@ class KakaoMapManager {
 
   // Marker 생성
   createMarker(options: any): any {
-    console.log('KakaoMapManager: createMarker 호출됨')
     if (!this.isMapLoaded()) {
       const errorMsg = `카카오맵이 로드되지 않았습니다. 상태: isLoaded=${this.isLoaded}, kakao=${!!window.kakao}, maps=${!!(window.kakao && window.kakao.maps)}, LatLng=${!!(window.kakao && window.kakao.maps && window.kakao.maps.LatLng)}`
       console.error('KakaoMapManager:', errorMsg)
@@ -349,7 +304,6 @@ class KakaoMapManager {
     
     try {
       const marker = new window.kakao.maps.Marker(options)
-      console.log('KakaoMapManager: Marker 생성 성공:', marker)
       return marker
     } catch (error) {
       console.error('KakaoMapManager: Marker 생성 실패:', error)
@@ -359,7 +313,6 @@ class KakaoMapManager {
 
   // InfoWindow 생성
   createInfoWindow(options: any): any {
-    console.log('KakaoMapManager: createInfoWindow 호출됨')
     if (!this.isMapLoaded()) {
       const errorMsg = `카카오맵이 로드되지 않았습니다. 상태: isLoaded=${this.isLoaded}, kakao=${!!window.kakao}, maps=${!!(window.kakao && window.kakao.maps)}, LatLng=${!!(window.kakao && window.kakao.maps && window.kakao.maps.LatLng)}`
       console.error('KakaoMapManager:', errorMsg)
@@ -368,7 +321,6 @@ class KakaoMapManager {
     
     try {
       const infoWindow = new window.kakao.maps.InfoWindow(options)
-      console.log('KakaoMapManager: InfoWindow 생성 성공:', infoWindow)
       return infoWindow
     } catch (error) {
       console.error('KakaoMapManager: InfoWindow 생성 실패:', error)

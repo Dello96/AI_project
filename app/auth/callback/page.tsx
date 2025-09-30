@@ -26,11 +26,6 @@ export default function AuthCallback() {
 
         if (data.session) {
           const user = data.session.user
-          console.log('OAuth 로그인 성공:', { 
-            id: user.id, 
-            email: user.email, 
-            provider: user.app_metadata?.provider 
-          })
           
           // 사용자 프로필이 있는지 확인
           const { data: profile, error: profileError } = await supabase
@@ -41,7 +36,6 @@ export default function AuthCallback() {
 
           if (profileError && profileError.code === 'PGRST116') {
             // 프로필이 없으면 새로 생성 (카카오 로그인 시)
-            console.log('새 사용자 프로필 생성 중...')
             
             const { error: createError } = await supabase
               .from('user_profiles')
@@ -61,7 +55,6 @@ export default function AuthCallback() {
               return
             }
             
-            console.log('새 사용자 프로필 생성 완료')
           }
 
           setStatus('success')

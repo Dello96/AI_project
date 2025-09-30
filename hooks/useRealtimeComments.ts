@@ -32,7 +32,6 @@ export function useRealtimeComments({
           filter: `post_id=eq.${postId}`
         },
         (payload) => {
-          console.log('새 댓글 추가됨:', payload.new)
           if (onCommentAdded && payload.new) {
             onCommentAdded(payload.new as Comment)
           }
@@ -47,7 +46,6 @@ export function useRealtimeComments({
           filter: `post_id=eq.${postId}`
         },
         (payload) => {
-          console.log('댓글 수정됨:', payload.new)
           if (onCommentUpdated && payload.new) {
             onCommentUpdated(payload.new as Comment)
           }
@@ -62,7 +60,6 @@ export function useRealtimeComments({
           filter: `post_id=eq.${postId}`
         },
         (payload) => {
-          console.log('댓글 삭제됨:', payload.old)
           if (onCommentDeleted && payload.old) {
             onCommentDeleted(payload.old.id)
           }

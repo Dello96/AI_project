@@ -47,8 +47,6 @@ export default function LocationSearch({
   useEffect(() => {
     if (!isMounted || !mapRef.current) return
     
-    console.log('LocationSearch: 지도 컨테이너 마운트 확인됨')
-    console.log(`LocationSearch: mapRef.current 존재: ${!!mapRef.current}`)
   }, [isMounted, mapRef.current])
 
   // 카카오맵 로드 확인
@@ -58,35 +56,25 @@ export default function LocationSearch({
     // 지도 컨테이너가 마운트될 때까지 대기
     const waitForContainer = () => {
       if (!mapRef.current) {
-        console.log('LocationSearch: 지도 컨테이너 대기 중...')
         setTimeout(waitForContainer, 100)
         return
       }
-      console.log('LocationSearch: 지도 컨테이너 확인됨')
       loadKakaoMap()
     }
 
     const loadKakaoMap = () => {
       try {
-        console.log('LocationSearch: 카카오맵 로드 시작')
-        console.log('LocationSearch: window.kakao 상태:', !!window.kakao)
-        console.log('LocationSearch: window.kakao.maps 상태:', !!(window.kakao && window.kakao.maps))
-        console.log('LocationSearch: window.kakao.maps.services 상태:', !!(window.kakao && window.kakao.maps && window.kakao.maps.services))
         
         // 카카오맵이 로드되었는지 확인
         if (window.kakao && window.kakao.maps) {
-          console.log('LocationSearch: 카카오맵 기본 로드 완료')
           
           // Places 서비스가 로드되었는지 확인
           if (window.kakao.maps.services) {
-            console.log('LocationSearch: Places 서비스 사용 가능')
-            console.log('LocationSearch: LatLng 상태:', !!window.kakao.maps.LatLng)
             setIsMapLoaded(true)
           } else {
             console.error('LocationSearch: Places 서비스가 로드되지 않음')
             // Places 서비스가 로드되지 않았으면 잠시 후 다시 시도
             setTimeout(() => {
-              console.log('LocationSearch: Places 서비스 재시도 중...')
               loadKakaoMap()
             }, 2000)
           }
@@ -94,7 +82,6 @@ export default function LocationSearch({
           console.error('LocationSearch: 카카오맵이 로드되지 않음')
           // 카카오맵이 로드되지 않았으면 잠시 후 다시 시도
           setTimeout(() => {
-            console.log('LocationSearch: 재시도 중...')
             loadKakaoMap()
           }, 1000)
         }
@@ -112,12 +99,8 @@ export default function LocationSearch({
 
   // 장소 검색 함수 (카카오지도 API 공식 코드 방식)
   const searchPlaces = () => {
-    console.log('LocationSearch: searchPlaces 호출됨')
-    console.log('LocationSearch: isMapLoaded:', isMapLoaded)
-    console.log('LocationSearch: searchQuery:', searchQuery)
     
     if (!isMapLoaded || !searchQuery.trim()) {
-      console.log('카카오맵이 완전히 로드되지 않았거나 검색어가 없습니다.')
       return
     }
 
@@ -138,14 +121,11 @@ export default function LocationSearch({
     markers.current = []
 
     try {
-      console.log('LocationSearch: Places 서비스 생성 시도')
       
       // 장소 검색 객체를 생성합니다 (공식 코드 방식)
       const ps = new window.kakao.maps.services.Places()
-      console.log('LocationSearch: Places 서비스 생성 성공')
       
       // 키워드로 장소를 검색합니다 (공식 코드 방식)
-      console.log('LocationSearch: 키워드 검색 시작:', searchQuery)
       ps.keywordSearch(searchQuery, placesSearchCB)
       
     } catch (error) {
@@ -159,17 +139,11 @@ export default function LocationSearch({
 
   // 키워드 검색 완료 시 호출되는 콜백함수 (공식 코드 방식)
   const placesSearchCB = (data: any[], status: any, pagination: any) => {
-    console.log('LocationSearch: placesSearchCB 호출됨')
-    console.log('LocationSearch: status:', status)
-    console.log('LocationSearch: data:', data)
-    console.log('LocationSearch: data.length:', data?.length || 0)
-    console.log('LocationSearch: pagination:', pagination)
     
     setIsSearching(false)
     
     try {
       if (status === window.kakao.maps.services.Status.OK) {
-        console.log('LocationSearch: 검색 성공, 결과:', data.length, '개')
         setSearchResults(data || [])
         
         // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해
@@ -181,7 +155,6 @@ export default function LocationSearch({
             return
           }
 
-          console.log('LocationSearch: 지도에 마커 표시 시작')
           const bounds = new window.kakao.maps.LatLngBounds()
           
           for (let i = 0; i < data.length; i++) {
@@ -195,7 +168,6 @@ export default function LocationSearch({
           
           // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다 (공식 코드 방식)
           mapInstance.current.setBounds(bounds)
-          console.log('LocationSearch: 지도 범위 조정 완료')
         }
       } else {
         setSearchResults([])
@@ -233,7 +205,6 @@ export default function LocationSearch({
     }
     
     try {
-      console.log('LocationSearch: displayMarker - 마커 생성 시작:', place.place_name)
       
       // 마커를 생성하고 지도에 표시합니다 (공식 코드 방식)
       const marker = new window.kakao.maps.Marker({
@@ -241,7 +212,6 @@ export default function LocationSearch({
         position: new window.kakao.maps.LatLng(place.y, place.x)
       })
       
-      console.log('LocationSearch: displayMarker - 마커 생성 완료')
       
       // 마커에 클릭이벤트를 등록합니다 (공식 코드 방식)
       window.kakao.maps.event.addListener(marker, 'click', function() {
@@ -252,7 +222,6 @@ export default function LocationSearch({
             content: '<div style="padding:5px;font-size:12px;">' + place.place_name + '</div>'
           })
           infowindow.open(mapInstance.current, marker)
-          console.log('LocationSearch: displayMarker - 인포윈도우 표시 완료')
         } catch (infowindowError) {
           console.error('LocationSearch: displayMarker - 인포윈도우 오류:', infowindowError)
         }
@@ -260,7 +229,6 @@ export default function LocationSearch({
       
       // 마커를 배열에 저장
       markers.current.push(marker)
-      console.log('LocationSearch: displayMarker - 마커 저장 완료')
       
     } catch (error) {
       console.error('LocationSearch: displayMarker - 마커 생성 오류:', error)
@@ -300,7 +268,6 @@ export default function LocationSearch({
 
     try {
       mapInstance.current = new window.kakao.maps.Map(container, options)
-      console.log('LocationSearch: 지도 초기화 완료')
     } catch (error) {
       console.error('LocationSearch: 지도 초기화 실패:', error)
     }

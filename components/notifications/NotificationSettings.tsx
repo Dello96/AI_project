@@ -113,7 +113,6 @@ export default function NotificationSettings() {
 
       if (settings.emailNotifications) {
         // 이메일 테스트 알림 발송 (실제 구현에서는 API 호출)
-        console.log('테스트 이메일 알림 발송')
       }
 
       setMessage({

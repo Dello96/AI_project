@@ -110,13 +110,6 @@ async function sendPushNotifications(
   try {
     // 실제 구현에서는 FCM 또는 웹 푸시 서비스를 사용
     // 여기서는 로깅만 수행
-    console.log('푸시 알림 발송:', {
-      recipients: recipientIds.length,
-      title,
-      message,
-      type,
-      relatedId
-    })
 
     // 향후 FCM 연동 시 이 부분을 구현
     // const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {

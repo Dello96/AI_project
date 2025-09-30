@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('=== 인증 상태 확인 ===')
     
     // 1. Supabase 세션 확인
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -52,7 +51,6 @@ export async function GET(request: NextRequest) {
       emailConfirmed: !!session.user.email_confirmed_at
     }
     
-    console.log('인증된 사용자:', userInfo)
     
     return NextResponse.json({
       success: true,
