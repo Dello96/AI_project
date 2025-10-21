@@ -7,6 +7,9 @@ const withPWA = require('next-pwa')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: {
+    buildActivity: false,
+  },
   images: {
     remotePatterns: [
       {

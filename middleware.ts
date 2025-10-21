@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 
 // 보호된 라우트 패턴
 const protectedRoutes = [
@@ -17,7 +18,7 @@ const publicRoutes = [
   '/api'
 ]
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
   // 공개 라우트는 인증 검사 제외
@@ -29,19 +30,33 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
   
   if (isProtectedRoute) {
-    // 쿠키에서 액세스 토큰 확인
-    const accessToken = request.cookies.get('access_token')?.value
+    const res = NextResponse.next()
     
-    if (!accessToken) {
-      // 토큰이 없으면 로그인 페이지로 리다이렉트
+    // Supabase 미들웨어 클라이언트 생성
+    // 이는 쿠키에서 Supabase 세션을 자동으로 읽고 갱신합니다
+    try {
+      const supabase = createMiddlewareClient({ req: request, res })
+      
+      // 세션 확인
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        // 세션이 없으면 로그인 페이지로 리다이렉트
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirect', pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+      
+      // 세션이 있으면 계속 진행
+      return res
+    } catch (error) {
+      console.error('Middleware 인증 오류:', error)
+      
+      // 오류 발생 시 로그인 페이지로 리다이렉트
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
     }
-    
-    // Edge Runtime에서는 JWT 검증을 하지 않고, 
-    // 각 보호된 페이지에서 클라이언트 사이드에서 검증하도록 함
-    return NextResponse.next()
   }
   
   return NextResponse.next()

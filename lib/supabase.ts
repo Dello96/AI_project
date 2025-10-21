@@ -13,9 +13,10 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_A
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    autoRefreshToken: false, // 토큰 자동 갱신 비활성화
-    persistSession: true,
-    detectSessionInUrl: true
+    autoRefreshToken: true, // Supabase 자동 토큰 갱신 활성화
+    persistSession: true, // 브라우저에 세션 유지
+    detectSessionInUrl: true, // URL에서 세션 감지 (OAuth 콜백용)
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined // 세션 저장소 명시
   }
 })
 

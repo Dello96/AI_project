@@ -1,8 +1,19 @@
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash, randomBytes } from 'crypto'
 
-// JWT 토큰 설정
+/**
+ * ⚠️ DEPRECATED: 커스텀 JWT 토큰 관리
+ * 
+ * Supabase 자동 토큰 관리 방식으로 통합되어 아래 JWT 관련 함수들은 더 이상 사용되지 않습니다.
+ * 레이트 리밋과 감사 로그 기능만 활성화되어 있습니다.
+ * 
+ * 변경 사항:
+ * - Supabase Auth의 autoRefreshToken: true 사용
+ * - onAuthStateChange로 자동 세션 관리
+ * - 커스텀 JWT 생성/검증 로직 제거
+ */
+
+// DEPRECATED: JWT 토큰 설정 (현재 사용되지 않음)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 const ACCESS_TOKEN_EXPIRY = '15m' // 15분
 const REFRESH_TOKEN_EXPIRY = '7d' // 7일
@@ -14,7 +25,7 @@ const LOGIN_BLOCK_DURATION = 15 * 60 * 1000 // 15분 (밀리초)
 // 로그인 시도 추적 (메모리 기반, 프로덕션에서는 Redis 사용 권장)
 const loginAttempts = new Map<string, { count: number; blockedUntil: number }>()
 
-// 쿠키 설정
+// DEPRECATED: 쿠키 설정 (현재 사용되지 않음, Supabase가 자동 관리)
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -23,7 +34,10 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 // 7일
 }
 
-// JWT 토큰 생성 (간단한 구현, 프로덕션에서는 jose 라이브러리 사용 권장)
+/**
+ * @deprecated Supabase Auth로 대체됨
+ * JWT 토큰 생성 (간단한 구현, 프로덕션에서는 jose 라이브러리 사용 권장)
+ */
 export function createJWT(payload: any, expiresIn: string): string {
   const header = { alg: 'HS256', typ: 'JWT' }
   const now = Math.floor(Date.now() / 1000)
@@ -53,7 +67,10 @@ export function createJWT(payload: any, expiresIn: string): string {
   return `${encodedHeader}.${encodedData}.${signature}`
 }
 
-// JWT 토큰 검증
+/**
+ * @deprecated Supabase Auth로 대체됨
+ * JWT 토큰 검증
+ */
 export function verifyJWT(token: string): any {
   try {
     const [header, data, signature] = token.split('.')
@@ -80,12 +97,18 @@ export function verifyJWT(token: string): any {
   }
 }
 
-// 리프레시 토큰 생성
+/**
+ * @deprecated Supabase Auth로 대체됨
+ * 리프레시 토큰 생성
+ */
 export function createRefreshToken(): string {
   return randomBytes(32).toString('hex')
 }
 
-// 쿠키 설정
+/**
+ * @deprecated Supabase Auth로 대체됨
+ * 쿠키 설정
+ */
 export function setAuthCookies(response: NextResponse, accessToken: string, refreshToken: string): NextResponse {
   response.cookies.set('access_token', accessToken, {
     ...COOKIE_OPTIONS,
@@ -101,7 +124,10 @@ export function setAuthCookies(response: NextResponse, accessToken: string, refr
   return response
 }
 
-// 쿠키에서 토큰 가져오기
+/**
+ * @deprecated Supabase Auth로 대체됨
+ * 쿠키에서 토큰 가져오기
+ */
 export function getAuthCookies(request: NextRequest): { accessToken?: string; refreshToken?: string } {
   const accessToken = request.cookies.get('access_token')?.value
   const refreshToken = request.cookies.get('refresh_token')?.value
@@ -112,7 +138,10 @@ export function getAuthCookies(request: NextRequest): { accessToken?: string; re
   }
 }
 
-// 쿠키 삭제
+/**
+ * @deprecated Supabase Auth로 대체됨
+ * 쿠키 삭제
+ */
 export function clearAuthCookies(response: NextResponse): NextResponse {
   response.cookies.delete('access_token')
   response.cookies.delete('refresh_token')

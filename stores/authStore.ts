@@ -11,10 +11,8 @@ interface AuthStore extends AuthState {
   signIn: (data: SignInData) => Promise<{ success: boolean; message: string }>
   signOut: () => Promise<void>
   checkUser: () => Promise<boolean>
-  refreshToken: () => Promise<boolean>
   getAccessToken: () => Promise<string | null>
   initializeAuth: () => Promise<(() => void) | undefined>
-  scheduleTokenRefresh: (expiresIn: number) => void
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -132,10 +130,7 @@ export const useAuthStore = create<AuthStore>()(
             error: null
           })
 
-          // 토큰 갱신 스케줄링
-          if (authData.session?.expires_in) {
-            get().scheduleTokenRefresh(authData.session.expires_in)
-          }
+          // Supabase가 자동으로 토큰 갱신을 처리하므로 수동 스케줄링 불필요
 
           return { success: true, message: '로그인에 성공했습니다.' }
         }
@@ -221,50 +216,6 @@ export const useAuthStore = create<AuthStore>()(
       }
     },
 
-    refreshToken: async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.refreshSession()
-        
-        if (error) {
-          console.error('토큰 갱신 실패:', error)
-          return false
-        }
-        
-        if (session?.user) {
-          
-          // 사용자 프로필 정보 가져오기
-          const { data: userProfile } = await supabase
-            .from('user_profiles')
-            .select('name, email, role, is_approved, phone')
-            .eq('id', session.user.id)
-            .single()
-          
-          // 상태 업데이트
-          set({
-            user: {
-              id: session.user.id,
-              email: session.user.email || '',
-              name: userProfile?.name || session.user.email?.split('@')[0] || '사용자',
-              ...(userProfile?.phone && { phone: userProfile.phone }),
-              role: userProfile?.role || 'member',
-              isApproved: userProfile?.is_approved || false,
-              provider: session.user.app_metadata?.provider || 'email',
-              createdAt: new Date(session.user.created_at),
-              updatedAt: new Date()
-            },
-            isLoading: false,
-            error: null
-          })
-          
-          return true
-        }
-        
-        return false
-      } catch (error) {
-        console.error('토큰 갱신 오류:', error)
-        return false
-      }
-    },
 
     getAccessToken: async () => {
       try {
@@ -280,18 +231,27 @@ export const useAuthStore = create<AuthStore>()(
       try {
         await get().checkUser()
         
-        // Auth 상태 변경 감지
+        // Supabase Auth 상태 변경 감지 및 자동 동기화
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
+            console.log('🔐 Auth 상태 변경:', event, session?.user?.email)
             
             if (event === 'SIGNED_IN' && session?.user) {
+              // 사용자 프로필 정보 가져오기
+              const { data: userProfile } = await supabase
+                .from('user_profiles')
+                .select('name, email, role, is_approved, phone')
+                .eq('id', session.user.id)
+                .single()
+
               const userData: User = {
                 id: session.user.id,
                 email: session.user.email || '',
-                name: session.user.user_metadata?.name || '사용자',
-                phone: session.user.user_metadata?.phone || null,
-                role: 'member',
-                isApproved: true,
+                name: userProfile?.name || session.user.user_metadata?.name || '사용자',
+                phone: userProfile?.phone || session.user.user_metadata?.phone || null,
+                role: userProfile?.role || 'member',
+                isApproved: userProfile?.is_approved ?? true,
+                provider: session.user.app_metadata?.provider || 'email',
                 createdAt: new Date(session.user.created_at || new Date()),
                 updatedAt: new Date(session.user.updated_at || new Date())
               }
@@ -301,17 +261,18 @@ export const useAuthStore = create<AuthStore>()(
                 isLoading: false,
                 error: null
               })
-              
-              // 토큰 갱신 스케줄링
-              if (session.expires_in) {
-                get().scheduleTokenRefresh(session.expires_in)
-              }
             } else if (event === 'SIGNED_OUT') {
               set({
                 user: null,
                 isLoading: false,
                 error: null
               })
+            } else if (event === 'TOKEN_REFRESHED') {
+              console.log('✅ 토큰이 자동으로 갱신되었습니다.')
+              // Supabase가 자동으로 갱신한 토큰으로 세션이 유지됨
+            } else if (event === 'USER_UPDATED' && session?.user) {
+              // 사용자 정보 업데이트 시
+              await get().checkUser()
             }
           }
         )
@@ -328,22 +289,6 @@ export const useAuthStore = create<AuthStore>()(
           error: '인증 확인 중 오류가 발생했습니다.'
         })
       }
-    },
-
-    // Helper function for token refresh scheduling
-    scheduleTokenRefresh: (expiresIn: number) => {
-      const refreshTime = (expiresIn - 60) * 1000 // 1분 전에 갱신
-      
-      setTimeout(async () => {
-        const success = await get().refreshToken()
-        if (success) {
-          // 성공 시 다음 갱신 스케줄링
-          get().scheduleTokenRefresh(expiresIn)
-        } else {
-          // 실패 시 로그아웃
-          await get().signOut()
-        }
-      }, refreshTime)
     }
   }))
 )

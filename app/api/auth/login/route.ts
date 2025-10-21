@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { 
-  createJWT, 
-  createRefreshToken, 
-  setAuthCookies, 
   checkRateLimit, 
   recordLoginFailure, 
   resetLoginAttempts,
@@ -133,33 +130,6 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // JWT 토큰 생성
-    const accessToken = createJWT(
-      { 
-        sub: authData.user.id, 
-        email: authData.user.email,
-        role: userRole,
-        isApproved
-      },
-      '15m'
-    )
-    
-    const refreshToken = createRefreshToken()
-    
-    // 리프레시 토큰을 데이터베이스에 저장
-    const { error: tokenError } = await supabase
-      .from('refresh_tokens')
-      .upsert({
-        user_id: authData.user.id,
-        token: refreshToken,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7일
-      })
-    
-    if (tokenError) {
-      console.error('리프레시 토큰 저장 오류:', tokenError)
-      // 토큰 저장 실패해도 로그인은 성공으로 처리
-    }
-    
     // 로그인 성공 시 시도 횟수 초기화
     resetLoginAttempts(email)
     
@@ -172,8 +142,11 @@ export async function POST(request: NextRequest) {
       details: { userId: authData.user.id, role: userRole }
     })
     
-    // 응답 생성 (Supabase Auth 세션을 직접 사용)
-    const response = NextResponse.json(
+    // Supabase가 자동으로 토큰을 관리하므로 별도의 JWT 생성 불필요
+    // authData.session에 이미 access_token과 refresh_token이 포함되어 있음
+    
+    // 응답 생성
+    return NextResponse.json(
       { 
         success: true,
         message: '로그인에 성공했습니다.',
@@ -185,33 +158,13 @@ export async function POST(request: NextRequest) {
           churchDomain: profile?.church_domain_id || authData.user.user_metadata?.churchDomain || '',
           role: userRole,
           isApproved,
+          provider: authData.user.app_metadata?.provider || 'email',
           createdAt: new Date(authData.user.created_at || new Date()),
           updatedAt: new Date(authData.user.updated_at || new Date())
         }
       },
       { status: 200 }
     )
-    
-    // Supabase Auth 세션 쿠키 설정
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
-      // Supabase Auth 쿠키 설정
-      response.cookies.set('sb-access-token', session.access_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 15 * 60 // 15분
-      })
-      
-      response.cookies.set('sb-refresh-token', session.refresh_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 // 7일
-      })
-    }
-    
-    return response
     
   } catch (error) {
     console.error('로그인 API 오류:', error)
