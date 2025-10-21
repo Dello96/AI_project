@@ -31,7 +31,7 @@ interface PostFormProps {
 export default function PostForm({ isOpen, onClose, onSuccess, initialData }: PostFormProps) {
   const [attachedFiles, setAttachedFiles] = useState<FileWithPreview[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const { user, isLoading: authLoading, refreshToken, signOut, getAccessToken } = useAuthStore()
+  const { user, isLoading: authLoading, signOut } = useAuthStore()
   const { showAlert } = useAlertStore()
   const supabase = createClientComponentClient()
   
@@ -82,26 +82,7 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
       // 업로드 시작
       setIsUploading(true)
 
-      // 토큰 갱신 시도
-      const tokenRefreshed = await refreshToken()
-      if (!tokenRefreshed) {
-        console.warn('토큰 갱신 실패, 기존 토큰으로 진행')
-      } else {
-        
-        // 토큰 갱신 후 세션을 강제로 새로고침
-        try {
-          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
-          if (refreshError) {
-            console.error('세션 새로고침 오류:', refreshError)
-          } else if (refreshedSession) {
-          }
-        } catch (error) {
-          console.error('세션 새로고침 중 오류:', error)
-        }
-        
-        // 상태 업데이트를 위한 대기
-        await new Promise(resolve => setTimeout(resolve, 200))
-      }
+      // Supabase가 자동으로 토큰을 갱신하므로 수동 갱신 불필요
       
       // 파일 업로드 처리
       let fileUrls: string[] = []
@@ -122,46 +103,18 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
         }
       }
 
-      // 세션 확인 - 안전한 방식으로 개선
-      let session = null
-      
-      // 1차: 현재 세션 확인
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-      session = sessionData.session
-      
-      // 2차: 세션이 없으면 토큰 갱신 시도
-      if (!session?.access_token) {
-        try {
-          await refreshToken()
-          const { data: refreshedSession } = await supabase.auth.getSession()
-          session = refreshedSession.session
-        } catch (error) {
-          console.error('토큰 갱신 실패:', error)
-        }
-      }
-      
-      // 3차: 여전히 세션이 없으면 AuthContext에서 직접 가져오기
-      if (!session?.access_token) {
-        const accessToken = await getAccessToken()
-        if (accessToken) {
-          session = {
-            access_token: accessToken,
-            refresh_token: '',
-            expires_in: 3600,
-            token_type: 'bearer',
-            user: user
-          }
-        }
-      }
+      // 세션 확인 - Supabase가 자동으로 관리
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
       if (!session?.access_token) {
-        console.error('모든 방법으로 토큰을 가져올 수 없습니다.')
+        console.error('세션을 가져올 수 없습니다:', sessionError)
         showAlert({
           title: '인증 실패',
-          message: '인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.',
+          message: '인증이 만료되었습니다. 다시 로그인해주세요.',
           type: 'error',
           duration: 5000
         })
+        await signOut()
         return
       }
 

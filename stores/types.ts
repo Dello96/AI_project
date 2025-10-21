@@ -9,9 +9,8 @@ export interface AuthStore extends AuthState {
   signIn: (data: SignInData) => Promise<{ success: boolean; message: string }>
   signOut: () => Promise<void>
   checkUser: () => Promise<boolean>
-  refreshToken: () => Promise<boolean>
   getAccessToken: () => Promise<string | null>
-  initializeAuth: () => Promise<void>
+  initializeAuth: () => Promise<(() => void) | undefined>
 }
 
 // Alert Store Types
