@@ -67,9 +67,11 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
     } else {
       const submittedName = String(formData.get('name') || signUpData.name || '').trim()
       const submittedPhone = String(formData.get('phone') || signUpData.phone || '').trim()
-      const submittedConfirmPassword = signUpData.confirmPassword
+      const submittedConfirmPassword = signUpData.confirmPassword?.trim() || ''
 
-      if (submittedPassword !== submittedConfirmPassword) {
+      // 모달 회원가입 UI에는 비밀번호 확인 필드가 없으므로
+      // confirmPassword가 실제로 입력된 경우에만 불일치 검사를 수행한다.
+      if (submittedConfirmPassword && submittedPassword !== submittedConfirmPassword) {
         setError('비밀번호가 일치하지 않습니다.')
         return
       }
