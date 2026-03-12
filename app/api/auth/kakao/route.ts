@@ -1,28 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 
+const normalizeBaseUrl = (value?: string): string | null => {
+  if (!value) return null
+
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+
+  try {
+    const parsed = new URL(withProtocol)
+    return `${parsed.protocol}//${parsed.host}`
+  } catch {
+    return null
+  }
+}
+
+const getRedirectUrl = (request: NextRequest): string => {
+  // 배포/프리뷰 환경에서는 실제 요청 origin을 최우선으로 사용
+  const requestOrigin = normalizeBaseUrl(request.nextUrl.origin)
+  if (requestOrigin) {
+    return `${requestOrigin}/auth/callback`
+  }
+
+  const envBaseUrl =
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL) ||
+    normalizeBaseUrl(process.env.VERCEL_URL)
+
+  if (envBaseUrl) {
+    return `${envBaseUrl}/auth/callback`
+  }
+
+  return 'http://localhost:3000/auth/callback'
+}
+
 // 카카오 소셜 로그인 시작
 export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient()
-    
-    // 환경별 리다이렉트 URL 설정
-    const getRedirectUrl = () => {
-      // 1. 환경 변수에서 명시적으로 설정된 URL 사용
-      if (process.env.NEXT_PUBLIC_SITE_URL) {
-        return `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
-      }
-      
-      // 2. NODE_ENV 기반 자동 설정
-      if (process.env.NODE_ENV === 'production') {
-        return 'https://ai-project-f45i.vercel.app/auth/callback'
-      }
-      
-      // 3. 개발 환경 기본값
-      return 'http://localhost:3000/auth/callback'
-    }
-    
-    const redirectUrl = getRedirectUrl()
+    const redirectUrl = getRedirectUrl(request)
     
     
     // Supabase Auth의 카카오 소셜 로그인 URL 생성
@@ -56,24 +74,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient()
-    
-    // 환경별 리다이렉트 URL 설정
-    const getRedirectUrl = () => {
-      // 1. 환경 변수에서 명시적으로 설정된 URL 사용
-      if (process.env.NEXT_PUBLIC_SITE_URL) {
-        return `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
-      }
-      
-      // 2. NODE_ENV 기반 자동 설정
-      if (process.env.NODE_ENV === 'production') {
-        return 'https://ai-project-f45i.vercel.app/auth/callback'
-      }
-      
-      // 3. 개발 환경 기본값
-      return 'http://localhost:3000/auth/callback'
-    }
-    
-    const redirectUrl = getRedirectUrl()
+    const redirectUrl = getRedirectUrl(request)
     
     
     // Supabase Auth의 카카오 소셜 로그인 URL 생성
