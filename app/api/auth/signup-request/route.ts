@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const normalizedPhone = phone?.trim() || null
     
     const supabaseAdmin = createServerSupabaseClient()
-    let authUser: { id: string; email_confirmed_at: string | null } | null = null
+    let authUser: { id: string; email_confirmed_at?: string | null } | null = null
     let usedAdminFallback = false
 
     // Supabase Auth를 사용하여 사용자 생성
