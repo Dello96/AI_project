@@ -32,6 +32,10 @@ export async function POST(request: NextRequest) {
     const { email, password, name, phone } = parsed.data
     const normalizedPhone = phone?.trim() || null
     
+    const supabaseAdmin = createServerSupabaseClient()
+    let authUser: { id: string; email_confirmed_at: string | null } | null = null
+    let usedAdminFallback = false
+
     // Supabase Auth를 사용하여 사용자 생성
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -71,24 +75,53 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // 이메일 발송 제한 초과 처리
+      // 이메일 발송 제한 초과 시 관리자 API로 우회 생성 (개발/운영 안정성 보완)
       if (authError.code === 'over_email_send_rate_limit') {
+        const { data: fallbackUserData, error: fallbackError } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            name,
+            phone: normalizedPhone
+          }
+        })
+
+        if (fallbackError) {
+          console.error('이메일 제한 우회 생성 오류:', fallbackError)
+
+          if (
+            fallbackError.message.includes('already registered') ||
+            fallbackError.message.includes('already been registered')
+          ) {
+            return NextResponse.json(
+              { error: '이미 가입된 이메일 주소입니다. 비밀번호 로그인을 시도해주세요.' },
+              { status: 409 }
+            )
+          }
+
+          return NextResponse.json(
+            {
+              error:
+                '인증 이메일 발송 한도를 초과했습니다. 잠시 후 다시 시도하거나 관리자에게 문의해주세요.'
+            },
+            { status: 429 }
+          )
+        }
+
+        authUser = fallbackUserData.user
+        usedAdminFallback = true
+      } else {
         return NextResponse.json(
-          {
-            error:
-              '인증 이메일 발송 한도를 초과했습니다. 잠시 후 다시 시도하거나, 관리자에게 계정 승인 요청을 해주세요.'
-          },
-          { status: 429 }
+          { error: `가입 요청에 실패했습니다: ${authError.message}` },
+          { status: 500 }
         )
       }
-      
-      return NextResponse.json(
-        { error: `가입 요청에 실패했습니다: ${authError.message}` },
-        { status: 500 }
-      )
+    } else {
+      authUser = authData.user
     }
     
-    if (!authData.user) {
+    if (!authUser) {
       return NextResponse.json(
         { error: '사용자 생성에 실패했습니다.' },
         { status: 500 }
@@ -96,12 +129,11 @@ export async function POST(request: NextRequest) {
     }
 
     // user_profiles에 전화번호 포함 프로필 저장 (service role로 RLS 영향 제거)
-    const supabaseAdmin = createServerSupabaseClient()
     const { error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .upsert(
         {
-          id: authData.user.id,
+          id: authUser.id,
           email,
           name,
           phone: normalizedPhone,
@@ -120,7 +152,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 이메일 확인이 필요한 경우
-    if (authData.user && !authData.user.email_confirmed_at) {
+    if (!usedAdminFallback && authUser && !authUser.email_confirmed_at) {
       return NextResponse.json({
         success: true,
         message: '가입 요청이 완료되었습니다. 이메일을 확인하여 계정을 활성화해주세요.',
@@ -128,10 +160,12 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 이메일 확인이 완료된 경우
+    // 이메일 확인이 완료된 경우 또는 fallback으로 즉시 생성된 경우
     return NextResponse.json({
       success: true,
-      message: '가입이 완료되었습니다. 로그인해주세요.',
+      message: usedAdminFallback
+        ? '가입 요청이 접수되었습니다. 바로 로그인할 수 있습니다.'
+        : '가입이 완료되었습니다. 로그인해주세요.',
       requiresEmailConfirmation: false
     })
 
