@@ -94,9 +94,18 @@ export const useAuthStore = create<AuthStore>()(
       try {
         set({ isLoading: true, error: null })
 
+        const email = data.email.trim()
+        const password = data.password
+
+        if (!email || !password) {
+          const errorMessage = '이메일과 비밀번호를 모두 입력해주세요.'
+          set({ error: errorMessage, isLoading: false })
+          return { success: false, message: errorMessage }
+        }
+
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password
+          email,
+          password
         })
 
         if (authError) {

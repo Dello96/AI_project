@@ -42,9 +42,22 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null) // 이전 에러 메시지 초기화
+
+    const formData = new FormData(e.currentTarget as HTMLFormElement)
+    const submittedEmail = String(formData.get('email') || '').trim()
+    const submittedPassword = String(formData.get('password') || '')
     
     if (mode === 'signin') {
-      const result = await signIn(signInData)
+      if (!submittedEmail || !submittedPassword) {
+        setError('이메일과 비밀번호를 모두 입력해주세요.')
+        return
+      }
+
+      const result = await signIn({
+        email: submittedEmail,
+        password: submittedPassword
+      })
+
       if (result.success) {
         onClose()
         onSuccess?.()
@@ -52,7 +65,19 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
         setError(result.message || '로그인에 실패했습니다.')
       }
     } else {
-      const result = await signUp(signUpData)
+      const submittedName = String(formData.get('name') || signUpData.name || '').trim()
+      const submittedPhone = String(formData.get('phone') || signUpData.phone || '').trim()
+      const submittedConfirmPassword = signUpData.confirmPassword
+
+      const result = await signUp({
+        ...signUpData,
+        email: submittedEmail,
+        password: submittedPassword,
+        confirmPassword: submittedConfirmPassword,
+        name: submittedName,
+        phone: submittedPhone
+      })
+
       if (result.success) {
         setMode('signin')
         setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '' })
@@ -131,16 +156,20 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
               <>
                 <Input
                   type="text"
+                  name="name"
                   placeholder="이름"
                   value={signUpData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
+                  autoComplete="name"
                   required
                 />
                 <Input
                   type="tel"
+                  name="phone"
                   placeholder="휴대폰 번호 (선택)"
                   value={signUpData.phone || ''}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
+                  autoComplete="tel"
                 />
 
               </>
@@ -148,18 +177,22 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
 
             <Input
               type="email"
+              name="email"
               placeholder="이메일 주소"
               value={mode === 'signin' ? signInData.email : signUpData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
+              autoComplete="email"
               required
             />
 
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
+                name="password"
                 placeholder="비밀번호"
                 value={mode === 'signin' ? signInData.password : signUpData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                 required
               />
               <button
