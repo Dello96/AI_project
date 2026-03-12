@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase'
 
 // 입력 검증 스키마
 const SignupRequestSchema = z.object({
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
     }
     
     const { email, password, name, phone } = parsed.data
+    const normalizedPhone = phone?.trim() || null
     
     // Supabase Auth를 사용하여 사용자 생성
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -37,7 +39,7 @@ export async function POST(request: NextRequest) {
       options: {
         data: {
           name,
-          phone: phone || null
+          phone: normalizedPhone
         }
       }
     })
@@ -82,17 +84,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 사용자 메타데이터 업데이트 (선택적)
-    const { error: updateError } = await supabase.auth.updateUser({
-      data: {
-        name,
-        phone: phone || null
-      }
-    })
+    // user_profiles에 전화번호 포함 프로필 저장 (service role로 RLS 영향 제거)
+    const supabaseAdmin = createServerSupabaseClient()
+    const { error: profileError } = await supabaseAdmin
+      .from('user_profiles')
+      .upsert(
+        {
+          id: authData.user.id,
+          email,
+          name,
+          phone: normalizedPhone,
+          role: 'member',
+          is_approved: false
+        },
+        { onConflict: 'id' }
+      )
 
-    if (updateError) {
-      console.error('사용자 메타데이터 업데이트 오류:', updateError)
-      // 메타데이터 업데이트 실패해도 회원가입은 성공으로 처리
+    if (profileError) {
+      console.error('사용자 프로필 저장 오류:', profileError)
+      return NextResponse.json(
+        { error: '회원 정보 저장 중 오류가 발생했습니다. 관리자에게 문의해주세요.' },
+        { status: 500 }
+      )
     }
 
     // 이메일 확인이 필요한 경우
