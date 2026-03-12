@@ -117,7 +117,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
         }
         switchToSigninTimerRef.current = setTimeout(() => {
           setMode('signin')
-          setSuccessNotice('회원가입이 완료되었습니다. 이제 로그인해 주세요.')
         }, 1500)
       } else {
         setError(result.error || '회원가입에 실패했습니다.')

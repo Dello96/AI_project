@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
     if (!usedAdminFallback && authUser && !authUser.email_confirmed_at) {
       return NextResponse.json({
         success: true,
-        message: '가입 요청이 완료되었습니다. 이메일을 확인하여 계정을 활성화해주세요.',
+        message: `${email}로 인증 메일을 보냈습니다. 메일함(스팸함 포함)에서 인증 링크를 눌러 계정을 활성화해주세요.`,
         requiresEmailConfirmation: true
       })
     }
@@ -164,8 +164,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: usedAdminFallback
-        ? '가입 요청이 접수되었습니다. 바로 로그인할 수 있습니다.'
-        : '가입이 완료되었습니다. 로그인해주세요.',
+        ? '가입 요청이 접수되었습니다.'
+        : '가입이 완료되었습니다.',
       requiresEmailConfirmation: false
     })
 
