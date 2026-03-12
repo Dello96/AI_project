@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 const normalizeBaseUrl = (value?: string): string | null => {
   if (!value) return null
@@ -18,28 +18,55 @@ const normalizeBaseUrl = (value?: string): string | null => {
 }
 
 const getRedirectUrl = (request: NextRequest): string => {
-  // 배포/프리뷰 환경에서는 실제 요청 origin을 최우선으로 사용
+  // 1) 프록시 헤더 기반 공개 origin (Vercel/Proxy 환경에서 가장 신뢰 가능)
+  const forwardedProto = request.headers.get('x-forwarded-proto')
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  if (forwardedProto && forwardedHost) {
+    const forwardedOrigin = normalizeBaseUrl(`${forwardedProto}://${forwardedHost}`)
+    if (forwardedOrigin) {
+      return `${forwardedOrigin}/auth/callback`
+    }
+  }
+
+  // 2) 배포 URL 환경 변수
+  const vercelUrl = normalizeBaseUrl(process.env.VERCEL_URL)
+  if (vercelUrl) {
+    return `${vercelUrl}/auth/callback`
+  }
+
+  // 3) 명시된 사이트 URL
+  const envBaseUrl =
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL)
+  if (envBaseUrl) {
+    return `${envBaseUrl}/auth/callback`
+  }
+
+  // 4) 요청 origin
   const requestOrigin = normalizeBaseUrl(request.nextUrl.origin)
   if (requestOrigin) {
     return `${requestOrigin}/auth/callback`
   }
 
-  const envBaseUrl =
-    normalizeBaseUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
-    normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL) ||
-    normalizeBaseUrl(process.env.VERCEL_URL)
+  // 5) 개발 환경 fallback
+  return 'http://localhost:3000/auth/callback'
+}
 
-  if (envBaseUrl) {
-    return `${envBaseUrl}/auth/callback`
+const createAuthClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase OAuth 환경 변수가 설정되지 않았습니다.')
   }
 
-  return 'http://localhost:3000/auth/callback'
+  return createClient(supabaseUrl, supabaseAnonKey)
 }
 
 // 카카오 소셜 로그인 시작
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createAuthClient()
     const redirectUrl = getRedirectUrl(request)
     
     
@@ -73,7 +100,7 @@ export async function GET(request: NextRequest) {
 // 카카오 소셜 로그인 처리 (POST 요청으로도 처리 가능)
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createAuthClient()
     const redirectUrl = getRedirectUrl(request)
     
     

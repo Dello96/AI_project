@@ -12,70 +12,89 @@ export default function AuthCallback() {
   const [message, setMessage] = useState('로그인 처리 중...')
 
   useEffect(() => {
+    let isMounted = true
+
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+    const updateState = (nextStatus: 'loading' | 'success' | 'error', nextMessage: string) => {
+      if (!isMounted) return
+      setStatus(nextStatus)
+      setMessage(nextMessage)
+    }
+
+    const createProfileIfMissing = async (user: any) => {
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (!profileError && profile) return
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('사용자 프로필 조회 오류:', profileError)
+        return
+      }
+
+      // 프로필 생성 실패가 로그인 성공 자체를 막지 않도록 best-effort로 처리
+      const { error: createError } = await supabase
+        .from('user_profiles')
+        .insert({
+          id: user.id,
+          email: user.email || '',
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || '사용자',
+          role: 'member',
+          is_approved: true
+        })
+
+      if (createError) {
+        console.error('사용자 프로필 생성 오류:', createError)
+      }
+    }
+
+    const finalizeSuccess = async (session: any) => {
+      await createProfileIfMissing(session.user)
+      updateState('success', '카카오 로그인에 성공했습니다!')
+      setTimeout(() => {
+        router.push('/')
+      }, 1500)
+    }
+
     const handleAuthCallback = async () => {
       try {
-        // URL에서 인증 코드 처리
-        const { data, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('인증 오류:', error)
-          setStatus('error')
-          setMessage('로그인에 실패했습니다. 다시 시도해주세요.')
-          return
-        }
+        // OAuth 콜백 직후에는 세션 저장이 약간 지연될 수 있어 짧게 재시도
+        const maxAttempts = 8
+        const retryDelayMs = 350
 
-        if (data.session) {
-          const user = data.session.user
-          
-          // 사용자 프로필이 있는지 확인
-          const { data: profile, error: profileError } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single()
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          const { data, error } = await supabase.auth.getSession()
 
-          if (profileError && profileError.code === 'PGRST116') {
-            // 프로필이 없으면 새로 생성 (카카오 로그인 시)
-            
-            const { error: createError } = await supabase
-              .from('user_profiles')
-              .insert({
-                id: user.id,
-                email: user.email || '',
-                name: user.user_metadata?.full_name || user.email?.split('@')[0] || '사용자',
-                role: 'member',
-                is_approved: true, // 소셜 로그인은 자동 승인
-                provider: user.app_metadata?.provider || 'kakao'
-              })
-
-            if (createError) {
-              console.error('사용자 프로필 생성 오류:', createError)
-              setStatus('error')
-              setMessage('사용자 프로필 생성에 실패했습니다.')
-              return
-            }
-            
+          if (error) {
+            console.error('인증 오류:', error)
+            updateState('error', '로그인에 실패했습니다. 다시 시도해주세요.')
+            return
           }
 
-          setStatus('success')
-          setMessage('로그인에 성공했습니다!')
-          
-          // 2초 후 메인 페이지로 리다이렉트
-          setTimeout(() => {
-            router.push('/')
-          }, 2000)
-        } else {
-          setStatus('error')
-          setMessage('로그인 정보를 찾을 수 없습니다.')
+          if (data.session) {
+            await finalizeSuccess(data.session)
+            return
+          }
+
+          await sleep(retryDelayMs)
         }
+
+        updateState('error', '로그인 정보 확인이 지연되고 있습니다. 다시 시도해주세요.')
       } catch (error) {
         console.error('콜백 처리 오류:', error)
-        setStatus('error')
-        setMessage('로그인 처리 중 오류가 발생했습니다.')
+        updateState('error', '로그인 처리 중 오류가 발생했습니다.')
       }
     }
 
     handleAuthCallback()
+
+    return () => {
+      isMounted = false
+    }
   }, [router])
 
   return (
