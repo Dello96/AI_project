@@ -14,13 +14,29 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient()
     
-    // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      )
+    // 인증 확인 (Authorization 헤더 우선, 없으면 기본 세션 확인)
+    let user = null
+    const authHeader = request.headers.get('authorization')
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1]
+      if (token) {
+        const { data: tokenUserData, error: tokenUserError } = await supabase.auth.getUser(token)
+        if (!tokenUserError && tokenUserData.user) {
+          user = tokenUserData.user
+        }
+      }
+    }
+
+    if (!user) {
+      const { data: sessionUserData, error: authError } = await supabase.auth.getUser()
+      if (authError || !sessionUserData.user) {
+        return NextResponse.json(
+          { error: '인증이 필요합니다.' },
+          { status: 401 }
+        )
+      }
+      user = sessionUserData.user
     }
 
     // 요청 본문 파싱 및 검증

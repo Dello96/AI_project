@@ -572,6 +572,7 @@ export default function PostDetail({ post, onBack, onEdit, onDelete }: PostDetai
                         postId={comment.id}
                         initialLikeCount={comment.likeCount || 0}
                         initialIsLiked={false}
+                        targetType="comment"
                         size="sm"
                       />
                       

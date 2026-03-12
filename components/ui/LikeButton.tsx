@@ -11,6 +11,7 @@ interface LikeButtonProps {
   postId: string
   initialLikeCount: number
   initialIsLiked: boolean
+  targetType?: 'post' | 'comment'
   onLikeChange?: (likeCount: number, isLiked: boolean) => void
   className?: string
   size?: 'sm' | 'md' | 'lg'
@@ -20,6 +21,7 @@ export default function LikeButton({
   postId,
   initialLikeCount,
   initialIsLiked,
+  targetType = 'post',
   onLikeChange,
   className,
   size = 'md'
@@ -67,20 +69,38 @@ export default function LikeButton({
         return
       }
 
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      })
+      const response = targetType === 'post'
+        ? await fetch(`/api/posts/${postId}/like`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          })
+        : await fetch('/api/likes/toggle', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              targetType: 'comment',
+              targetId: postId
+            })
+          })
 
       const data = await response.json()
 
       if (data.success) {
-        // 서버에서 반환된 정확한 값으로 최종 업데이트
-        const finalLikeCount = data.likeCount || newLikeCount
-        const finalIsLiked = data.liked !== undefined ? data.liked : newIsLiked
+        // 서버 응답 스키마가 endpoint별로 달라서 안전하게 흡수
+        const finalLikeCount =
+          data.likeCount ??
+          data.data?.count ??
+          newLikeCount
+        const finalIsLiked =
+          data.liked ??
+          data.data?.liked ??
+          newIsLiked
 
         setLikeCount(finalLikeCount)
         setIsLiked(finalIsLiked)
