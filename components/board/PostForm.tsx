@@ -13,7 +13,6 @@ import { postService } from '@/lib/database'
 import { fileUploadService } from '@/lib/fileUpload'
 import { useAuthStore } from '@/stores/authStore'
 import { useAlertStore } from '@/stores/alertStore'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { 
   postFormSchema, 
   defaultPostFormData, 
@@ -31,9 +30,8 @@ interface PostFormProps {
 export default function PostForm({ isOpen, onClose, onSuccess, initialData }: PostFormProps) {
   const [attachedFiles, setAttachedFiles] = useState<FileWithPreview[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const { user, isLoading: authLoading, signOut } = useAuthStore()
+  const { user, isLoading: authLoading, getAccessToken } = useAuthStore()
   const { showAlert } = useAlertStore()
-  const supabase = createClientComponentClient()
   
   // React Hook Form 설정
   const {
@@ -103,24 +101,22 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
         }
       }
 
-      // 세션 확인 - Supabase가 자동으로 관리
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (!session?.access_token) {
-        console.error('세션을 가져올 수 없습니다:', sessionError)
+      // 액세스 토큰 확인
+      const accessToken = await getAccessToken()
+
+      if (!accessToken) {
         showAlert({
           title: '인증 실패',
           message: '인증이 만료되었습니다. 다시 로그인해주세요.',
           type: 'error',
           duration: 5000
         })
-        await signOut()
         return
       }
 
       const authHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+        'Authorization': `Bearer ${accessToken}`
       }
 
 
@@ -196,8 +192,6 @@ export default function PostForm({ isOpen, onClose, onSuccess, initialData }: Po
             type: 'error',
             duration: 5000
           })
-          // 로그아웃 처리
-          await signOut()
         } else {
           showAlert({
             title: '게시글 작성 실패',
