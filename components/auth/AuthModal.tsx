@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, EyeIcon, EyeSlashIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '@/stores/authStore'
@@ -20,6 +20,8 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<'signin' | 'signup'>(defaultMode)
   const [showPassword, setShowPassword] = useState(false)
+  const [successNotice, setSuccessNotice] = useState<string | null>(null)
+  const switchToSigninTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [signUpData, setSignUpData] = useState<SignupForm>({
     email: '',
     password: '',
@@ -35,6 +37,20 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
   
   const { signIn, isLoading, error: authError } = useAuthStore()
 
+  useEffect(() => {
+    if (!isOpen) {
+      setError(null)
+      setSuccessNotice(null)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    return () => {
+      if (switchToSigninTimerRef.current) {
+        clearTimeout(switchToSigninTimerRef.current)
+      }
+    }
+  }, [])
 
 
 
@@ -42,6 +58,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null) // 이전 에러 메시지 초기화
+    setSuccessNotice(null)
 
     const formData = new FormData(e.currentTarget as HTMLFormElement)
     const submittedEmail = String(formData.get('email') || '').trim()
@@ -92,9 +109,16 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
       const result = await response.json()
 
       if (response.ok && result.success) {
-        setMode('signin')
+        setSuccessNotice(result.message || '회원가입이 완료되었습니다. 로그인 화면으로 이동합니다.')
         setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '' })
-        setError(null)
+        setSignInData({ email: submittedEmail, password: '' })
+        if (switchToSigninTimerRef.current) {
+          clearTimeout(switchToSigninTimerRef.current)
+        }
+        switchToSigninTimerRef.current = setTimeout(() => {
+          setMode('signin')
+          setSuccessNotice('회원가입이 완료되었습니다. 이제 로그인해 주세요.')
+        }, 1500)
       } else {
         setError(result.error || '회원가입에 실패했습니다.')
       }
@@ -113,6 +137,8 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
     setMode(mode === 'signin' ? 'signup' : 'signin')
     setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '' })
     setSignInData({ email: '', password: '' })
+    setSuccessNotice(null)
+    setError(null)
   }
 
   if (!isOpen) return null
@@ -220,6 +246,12 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
                 )}
               </button>
             </div>
+
+            {successNotice && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-700">{successNotice}</p>
+              </div>
+            )}
 
             {(error || authError) && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
