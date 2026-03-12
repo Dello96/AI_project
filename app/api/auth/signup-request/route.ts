@@ -70,6 +70,17 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
+
+      // 이메일 발송 제한 초과 처리
+      if (authError.code === 'over_email_send_rate_limit') {
+        return NextResponse.json(
+          {
+            error:
+              '인증 이메일 발송 한도를 초과했습니다. 잠시 후 다시 시도하거나, 관리자에게 계정 승인 요청을 해주세요.'
+          },
+          { status: 429 }
+        )
+      }
       
       return NextResponse.json(
         { error: `가입 요청에 실패했습니다: ${authError.message}` },
