@@ -69,25 +69,17 @@ export default function LikeButton({
         return
       }
 
-      const response = targetType === 'post'
-        ? await fetch(`/api/posts/${postId}/like`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-          })
-        : await fetch('/api/likes/toggle', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({
-              targetType: 'comment',
-              targetId: postId
-            })
-          })
+      const response = await fetch('/api/likes/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          targetType,
+          targetId: postId
+        })
+      })
 
       const data = await response.json()
 
