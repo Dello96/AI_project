@@ -7,19 +7,15 @@ import { usePathname } from 'next/navigation'
 import { 
   Bars3Icon, 
   XMarkIcon,
-  BellIcon,
   UserCircleIcon,
   HomeIcon,
   CalendarIcon,
-  ChatBubbleLeftRightIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
-import Logo from '@/components/ui/Logo'
 import { usePWAStore } from '@/stores/pwaStore'
 import { useAuthStore } from '@/stores/authStore'
-import AuthModal from '@/components/auth/AuthModal'
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -31,7 +27,6 @@ const navigation = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
   const pathname = usePathname()
   const { notificationPermission } = usePWAStore()
   const { user, isLoading, signOut } = useAuthStore()
@@ -142,12 +137,11 @@ export default function Header() {
                   </div>
                 ) : (
                   /* 로그인되지 않은 경우 */
-                  <Button
-                    onClick={() => setShowAuthModal(true)}
-                    className="hidden sm:flex bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-2 font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                  >
-                    로그인
-                  </Button>
+                  <Link href="/login">
+                    <Button className="hidden sm:flex bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none px-6 py-2 font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                      로그인
+                    </Button>
+                  </Link>
                 )}
               </>
             )}
@@ -231,29 +225,20 @@ export default function Header() {
                   </>
                 ) : (
                   /* 로그인되지 않은 경우 */
-                  <button
-                    onClick={() => {
-                      setShowAuthModal(true)
-                      closeMobileMenu()
-                    }}
+                  <Link
+                    href="/login"
                     className="flex items-center space-x-3 px-4 py-4 rounded-lg transition-all duration-300 bg-gradient-to-r from-orange-500 to-red-500 text-white w-full text-left font-medium hover:from-orange-600 hover:to-red-600"
+                    onClick={closeMobileMenu}
                   >
                     <UserCircleIcon className="w-5 h-5" />
                     <span>로그인</span>
-                  </button>
+                  </Link>
                 )}
               </nav>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* 인증 모달 */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        defaultMode="signin"
-      />
     </header>
   )
 }

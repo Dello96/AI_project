@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       email: session.user.email,
       name: profile?.name || session.user.user_metadata?.name || '사용자',
       phone: profile?.phone || session.user.user_metadata?.phone || null,
-      role: profile?.role || 'user',
+      role: profile?.role || 'member',
       isApproved: profile?.is_approved ?? true,
       provider: session.user.app_metadata?.provider || 'email',
       createdAt: session.user.created_at,

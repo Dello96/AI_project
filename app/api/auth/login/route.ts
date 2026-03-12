@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     }
     
     // 프로필이 없는 경우 기본값 사용
-    const userRole = profile?.role || 'user'
+    const userRole = profile?.role || 'member'
     const isApproved = profile?.is_approved ?? true // 기본적으로 승인된 것으로 처리
     const userName = profile?.name || authData.user.user_metadata?.name || '사용자'
     
