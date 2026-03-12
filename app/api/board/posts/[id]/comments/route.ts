@@ -5,6 +5,25 @@ import { sanitizeComment } from '@/lib/sanitize'
 import { CommentCreateSchema, CommentQuerySchema } from '@/lib/comment-schemas'
 import { z } from 'zod'
 
+const formatCommentForClient = (comment: any) => ({
+  id: comment.id,
+  postId: comment.post_id,
+  authorId: comment.author_id,
+  content: comment.content,
+  isAnonymous: comment.is_anonymous || false,
+  parentId: comment.parent_id || null,
+  likeCount: comment.like_count || 0,
+  createdAt: comment.created_at,
+  updatedAt: comment.updated_at,
+  author: comment.user_profiles
+    ? {
+        id: comment.user_profiles.id,
+        name: comment.user_profiles.name || '알 수 없음',
+        email: comment.user_profiles.email || '',
+      }
+    : undefined,
+})
+
 // 댓글 목록 조회
 export async function GET(
   request: NextRequest,
@@ -44,7 +63,7 @@ export async function GET(
     // 페이징 처리
     const startIndex = (page - 1) * limit
     const endIndex = startIndex + limit
-    const paginatedComments = comments.slice(startIndex, endIndex)
+    const paginatedComments = comments.slice(startIndex, endIndex).map(formatCommentForClient)
     
     return NextResponse.json({
       success: true,
@@ -141,7 +160,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      data: result,
+      data: formatCommentForClient(result),
       message: '댓글이 작성되었습니다.'
     }, { status: 201 })
   } catch (error) {
