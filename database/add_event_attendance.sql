@@ -22,10 +22,12 @@ CREATE INDEX IF NOT EXISTS idx_event_attendance_user_id ON event_attendance(user
 ALTER TABLE event_attendance ENABLE ROW LEVEL SECURITY;
 
 -- 모든 사용자가 참석 정보를 조회할 수 있음
+DROP POLICY IF EXISTS "Anyone can view attendance" ON event_attendance;
 CREATE POLICY "Anyone can view attendance" ON event_attendance
   FOR SELECT USING (true);
 
 -- 인증된 사용자만 참석/취소할 수 있음
+DROP POLICY IF EXISTS "Authenticated users can manage attendance" ON event_attendance;
 CREATE POLICY "Authenticated users can manage attendance" ON event_attendance
   FOR ALL USING (auth.uid() = user_id);
 

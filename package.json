@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "check:supabase": "node scripts/check-supabase-connection.js",
     "clean": "rm -rf .next out dist",
     "analyze": "ANALYZE=true npm run build",
     "seed:churches": "node scripts/seed-church-domains.js",

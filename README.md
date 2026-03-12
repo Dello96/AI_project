@@ -24,25 +24,24 @@ npm install
 ```
 
 ### 3. 환경 변수 설정
-프로젝트 루트에 `.env.local` 파일을 생성하고 다음 내용을 추가하세요:
+프로젝트 루트에서 `.env.example`을 복사해 `.env.local`을 생성한 뒤 값을 채우세요:
 
 ```bash
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-
-# OpenAI API (향후 확장 기능용)
-OPENAI_API_KEY=your-openai-api-key-here
-
-# Toss Payments (향후 확장 기능용)
-TOSS_PAYMENTS_SECRET_KEY=your-toss-secret-key-here
-
-# 개발 환경 설정
-NODE_ENV=development
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+cp .env.example .env.local
 ```
 
-**중요**: Supabase 프로젝트를 먼저 생성해야 합니다. 자세한 설정 방법은 `SUPABASE_SETUP.md`를 참조하세요.
+그 다음 `.env.local`에서 아래 항목을 반드시 실제 값으로 교체하세요:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+환경 변수 입력 후 연결 점검:
+
+```bash
+npm run check:supabase
+```
+
+`check:supabase`가 실패하면 `SUPABASE_SETUP.md`를 따라 프로젝트/키/스키마를 다시 세팅하세요.
 
 ### 4. 교회 도메인 데이터 추가 (중요!)
 회원가입에서 교회를 선택할 수 있도록 교회 도메인 데이터를 추가해야 합니다:

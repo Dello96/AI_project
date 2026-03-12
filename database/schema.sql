@@ -3,6 +3,44 @@
 
 -- 교회 도메인 테이블 제거됨 (단순화)
 
+-- UUID 생성 함수 사용
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ENUM 타입 (테이블보다 먼저 선언)
+CREATE TYPE pending_status AS ENUM ('pending', 'approved', 'rejected');
+CREATE TYPE user_role AS ENUM ('member', 'leader', 'admin');
+CREATE TYPE post_category AS ENUM ('notice', 'free', 'qna');
+CREATE TYPE event_category AS ENUM ('worship', 'meeting', 'event', 'smallgroup', 'vehicle');
+CREATE TYPE auth_action_type AS ENUM (
+  'login_success',
+  'login_failure',
+  'logout',
+  'token_refresh',
+  'password_change',
+  'account_locked'
+);
+CREATE TYPE notification_type AS ENUM ('post', 'comment', 'event', 'system');
+CREATE TYPE admin_action_type AS ENUM (
+  'user_approve',
+  'user_reject',
+  'user_suspend',
+  'user_activate',
+  'report_review',
+  'report_resolve',
+  'content_moderate',
+  'role_change'
+);
+CREATE TYPE target_entity_type AS ENUM ('user', 'post', 'comment', 'event', 'report');
+CREATE TYPE report_reason AS ENUM (
+  'spam',
+  'inappropriate_content',
+  'harassment',
+  'fake_news',
+  'copyright_violation',
+  'other'
+);
+CREATE TYPE report_status AS ENUM ('pending', 'under_review', 'resolved', 'dismissed');
+
 -- 2. 임시 회원가입 요청 테이블
 CREATE TABLE pending_members (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -22,8 +60,7 @@ CREATE TABLE pending_members (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 3. 임시 회원가입 상태 ENUM
-CREATE TYPE pending_status AS ENUM ('pending', 'approved', 'rejected');
+-- 3. 임시 회원가입 상태 ENUM (상단으로 이동)
 
 -- 4. 사용자 프로필 테이블 (Supabase Auth와 연동)
 CREATE TABLE user_profiles (
@@ -32,7 +69,7 @@ CREATE TABLE user_profiles (
   name VARCHAR(255) NOT NULL,
   phone VARCHAR(20),
   avatar_url TEXT,
-  role user_role DEFAULT 'user',
+  role user_role DEFAULT 'member',
   is_approved BOOLEAN DEFAULT false,
   approved_at TIMESTAMP WITH TIME ZONE,
   approved_by UUID REFERENCES user_profiles(id),
@@ -41,8 +78,7 @@ CREATE TABLE user_profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 3. 사용자 역할 ENUM
-CREATE TYPE user_role AS ENUM ('user', 'leader', 'admin');
+-- 3. 사용자 역할 ENUM (상단으로 이동)
 
 -- 4. 게시글 테이블
 CREATE TABLE posts (
@@ -62,19 +98,10 @@ CREATE TABLE posts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 5. 게시글 카테고리 ENUM
-CREATE TYPE post_category AS ENUM ('notice', 'free', 'qna');
+-- 5. 게시글 카테고리 ENUM (상단으로 이동)
 
 -- 5-1. 익명 사용자 프로필 생성 (게시글 작성용)
-INSERT INTO user_profiles (id, email, name, role, is_approved, church_domain_id)
-VALUES (
-  '00000000-0000-0000-0000-000000000000',
-  'anonymous@system.local',
-  '익명 사용자',
-  'member',
-  true,
-  '00000000-0000-0000-0000-000000000000'
-) ON CONFLICT (id) DO NOTHING;
+-- auth.users FK 제약으로 인해 임의 UUID 사용자 프로필 삽입은 실패할 수 있으므로 제거
 
 -- 6. 댓글 테이블
 CREATE TABLE comments (
@@ -105,8 +132,7 @@ CREATE TABLE events (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 8. 이벤트 카테고리 ENUM
-CREATE TYPE event_category AS ENUM ('worship', 'meeting', 'event', 'smallgroup', 'vehicle');
+-- 8. 이벤트 카테고리 ENUM (상단으로 이동)
 
 -- 9. 좋아요 테이블
 CREATE TABLE likes (
@@ -144,15 +170,7 @@ CREATE TABLE auth_audit_logs (
   timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 12. 인증 액션 타입 ENUM
-CREATE TYPE auth_action_type AS ENUM (
-  'login_success',
-  'login_failure', 
-  'logout',
-  'token_refresh',
-  'password_change',
-  'account_locked'
-);
+-- 12. 인증 액션 타입 ENUM (상단으로 이동)
 
 -- 13. 알림 테이블
 CREATE TABLE notifications (
@@ -166,8 +184,7 @@ CREATE TABLE notifications (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 11. 알림 타입 ENUM
-CREATE TYPE notification_type AS ENUM ('post', 'comment', 'event', 'system');
+-- 11. 알림 타입 ENUM (상단으로 이동)
 
 -- 12. 파일 업로드 테이블
 CREATE TABLE file_uploads (
@@ -373,54 +390,23 @@ CREATE TRIGGER update_comment_like_count_trigger
   FOR EACH ROW EXECUTE FUNCTION update_comment_like_count();
 
 -- 조회수 자동 증가 함수
-CREATE OR REPLACE FUNCTION increment_post_view_count()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION increment_post_view_count(post_id UUID)
+RETURNS VOID AS $$
 BEGIN
-  UPDATE posts SET view_count = view_count + 1 WHERE id = NEW.id;
-  RETURN NEW;
+  UPDATE posts SET view_count = view_count + 1 WHERE id = post_id;
+  RETURN;
 END;
 $$ language 'plpgsql';
 
 -- 관리자 관련 테이블 및 ENUM 추가
 
--- 관리자 액션 타입 ENUM
-CREATE TYPE admin_action_type AS ENUM (
-  'user_approve',
-  'user_reject',
-  'user_suspend',
-  'user_activate',
-  'report_review',
-  'report_resolve',
-  'content_moderate',
-  'role_change'
-);
+-- 관리자 액션 타입 ENUM (상단으로 이동)
 
--- 대상 엔티티 타입 ENUM
-CREATE TYPE target_entity_type AS ENUM (
-  'user',
-  'post',
-  'comment',
-  'event',
-  'report'
-);
+-- 대상 엔티티 타입 ENUM (상단으로 이동)
 
--- 신고 사유 ENUM
-CREATE TYPE report_reason AS ENUM (
-  'spam',
-  'inappropriate_content',
-  'harassment',
-  'fake_news',
-  'copyright_violation',
-  'other'
-);
+-- 신고 사유 ENUM (상단으로 이동)
 
--- 신고 상태 ENUM
-CREATE TYPE report_status AS ENUM (
-  'pending',
-  'under_review',
-  'resolved',
-  'dismissed'
-);
+-- 신고 상태 ENUM (상단으로 이동)
 
 -- 관리자 감사 로그 테이블
 CREATE TABLE admin_audit_logs (
@@ -450,6 +436,10 @@ CREATE TABLE reports (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- 관리자/신고 테이블도 RLS 활성화
+ALTER TABLE admin_audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 
 -- 관리자 감사 로그 RLS 정책
 CREATE POLICY "Admins can view all audit logs" ON admin_audit_logs
@@ -492,7 +482,4 @@ CREATE POLICY "Admins can update reports" ON reports
   );
 
 -- 초기 데이터 삽입
-INSERT INTO church_domains (domain, name, description) VALUES
-  ('youth.church.kr', '청년부 교회', '청년부를 위한 커뮤니티'),
-  ('ministry.kr', '사역자 교회', '사역자를 위한 커뮤니티'),
-  ('gospel.kr', '복음 교회', '복음을 위한 커뮤니티');
+-- church_domains 테이블은 현재 스키마에서 제거됨

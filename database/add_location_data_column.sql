@@ -3,10 +3,10 @@
 
 -- location_data 컬럼 추가
 ALTER TABLE events 
-ADD COLUMN location_data JSONB;
+ADD COLUMN IF NOT EXISTS location_data JSONB;
 
 -- location_data 컬럼에 대한 인덱스 생성 (성능 최적화)
-CREATE INDEX idx_events_location_data ON events USING GIN (location_data);
+CREATE INDEX IF NOT EXISTS idx_events_location_data ON events USING GIN (location_data);
 
 -- location_data 컬럼에 대한 코멘트 추가
 COMMENT ON COLUMN events.location_data IS '장소 상세 정보 (이름, 주소, 위도, 경도)를 JSON 형태로 저장';
