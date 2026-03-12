@@ -109,8 +109,17 @@ export const useAuthStore = create<AuthStore>()(
         })
 
         if (authError) {
-          set({ error: authError.message, isLoading: false })
-          return { success: false, message: authError.message }
+          const lowerMessage = authError.message.toLowerCase()
+          const isEmailNotConfirmed =
+            authError.code === 'email_not_confirmed' ||
+            lowerMessage.includes('email not confirmed')
+
+          const normalizedMessage = isEmailNotConfirmed
+            ? '이메일 인증이 아직 완료되지 않았습니다. 메일함에서 인증 링크를 먼저 눌러주세요.'
+            : authError.message
+
+          set({ error: normalizedMessage, isLoading: false })
+          return { success: false, message: normalizedMessage }
         }
 
         if (authData.user) {
