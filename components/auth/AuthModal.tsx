@@ -33,7 +33,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
   })
   const [error, setError] = useState<string | null>(null)
   
-  const { signIn, signUp, isLoading, error: authError } = useAuthStore()
+  const { signIn, isLoading, error: authError } = useAuthStore()
 
 
 
@@ -69,21 +69,32 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin', onS
       const submittedPhone = String(formData.get('phone') || signUpData.phone || '').trim()
       const submittedConfirmPassword = signUpData.confirmPassword
 
-      const result = await signUp({
-        ...signUpData,
-        email: submittedEmail,
-        password: submittedPassword,
-        confirmPassword: submittedConfirmPassword,
-        name: submittedName,
-        phone: submittedPhone
+      if (submittedPassword !== submittedConfirmPassword) {
+        setError('비밀번호가 일치하지 않습니다.')
+        return
+      }
+
+      const response = await fetch('/api/auth/signup-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: submittedEmail,
+          password: submittedPassword,
+          name: submittedName,
+          phone: submittedPhone || undefined
+        })
       })
 
-      if (result.success) {
+      const result = await response.json()
+
+      if (response.ok && result.success) {
         setMode('signin')
         setSignUpData({ email: '', password: '', confirmPassword: '', name: '', phone: '' })
         setError(null)
       } else {
-        setError(result.message || '회원가입에 실패했습니다.')
+        setError(result.error || '회원가입에 실패했습니다.')
       }
     }
   }
